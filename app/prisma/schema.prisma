@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  OPERARIO
+  SUPERVISOR
+  GERENCIA
+}
+
+enum TipoMaquina {
+  LASER
+  PUNZONADORA_CNC
+  FRESADORA
+  EXPANSORA
+  PLEGADORA
+  LAVADO
+  PINTADO
+  HORNO
+  EMBALAJE
+  DESPACHO
+}
+
+enum EstadoMaquina {
+  OPERATIVA
+  MANTENIMIENTO
+  FUERA_DE_SERVICIO
+}
+
+enum Unidad {
+  PIEZAS
+  METROS
+  M2
+}
+
+enum EstadoOrden {
+  PENDIENTE
+  EN_PRODUCCION
+  EN_ESPERA
+  COMPLETADA
+  CANCELADA
+}
+
+enum EstadoEjecucion {
+  PENDIENTE
+  ACTIVA
+  EN_ESPERA
+  COMPLETADA
+}
+
+enum EstadoProyecto {
+  ACTIVO
+  COMPLETADO
+  CANCELADO
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String   @unique
+  rol       Rol
+  createdAt DateTime @default(now())
+
+  ejecuciones EjecucionEtapa[]
+  registros   RegistroProgreso[]
+}
+
+model Proyecto {
+  id           String         @id @default(cuid())
+  nombre       String
+  cliente      String
+  fechaEntrega DateTime
+  estado       EstadoProyecto @default(ACTIVO)
+  createdAt    DateTime       @default(now())
+
+  ordenes OrdenProduccion[]
+}
+
+model Maquina {
+  id           String        @id @default(cuid())
+  nombre       String
+  tipo         TipoMaquina   @unique
+  estadoActual EstadoMaquina @default(OPERATIVA)
+
+  etapasRuta  EtapaRuta[]
+  ejecuciones EjecucionEtapa[]
+}
+
+model Ruta {
+  id          String  @id @default(cuid())
+  sistema     String
+  producto    String
+  descripcion String?
+
+  etapas  EtapaRuta[]
+  ordenes OrdenProduccion[]
+
+  @@unique([sistema, producto])
+}
+
+model EtapaRuta {
+  id               String @id @default(cuid())
+  rutaId           String
+  maquinaId        String
+  ordenSecuencia   Int
+  nombreEtapa      String
+  umbralActivacion Float  @default(100)
+
+  ruta        Ruta             @relation(fields: [rutaId], references: [id])
+  maquina     Maquina          @relation(fields: [maquinaId], references: [id])
+  ejecuciones EjecucionEtapa[]
+}
+
+model OrdenProduccion {
+  id               String      @id @default(cuid())
+  proyectoId       String?
+  rutaId           String
+  sistema          String
+  producto         String
+  cantidad         Float
+  unidad           Unidad
+  porcentajeGlobal Float       @default(0)
+  estado           EstadoOrden @default(PENDIENTE)
+  prioridad        Int         @default(0)
+  createdAt        DateTime    @default(now())
+
+  proyecto    Proyecto?        @relation(fields: [proyectoId], references: [id])
+  ruta        Ruta             @relation(fields: [rutaId], references: [id])
+  ejecuciones EjecucionEtapa[]
+}
+
+model EjecucionEtapa {
+  id               String          @id @default(cuid())
+  ordenId          String
+  etapaRutaId      String
+  maquinaId        String
+  operarioId       String?
+  porcentajeActual Float           @default(0)
+  estado           EstadoEjecucion @default(PENDIENTE)
+  fechaInicio      DateTime?
+  fechaFin         DateTime?
+  createdAt        DateTime        @default(now())
+
+  orden      OrdenProduccion    @relation(fields: [ordenId], references: [id])
+  etapaRuta  EtapaRuta          @relation(fields: [etapaRutaId], references: [id])
+  maquina    Maquina            @relation(fields: [maquinaId], references: [id])
+  operario   Usuario?           @relation(fields: [operarioId], references: [id])
+  registros  RegistroProgreso[]
+}
+
+model RegistroProgreso {
+  id                   String   @id @default(cuid())
+  ejecucionEtapaId     String
+  usuarioId            String
+  porcentajeRegistrado Float
+  cantidadRegistrada   Float
+  timestamp            DateTime @default(now())
+  notas                String?
+  fueOverride          Boolean  @default(false)
+  motivoOverride       String?
+
+  ejecucionEtapa EjecucionEtapa @relation(fields: [ejecucionEtapaId], references: [id])
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id])
+}
