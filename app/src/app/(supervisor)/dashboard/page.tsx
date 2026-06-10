@@ -16,7 +16,7 @@ export default async function SupervisorDashboard() {
         id, sistema, producto, cantidad, unidad, porcentajeGlobal, estado, prioridad,
         proyecto:Proyecto ( nombre, cliente ),
         ejecuciones:EjecucionEtapa (
-          id, porcentajeActual, estado, fechaInicio,
+          id, porcentajeActual, estado, fechaInicio, fueOverride,
           maquina:Maquina ( id, nombre, tipo ),
           etapaRuta:EtapaRuta ( nombreEtapa, ordenSecuencia, umbralActivacion )
         )

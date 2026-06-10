@@ -144,6 +144,7 @@ model EjecucionEtapa {
   operarioId       String?
   porcentajeActual Float           @default(0)
   estado           EstadoEjecucion @default(PENDIENTE)
+  fueOverride      Boolean         @default(false)
   fechaInicio      DateTime?
   fechaFin         DateTime?
   createdAt        DateTime        @default(now())

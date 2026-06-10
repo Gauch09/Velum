@@ -18,6 +18,7 @@ export interface EjecucionConDetalle {
   porcentajeActual: number
   estado: string
   fechaInicio: string | null
+  fueOverride: boolean
   maquina: { id: string; nombre: string; tipo: string }
   etapaRuta: { nombreEtapa: string; ordenSecuencia: number; umbralActivacion: number }
 }
