@@ -20,11 +20,17 @@ const SEMAFORO_CONFIG = {
 
 type Props = {
   nombre: string
-  fechaEntrega: string   // ISO string from Supabase
-  progreso: number       // 0–100
+  fechaEntrega: string
+  progreso: number
+  tieneAlerta?: boolean
 }
 
-export default function ProyectoCard({ nombre, fechaEntrega, progreso }: Props) {
+export default function ProyectoCard({
+  nombre,
+  fechaEntrega,
+  progreso,
+  tieneAlerta = false,
+}: Props) {
   const semaforo = calcularSemaforo(new Date(fechaEntrega), progreso)
   const config = SEMAFORO_CONFIG[semaforo]
 
@@ -41,7 +47,14 @@ export default function ProyectoCard({ nombre, fechaEntrega, progreso }: Props) 
   return (
     <div className={`bg-gray-900 rounded-lg p-4 border-l-4 ${config.border}`}>
       <div className="flex justify-between items-center mb-3">
-        <span className="text-white font-semibold">{nombre}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-white font-semibold">{nombre}</span>
+          {tieneAlerta && (
+            <span className="text-amber-400 text-xs font-bold" title="Cuello de botella activo">
+              ⚠
+            </span>
+          )}
+        </div>
         <span className={`${config.text} text-sm font-medium`}>{diasLabel}</span>
       </div>
       <div className="bg-gray-800 rounded-full h-2 mb-2">

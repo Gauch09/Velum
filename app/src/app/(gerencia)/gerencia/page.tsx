@@ -2,6 +2,9 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import ProyectoCard from '@/components/gerencia/ProyectoCard'
 import MaquinaEstado from '@/components/gerencia/MaquinaEstado'
 import GerenciaRealtimeListener from '@/components/gerencia/GerenciaRealtimeListener'
+import AlertasBanner from '@/components/shared/AlertasBanner'
+import { calcularAlertas } from '@/lib/alertas'
+import type { EjecucionParaAlerta } from '@/lib/alertas'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,18 +14,13 @@ type Proyecto = {
   fechaEntrega: string
 }
 
-type Orden = {
-  proyectoId: string | null
-  porcentajeGlobal: number
-}
-
 type Maquina = {
   id: string
   nombre: string
   estadoActual: 'OPERATIVA' | 'MANTENIMIENTO' | 'FUERA_DE_SERVICIO'
 }
 
-function calcularProgresoMap(ordenes: Orden[]): Map<string, number> {
+function calcularProgresoMap(ordenes: { proyectoId: string | null; porcentajeGlobal: number }[]): Map<string, number> {
   const groups = new Map<string, number[]>()
   for (const orden of ordenes) {
     if (!orden.proyectoId) continue
@@ -32,7 +30,7 @@ function calcularProgresoMap(ordenes: Orden[]): Map<string, number> {
   }
   const result = new Map<string, number>()
   for (const [id, valores] of Array.from(groups.entries())) {
-    result.set(id, valores.reduce((a: number, b: number) => a + b, 0) / valores.length)
+    result.set(id, valores.reduce((a, b) => a + b, 0) / valores.length)
   }
   return result
 }
@@ -40,7 +38,7 @@ function calcularProgresoMap(ordenes: Orden[]): Map<string, number> {
 export default async function GerenciaPage() {
   const supabase = createSupabaseAdminClient() as any
 
-  const [{ data: proyectos }, { data: ordenes }, { data: maquinas }] =
+  const [{ data: proyectos }, { data: ordenes }, { data: maquinas }, { data: config }] =
     await Promise.all([
       supabase
         .from('Proyecto')
@@ -49,16 +47,59 @@ export default async function GerenciaPage() {
         .order('fechaEntrega', { ascending: true }),
       supabase
         .from('OrdenProduccion')
-        .select('proyectoId, porcentajeGlobal')
+        .select(`
+          id, sistema, producto, porcentajeGlobal, proyectoId,
+          proyecto:Proyecto ( nombre, fechaEntrega ),
+          ejecuciones:EjecucionEtapa (
+            id, estado, porcentajeActual, ultimoProgresoEn, fechaInicio,
+            etapaRuta:EtapaRuta ( nombreEtapa )
+          )
+        `)
         .not('proyectoId', 'is', null)
         .in('estado', ['PENDIENTE', 'EN_PRODUCCION', 'EN_ESPERA']),
       supabase
         .from('Maquina')
         .select('id, nombre, estadoActual')
         .order('nombre', { ascending: true }),
+      supabase
+        .from('Configuracion')
+        .select('horasSinActividadAlerta')
+        .eq('id', 'singleton')
+        .single(),
     ])
 
-  const progresoMap = calcularProgresoMap((ordenes ?? []) as Orden[])
+  const umbralHoras: number = config?.horasSinActividadAlerta ?? 4
+
+  const ejecucionesParaAlerta: EjecucionParaAlerta[] = ((ordenes ?? []) as any[]).flatMap(
+    (orden) =>
+      ((orden.ejecuciones ?? []) as any[]).map((ej: any) => ({
+        id: ej.id,
+        estado: ej.estado,
+        ultimoProgresoEn: ej.ultimoProgresoEn ?? null,
+        fechaInicio: ej.fechaInicio ?? null,
+        porcentajeActual: ej.porcentajeActual,
+        orden: {
+          id: orden.id,
+          sistema: orden.sistema,
+          producto: orden.producto,
+          porcentajeGlobal: orden.porcentajeGlobal,
+          fechaEntrega: orden.proyecto?.fechaEntrega ?? null,
+          proyecto: orden.proyecto ? { nombre: orden.proyecto.nombre } : null,
+        },
+        etapaRuta: { nombreEtapa: ej.etapaRuta?.nombreEtapa ?? '' },
+      }))
+  )
+
+  const alertas = calcularAlertas(ejecucionesParaAlerta, umbralHoras)
+
+  const progresoMap = calcularProgresoMap((ordenes ?? []) as any[])
+
+  const ordenPorId = new Map(((ordenes ?? []) as any[]).map((o: any) => [o.id, o]))
+  const proyectosConAlerta = new Set(
+    alertas
+      .map(a => ordenPorId.get(a.ordenId)?.proyectoId)
+      .filter(Boolean)
+  )
 
   const ahora = new Date().toLocaleString('es-AR', {
     day: '2-digit',
@@ -72,15 +113,15 @@ export default async function GerenciaPage() {
       <GerenciaRealtimeListener />
 
       <header className="px-8 py-4 border-b border-gray-800 flex justify-between items-center shrink-0">
-        <span className="text-[#c9a96e] font-bold tracking-widest text-lg">
-          VELUM
-        </span>
+        <span className="text-[#c9a96e] font-bold tracking-widest text-lg">VELUM</span>
         <span className="text-gray-500 text-sm">{ahora}</span>
       </header>
 
       <div className="flex flex-1 min-h-0">
         {/* Proyectos — 65% */}
         <section className="flex-1 p-8 border-r border-gray-800 overflow-y-auto">
+          <AlertasBanner alertas={alertas} readonly={true} umbralHoras={umbralHoras} />
+
           <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-6">
             Proyectos Activos
           </p>
@@ -94,6 +135,7 @@ export default async function GerenciaPage() {
                   nombre={p.nombre}
                   fechaEntrega={p.fechaEntrega}
                   progreso={progresoMap.get(p.id) ?? 0}
+                  tieneAlerta={proyectosConAlerta.has(p.id)}
                 />
               ))}
             </div>
