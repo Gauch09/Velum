@@ -63,8 +63,10 @@ model Usuario {
   nombre    String
   email     String   @unique
   rol       Rol
+  maquinaId String?
   createdAt DateTime @default(now())
 
+  maquina     Maquina?           @relation(fields: [maquinaId], references: [id])
   ejecuciones EjecucionEtapa[]
   registros   RegistroProgreso[]
 }
@@ -86,6 +88,7 @@ model Maquina {
   tipo         TipoMaquina   @unique
   estadoActual EstadoMaquina @default(OPERATIVA)
 
+  operarios   Usuario[]
   etapasRuta  EtapaRuta[]
   ejecuciones EjecucionEtapa[]
 }
