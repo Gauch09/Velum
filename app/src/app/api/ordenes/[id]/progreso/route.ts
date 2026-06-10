@@ -50,7 +50,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // Load all executions for this order
   const { data: ejecuciones, error: ejError } = await supabase
     .from('EjecucionEtapa')
-    .select('id, ordenId, etapaRutaId, maquinaId, porcentajeActual, estado, etapaRuta:EtapaRuta ( ordenSecuencia, umbralActivacion )')
+    .select('id, ordenId, etapaRutaId, maquinaId, operarioId, porcentajeActual, estado, etapaRuta:EtapaRuta ( ordenSecuencia, umbralActivacion )')
     .eq('ordenId', params.id)
     .order('etapaRuta(ordenSecuencia)', { ascending: true })
 
@@ -58,6 +58,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const ejecucionActual = ejecuciones.find((e: any) => e.id === ejecucionEtapaId)
   if (!ejecucionActual) return NextResponse.json({ error: 'Ejecución no encontrada' }, { status: 404 })
+
+  // Validate operario assignment — if assigned, only that operario can register
+  if (ejecucionActual.operarioId && ejecucionActual.operarioId !== usuario.id) {
+    return NextResponse.json({ error: 'No estás asignado a esta etapa' }, { status: 403 })
+  }
 
   // Calculate new percentage
   const cantidadAnterior = (ejecucionActual.porcentajeActual / 100) * orden.cantidad

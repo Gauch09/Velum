@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { sistema, producto, cantidad, unidad, proyectoId } = body
+  const { sistema, producto, cantidad, unidad, proyectoId, maquinaCorte, prioridad } = body
 
   if (!sistema || !producto || !cantidad || !unidad) {
     return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   // Find the route for this system/product
   const { data: ruta, error: rutaError } = await supabase
     .from('Ruta')
-    .select('id, sistema, producto, etapas:EtapaRuta ( id, maquinaId, ordenSecuencia, nombreEtapa, umbralActivacion )')
+    .select('id, sistema, producto, etapas:EtapaRuta ( id, maquinaId, ordenSecuencia, nombreEtapa, umbralActivacion, maquina:Maquina(tipo) )')
     .eq('sistema', sistema)
     .eq('producto', producto)
     .single()
@@ -57,6 +57,33 @@ export async function POST(req: Request) {
     (a: any, b: any) => a.ordenSecuencia - b.ordenSecuencia
   )
 
+  // For TIPO A/F: if caller chose a different cutting machine, override the first stage
+  const primeraEtapaTipo = etapasOrdenadas[0]?.maquina?.tipo
+  if (
+    maquinaCorte &&
+    primeraEtapaTipo === 'PUNZONADORA_CNC' &&
+    maquinaCorte !== 'PUNZONADORA_CNC'
+  ) {
+    const { data: maquinaOverride } = await supabase
+      .from('Maquina')
+      .select('id')
+      .eq('tipo', maquinaCorte)
+      .single()
+    if (maquinaOverride) {
+      etapasOrdenadas[0] = { ...etapasOrdenadas[0], maquinaId: maquinaOverride.id }
+    }
+  }
+
+  // Look up assigned operario for each machine in this route
+  const maquinaIds = etapasOrdenadas.map((e: any) => e.maquinaId)
+  const { data: operariosAsignados } = await supabase
+    .from('Usuario')
+    .select('id, maquinaId')
+    .in('maquinaId', maquinaIds)
+  const operarioByMaquina: Record<string, string> = Object.fromEntries(
+    (operariosAsignados ?? []).map((u: any) => [u.maquinaId, u.id])
+  )
+
   // Create order
   const ordenId = createId()
   const { data: nuevaOrden, error: ordenError } = await supabase
@@ -70,18 +97,20 @@ export async function POST(req: Request) {
       rutaId: ruta.id,
       proyectoId: proyectoId ?? null,
       estado: 'EN_PRODUCCION',
+      prioridad: prioridad ?? 0,
     })
     .select()
     .single()
 
   if (ordenError) return NextResponse.json({ error: ordenError.message }, { status: 500 })
 
-  // Create executions — first stage ACTIVA, rest PENDIENTE
+  // Create executions — first stage ACTIVA, rest PENDIENTE; operarioId pre-assigned
   const ejecuciones = etapasOrdenadas.map((etapa: any, idx: number) => ({
     id: createId(),
     ordenId,
     etapaRutaId: etapa.id,
     maquinaId: etapa.maquinaId,
+    operarioId: operarioByMaquina[etapa.maquinaId] ?? null,
     estado: idx === 0 ? 'ACTIVA' : 'PENDIENTE',
     fechaInicio: idx === 0 ? new Date().toISOString() : null,
   }))
