@@ -1,5 +1,6 @@
 import { createId } from '@paralleldrive/cuid2'
 import type { AlertaCuello } from './alertas'
+import { enviarAlertaRoja } from './email'
 
 export async function registrarAlertas(
   alertas: AlertaCuello[],
@@ -35,6 +36,20 @@ export async function registrarAlertas(
 
   if (nuevos.length > 0) {
     await supabase.from('AlertaLog').insert(nuevos)
+
+    const nuevosRojos = nuevos.filter(n => n.severidad === 'rojo')
+    if (nuevosRojos.length > 0) {
+      const { data: supervisores } = await supabase
+        .from('Usuario')
+        .select('email')
+        .eq('rol', 'SUPERVISOR')
+
+      const emails: string[] = ((supervisores ?? []) as { email: string }[]).map(s => s.email)
+
+      await Promise.all(
+        nuevosRojos.map(a => enviarAlertaRoja(emails, a))
+      )
+    }
   }
 
   // Close logs for alerts that are no longer firing
