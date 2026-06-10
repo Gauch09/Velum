@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import OrdenCard from '@/components/operario/OrdenCard'
+import OperarioRealtimeListener from '@/components/operario/OperarioRealtimeListener'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,7 @@ export default async function OperarioPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 pb-10">
+      <OperarioRealtimeListener />
       <header className="flex justify-between items-center mb-6 pt-2">
         <h1 className="text-white text-xl font-bold tracking-tight">VELUM · Producción</h1>
         <span className="text-gray-400 text-sm truncate max-w-[120px]">{usuario?.nombre}</span>

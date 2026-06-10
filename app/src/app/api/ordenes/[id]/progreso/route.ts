@@ -136,6 +136,31 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (ordenUpdateError) return NextResponse.json({ error: ordenUpdateError.message }, { status: 500 })
 
+  // Auto-close proyecto if all its orders are now COMPLETADA
+  if (ordenCompleta) {
+    const { data: ordenCerrada } = await supabase
+      .from('OrdenProduccion')
+      .select('proyectoId')
+      .eq('id', params.id)
+      .single()
+
+    if (ordenCerrada?.proyectoId) {
+      const { count: pendientes } = await supabase
+        .from('OrdenProduccion')
+        .select('id', { count: 'exact', head: true })
+        .eq('proyectoId', ordenCerrada.proyectoId)
+        .neq('estado', 'COMPLETADA')
+        .neq('estado', 'CANCELADA')
+
+      if ((pendientes ?? 0) === 0) {
+        await supabase
+          .from('Proyecto')
+          .update({ estado: 'COMPLETADO' })
+          .eq('id', ordenCerrada.proyectoId)
+      }
+    }
+  }
+
   // Broadcast via Supabase Realtime
   await broadcastClient.channel('ordenes').send({
     type: 'broadcast',
