@@ -101,6 +101,12 @@ export default async function SupervisorDashboard() {
           >
             📊 Rendimiento
           </Link>
+          <Link
+            href="/rutas"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            🔧 Rutas
+          </Link>
           <NuevaOrdenModal />
         </div>
       </div>
