@@ -51,4 +51,16 @@ describe('evaluarCascada', () => {
     const result = evaluarCascada(etapas, 'ej1', 80)
     expect(result.etapasAActivar).not.toContain('er2')
   })
+
+  it('retorna porcentajeGlobal 100 cuando todas las etapas llegan al 100%', () => {
+    const etapas = [
+      { id: 'ej1', ordenSecuencia: 1, umbralActivacion: 0,   porcentajeActual: 100, estado: 'COMPLETADA' as const, etapaRutaId: 'er1', maquinaId: 'm1' },
+      { id: 'ej2', ordenSecuencia: 2, umbralActivacion: 50,  porcentajeActual: 100, estado: 'COMPLETADA' as const, etapaRutaId: 'er2', maquinaId: 'm2' },
+      { id: 'ej3', ordenSecuencia: 3, umbralActivacion: 40,  porcentajeActual: 100, estado: 'COMPLETADA' as const, etapaRutaId: 'er3', maquinaId: 'm3' },
+      { id: 'ej4', ordenSecuencia: 4, umbralActivacion: 100, porcentajeActual: 90,  estado: 'ACTIVA'     as const, etapaRutaId: 'er4', maquinaId: 'm4' },
+    ]
+    const result = evaluarCascada(etapas, 'ej4', 100)
+    expect(result.porcentajeGlobal).toBe(100)
+    expect(result.etapasAActivar).toHaveLength(0)
+  })
 })

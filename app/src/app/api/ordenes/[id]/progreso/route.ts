@@ -124,10 +124,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     if (cascadeError) return NextResponse.json({ error: cascadeError.message }, { status: 500 })
   }
 
-  // Update global percentage on order
+  // Update global percentage on order — auto-close when all stages complete
+  const ordenCompleta = porcentajeGlobal >= 100
   const { error: ordenUpdateError } = await supabase
     .from('OrdenProduccion')
-    .update({ porcentajeGlobal })
+    .update({
+      porcentajeGlobal,
+      ...(ordenCompleta ? { estado: 'COMPLETADA' } : {}),
+    })
     .eq('id', params.id)
 
   if (ordenUpdateError) return NextResponse.json({ error: ordenUpdateError.message }, { status: 500 })
@@ -136,8 +140,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   await broadcastClient.channel('ordenes').send({
     type: 'broadcast',
     event: 'progreso',
-    payload: { ordenId: params.id, porcentajeGlobal, etapasActivadas: etapasAActivar },
+    payload: { ordenId: params.id, porcentajeGlobal, etapasActivadas: etapasAActivar, completada: ordenCompleta },
   })
 
-  return NextResponse.json({ porcentajeGlobal, etapasActivadas: etapasAActivar })
+  return NextResponse.json({ porcentajeGlobal, etapasActivadas: etapasAActivar, completada: ordenCompleta })
 }
