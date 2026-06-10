@@ -74,6 +74,19 @@ export default async function SupervisorDashboard() {
   const todosEjecucionIds = ejecucionesParaAlerta.map(e => e.id)
   await registrarAlertas(alertas, todosEjecucionIds, supabase)
 
+  const cargaMaquinas: Record<string, { activas: number; etapas: string[] }> = {}
+  for (const orden of (ordenes ?? []) as any[]) {
+    for (const ej of (orden.ejecuciones ?? []) as any[]) {
+      if (ej.estado === 'ACTIVA' && ej.maquina?.id) {
+        const prev = cargaMaquinas[ej.maquina.id] ?? { activas: 0, etapas: [] }
+        cargaMaquinas[ej.maquina.id] = {
+          activas: prev.activas + 1,
+          etapas: [...prev.etapas, `${orden.sistema} / ${orden.producto} · ${ej.etapaRuta?.nombreEtapa ?? ''}`],
+        }
+      }
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gray-950 p-6">
       <RealtimeListener />
@@ -98,7 +111,7 @@ export default async function SupervisorDashboard() {
           <HistorialAlertas entradas={historial ?? []} />
         </div>
         <div>
-          <MaquinasStatus maquinas={maquinas ?? []} />
+          <MaquinasStatus maquinas={maquinas ?? []} cargas={cargaMaquinas} />
         </div>
       </div>
     </main>
