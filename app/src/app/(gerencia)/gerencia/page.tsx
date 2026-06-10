@@ -2,6 +2,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import ProyectoCard from '@/components/gerencia/ProyectoCard'
 import MaquinaEstado from '@/components/gerencia/MaquinaEstado'
 import GerenciaRealtimeListener from '@/components/gerencia/GerenciaRealtimeListener'
+import GerenciaReloj from '@/components/gerencia/GerenciaReloj'
 import AlertasBanner from '@/components/shared/AlertasBanner'
 import { calcularAlertas } from '@/lib/alertas'
 import type { EjecucionParaAlerta } from '@/lib/alertas'
@@ -101,20 +102,13 @@ export default async function GerenciaPage() {
       .filter(Boolean)
   )
 
-  const ahora = new Date().toLocaleString('es-AR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-
   return (
     <main className="min-h-screen bg-[#0f0f0f] flex flex-col">
       <GerenciaRealtimeListener />
 
       <header className="px-8 py-4 border-b border-gray-800 flex justify-between items-center shrink-0">
         <span className="text-[#c9a96e] font-bold tracking-widest text-lg">VELUM</span>
-        <span className="text-gray-500 text-sm">{ahora}</span>
+        <GerenciaReloj />
       </header>
 
       <div className="flex flex-1 min-h-0">

@@ -18,6 +18,7 @@ export default async function RootPage() {
   if (!usuario) redirect('/login')
 
   if (usuario.rol === 'OPERARIO') redirect('/operario')
+  if (usuario.rol === 'GERENCIA') redirect('/gerencia')
 
   redirect('/dashboard')
 }
