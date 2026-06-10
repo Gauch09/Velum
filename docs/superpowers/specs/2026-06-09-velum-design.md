@@ -5,7 +5,7 @@
 
 ## 1. Contexto y objetivo
 
-PIELL (ex Hüll) fabrica sistemas de fachadas metálicas y de revestimiento. Actualmente el seguimiento de producción se hace en Excel. Velum reemplaza ese proceso con un sistema web que gestiona órdenes de producción, ejecuta un motor de cascada automático entre etapas de fabricación, y provee trazabilidad completa por orden.
+VELUM fabrica sistemas de fachadas metálicas y de revestimiento. Actualmente el seguimiento de producción se hace en Excel. El sistema Velum reemplaza ese proceso con una aplicación web que gestiona órdenes de producción, ejecuta un motor de cascada automático entre etapas de fabricación, y provee trazabilidad completa por orden.
 
 ---
 
@@ -112,7 +112,7 @@ Cada etapa tiene un **umbral de activación** configurable (ej. 50%). Cuando la 
 
 ## 8. Rutas precargadas
 
-Las rutas de fabricación para los 80 productos están definidas por PIELL antes del lanzamiento. Se cargan como seed data en la base de datos. El sistema incluye una pantalla de edición para ajustes futuros, pero no requiere configuración inicial por el usuario.
+Las rutas de fabricación para los 80 productos están definidas por VELUM antes del lanzamiento. Se cargan como seed data en la base de datos. El sistema incluye una pantalla de edición para ajustes futuros, pero no requiere configuración inicial por el usuario.
 
 ---
 
