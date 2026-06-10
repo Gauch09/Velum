@@ -23,7 +23,6 @@ interface Props {
 export default function OrdenCard({ ejecucion }: Props) {
   const [cantidad, setCantidad] = useState(10)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const router = useRouter()
 
   const orden = ejecucion.orden
@@ -59,12 +58,13 @@ export default function OrdenCard({ ejecucion }: Props) {
         </span>
       )}
 
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <p className="text-white font-bold text-lg">{orden.sistema} / {orden.producto}</p>
-          <p className="text-gray-400 text-sm">{orden.proyecto?.nombre ?? 'Orden manual'}</p>
+      <div className="mb-3">
+        <p className="text-white font-bold text-lg leading-tight">{orden.sistema} / {orden.producto}</p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="text-gray-400 text-sm">{orden.proyecto?.nombre ?? 'Orden manual'}</span>
+          <span className="text-gray-600 text-xs">·</span>
+          <span className="text-gray-500 text-xs">{ejecucion.maquina.nombre}</span>
         </div>
-        <span className="text-gray-500 text-xs mt-1">{ejecucion.maquina.nombre}</span>
       </div>
 
       <div className="mb-4">
@@ -86,7 +86,7 @@ export default function OrdenCard({ ejecucion }: Props) {
       <div className="flex items-center gap-3">
         <button
           onClick={() => setCantidad(c => Math.max(1, c - 10))}
-          className="bg-gray-700 text-white w-12 h-12 rounded-xl text-2xl font-light flex items-center justify-center"
+          className="bg-gray-700 text-white w-14 h-14 rounded-xl text-2xl font-light flex items-center justify-center touch-manipulation active:bg-gray-600"
         >
           −
         </button>
@@ -96,14 +96,14 @@ export default function OrdenCard({ ejecucion }: Props) {
         </div>
         <button
           onClick={() => setCantidad(c => c + 10)}
-          className="bg-gray-700 text-white w-12 h-12 rounded-xl text-2xl font-light flex items-center justify-center"
+          className="bg-gray-700 text-white w-14 h-14 rounded-xl text-2xl font-light flex items-center justify-center touch-manipulation active:bg-gray-600"
         >
           +
         </button>
         <button
           onClick={registrar}
           disabled={loading}
-          className="flex-1 bg-green-600 hover:bg-green-500 active:bg-green-700 text-white py-3 rounded-xl font-bold text-base disabled:opacity-50 transition-colors"
+          className="flex-1 bg-green-600 active:bg-green-700 text-white py-4 rounded-xl font-bold text-base disabled:opacity-50 transition-colors touch-manipulation min-h-[56px]"
         >
           {loading ? '...' : 'Registrar'}
         </button>

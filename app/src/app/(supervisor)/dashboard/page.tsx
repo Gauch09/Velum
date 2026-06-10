@@ -2,6 +2,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import OrdenCascadaCard from '@/components/supervisor/OrdenCascadaCard'
 import MaquinasStatus from '@/components/supervisor/MaquinasStatus'
 import RealtimeListener from '@/components/supervisor/RealtimeListener'
+import NuevaOrdenModal from '@/components/supervisor/NuevaOrdenModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +33,10 @@ export default async function SupervisorDashboard() {
   return (
     <main className="min-h-screen bg-gray-950 p-6">
       <RealtimeListener />
-      <h1 className="text-white text-2xl font-bold mb-6">VELUM · Planta en vivo</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-white text-2xl font-bold">VELUM · Planta en vivo</h1>
+        <NuevaOrdenModal />
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 flex flex-col gap-4">
