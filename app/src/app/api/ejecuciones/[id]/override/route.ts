@@ -60,6 +60,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       estado: 'ACTIVA',
       fechaInicio: new Date().toISOString(),
       fueOverride: true,
+      ultimoProgresoEn: new Date().toISOString(),
     })
     .eq('id', params.id)
 

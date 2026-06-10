@@ -107,6 +107,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       porcentajeActual: nuevoPorcentaje,
       estado: nuevoPorcentaje >= 100 ? 'COMPLETADA' : 'ACTIVA',
       fechaFin: nuevoPorcentaje >= 100 ? new Date().toISOString() : null,
+      ultimoProgresoEn: new Date().toISOString(),
     })
     .eq('id', ejecucionEtapaId)
 
