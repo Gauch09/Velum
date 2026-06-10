@@ -4,6 +4,7 @@ import MaquinasStatus from '@/components/supervisor/MaquinasStatus'
 import RealtimeListener from '@/components/supervisor/RealtimeListener'
 import NuevaOrdenModal from '@/components/supervisor/NuevaOrdenModal'
 import AlertasBanner from '@/components/shared/AlertasBanner'
+import AlertaOverlay from '@/components/supervisor/AlertaOverlay'
 import { calcularAlertas } from '@/lib/alertas'
 import type { EjecucionParaAlerta } from '@/lib/alertas'
 
@@ -61,10 +62,12 @@ export default async function SupervisorDashboard() {
   )
 
   const alertas = calcularAlertas(ejecucionesParaAlerta, umbralHoras)
+  const alertasRojas = alertas.filter(a => a.severidad === 'rojo')
 
   return (
     <main className="min-h-screen bg-gray-950 p-6">
       <RealtimeListener />
+      <AlertaOverlay alertasRojas={alertasRojas} />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-white text-2xl font-bold">VELUM · Planta en vivo</h1>
         <NuevaOrdenModal />
