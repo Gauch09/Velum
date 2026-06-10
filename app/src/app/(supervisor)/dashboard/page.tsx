@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import OrdenCascadaCard from '@/components/supervisor/OrdenCascadaCard'
 import MaquinasStatus from '@/components/supervisor/MaquinasStatus'
@@ -93,7 +94,15 @@ export default async function SupervisorDashboard() {
       <AlertaOverlay alertasRojas={alertasRojas} />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-white text-2xl font-bold">VELUM · Planta en vivo</h1>
-        <NuevaOrdenModal />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/rendimiento"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            📊 Rendimiento
+          </Link>
+          <NuevaOrdenModal />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
