@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
+import { createId } from '@paralleldrive/cuid2'
 
 export async function GET() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from('Proyecto')
-    .insert({ nombre, cliente, fechaEntrega })
+    .insert({ id: createId(), nombre, cliente, fechaEntrega, estado: 'ACTIVO' })
     .select()
     .single()
 
