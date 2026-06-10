@@ -5,7 +5,9 @@ import RealtimeListener from '@/components/supervisor/RealtimeListener'
 import NuevaOrdenModal from '@/components/supervisor/NuevaOrdenModal'
 import AlertasBanner from '@/components/shared/AlertasBanner'
 import AlertaOverlay from '@/components/supervisor/AlertaOverlay'
+import HistorialAlertas from '@/components/supervisor/HistorialAlertas'
 import { calcularAlertas } from '@/lib/alertas'
+import { registrarAlertas } from '@/lib/registrar-alertas'
 import type { EjecucionParaAlerta } from '@/lib/alertas'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +15,7 @@ export const dynamic = 'force-dynamic'
 export default async function SupervisorDashboard() {
   const supabase = createSupabaseAdminClient() as any
 
-  const [{ data: ordenes }, { data: maquinas }, { data: config }] = await Promise.all([
+  const [{ data: ordenes }, { data: maquinas }, { data: config }, { data: historial }] = await Promise.all([
     supabase
       .from('OrdenProduccion')
       .select(`
@@ -37,6 +39,11 @@ export default async function SupervisorDashboard() {
       .select('horasSinActividadAlerta')
       .eq('id', 'singleton')
       .single(),
+    supabase
+      .from('AlertaLog')
+      .select('id, ordenNombre, etapaNombre, tipo, severidad, disparadaEn, resueltaEn')
+      .order('disparadaEn', { ascending: false })
+      .limit(50),
   ])
 
   const umbralHoras: number = config?.horasSinActividadAlerta ?? 4
@@ -64,6 +71,9 @@ export default async function SupervisorDashboard() {
   const alertas = calcularAlertas(ejecucionesParaAlerta, umbralHoras)
   const alertasRojas = alertas.filter(a => a.severidad === 'rojo')
 
+  const todosEjecucionIds = ejecucionesParaAlerta.map(e => e.id)
+  await registrarAlertas(alertas, todosEjecucionIds, supabase)
+
   return (
     <main className="min-h-screen bg-gray-950 p-6">
       <RealtimeListener />
@@ -85,6 +95,7 @@ export default async function SupervisorDashboard() {
               </div>
             ))
           )}
+          <HistorialAlertas entradas={historial ?? []} />
         </div>
         <div>
           <MaquinasStatus maquinas={maquinas ?? []} />

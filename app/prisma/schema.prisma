@@ -164,6 +164,18 @@ model Configuracion {
   actualizadoEn           DateTime @updatedAt
 }
 
+model AlertaLog {
+  id          String    @id @default(cuid())
+  ejecucionId String
+  ordenId     String
+  ordenNombre String
+  etapaNombre String
+  tipo        String
+  severidad   String
+  disparadaEn DateTime  @default(now())
+  resueltaEn  DateTime?
+}
+
 model RegistroProgreso {
   id                   String   @id @default(cuid())
   ejecucionEtapaId     String
