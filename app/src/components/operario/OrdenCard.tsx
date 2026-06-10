@@ -23,6 +23,7 @@ interface Props {
 export default function OrdenCard({ ejecucion }: Props) {
   const [cantidad, setCantidad] = useState(10)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   const orden = ejecucion.orden
@@ -31,7 +32,7 @@ export default function OrdenCard({ ejecucion }: Props) {
   async function registrar() {
     setLoading(true)
     try {
-      await fetch(`/api/ordenes/${orden.id}/progreso`, {
+      const res = await fetch(`/api/ordenes/${orden.id}/progreso`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,6 +40,11 @@ export default function OrdenCard({ ejecucion }: Props) {
           cantidadRegistrada: cantidad,
         }),
       })
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: 'Error desconocido' }))
+        alert(`Error al registrar: ${error}`)
+        return
+      }
       router.refresh()
     } finally {
       setLoading(false)

@@ -4,6 +4,12 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import { evaluarCascada } from '@/lib/cascada'
 import type { EtapaProgreso } from '@/lib/cascada'
 import { createId } from '@paralleldrive/cuid2'
+import { createClient } from '@supabase/supabase-js'
+
+const broadcastClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const body = await req.json()
@@ -121,11 +127,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (ordenUpdateError) return NextResponse.json({ error: ordenUpdateError.message }, { status: 500 })
 
   // Broadcast via Supabase Realtime
-  const { createClient } = await import('@supabase/supabase-js')
-  const broadcastClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
   await broadcastClient.channel('ordenes').send({
     type: 'broadcast',
     event: 'progreso',
