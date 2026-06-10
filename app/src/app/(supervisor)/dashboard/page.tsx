@@ -96,6 +96,12 @@ export default async function SupervisorDashboard() {
         <h1 className="text-white text-2xl font-bold">VELUM · Planta en vivo</h1>
         <div className="flex items-center gap-3">
           <Link
+            href="/proyectos"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            📁 Proyectos
+          </Link>
+          <Link
             href="/rendimiento"
             className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
           >
