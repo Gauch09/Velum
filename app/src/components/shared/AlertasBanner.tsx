@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { AlertaCuello } from '@/lib/alertas'
 import ConfiguracionModal from '@/components/supervisor/ConfiguracionModal'
 import AsignarOperarioModal from '@/components/supervisor/AsignarOperarioModal'
@@ -29,17 +30,29 @@ function AlertaRow({
   isReadonly,
   umbralHoras,
   onAsignar,
+  onUrgente,
 }: {
   alerta: AlertaCuello
   isReadonly: boolean
   umbralHoras: number
   onAsignar: (ejecucionId: string, ordenNombre: string, etapaNombre: string) => void
+  onUrgente: (ordenId: string) => Promise<void>
 }) {
+  const [isMarkingUrgent, setIsMarkingUrgent] = useState(false)
   const esRojo = alerta.severidad === 'rojo'
 
   function handleOverride() {
     const el = document.getElementById(`orden-${alerta.ordenId}`)
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  async function handleUrgente() {
+    setIsMarkingUrgent(true)
+    try {
+      await onUrgente(alerta.ordenId)
+    } finally {
+      setIsMarkingUrgent(false)
+    }
   }
 
   return (
@@ -101,10 +114,11 @@ function AlertaRow({
             👤 Asignar
           </button>
           <button
-            onClick={() => console.warn('[VELUM] Urgente — Fase 3')}
-            className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-2 py-1 rounded transition-colors"
+            onClick={handleUrgente}
+            disabled={isMarkingUrgent}
+            className="bg-orange-700 hover:bg-orange-600 text-white text-xs px-2 py-1 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            ↑ Urgente
+            {isMarkingUrgent ? '...' : '↑ Urgente'}
           </button>
         </div>
       )}
@@ -113,9 +127,15 @@ function AlertaRow({
 }
 
 export default function AlertasBanner({ alertas, readonly, umbralHoras }: Props) {
+  const router = useRouter()
   const [expanded, setExpanded] = useState(true)
   const [showConfig, setShowConfig] = useState(false)
   const [asignando, setAsignando] = useState<AsignandoState | null>(null)
+
+  async function handleUrgente(ordenId: string) {
+    await fetch(`/api/ordenes/${ordenId}/urgente`, { method: 'PATCH' })
+    router.refresh()
+  }
 
   const rojasCount = alertas.filter(a => a.severidad === 'rojo').length
   const ambarCount = alertas.filter(a => a.severidad === 'ambar').length
@@ -199,6 +219,7 @@ export default function AlertasBanner({ alertas, readonly, umbralHoras }: Props)
                 onAsignar={(ejecucionId, ordenNombre, etapaNombre) =>
                   setAsignando({ ejecucionId, ordenNombre, etapaNombre })
                 }
+                onUrgente={handleUrgente}
               />
             ))}
           </div>
