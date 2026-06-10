@@ -36,7 +36,7 @@ export default function AlertaOverlay({ alertasRojas }: Props) {
   if (alertasRojas.length === 0) return null
 
   return (
-    <div className="velum-alert-pulse sticky top-0 z-40 rounded-xl mb-4 overflow-hidden min-h-[28vh]">
+    <div role="alert" className="velum-alert-pulse sticky top-0 z-40 rounded-xl mb-4 overflow-hidden min-h-[28vh]">
       <div className="px-6 py-5 h-full flex flex-col justify-center">
         <div className="flex items-center gap-3 mb-4">
           <span className="bg-white text-red-700 rounded-full w-9 h-9 flex items-center justify-center text-base font-black flex-shrink-0">
