@@ -1,5 +1,6 @@
 import type { OrdenConEjecuciones } from '@/types'
 import OverridePanel from './OverridePanel'
+import CancelarOrdenButton from './CancelarOrdenButton'
 
 const ESTADO_PILL: Record<string, string> = {
   ACTIVA:     'bg-green-900 text-green-300 border border-green-700',
@@ -38,9 +39,12 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
             <span className="ml-2 text-red-400 text-xs font-bold uppercase">Urgente</span>
           )}
         </div>
-        <span className="text-green-400 font-bold text-lg">
-          {Number(orden.porcentajeGlobal).toFixed(0)}%
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-green-400 font-bold text-lg">
+            {Number(orden.porcentajeGlobal).toFixed(0)}%
+          </span>
+          <CancelarOrdenButton ordenId={orden.id} ordenNombre={ordenNombre} />
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-3">
