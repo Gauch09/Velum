@@ -173,6 +173,25 @@ app/
 
 ---
 
+### Feature 5: Asignación de operario desde AlertasBanner (COMPLETADA)
+Botón 👤 Asignar en el banner de alertas abre un modal para asignar un operario a la etapa con cuello de botella.
+
+**Archivos creados/modificados:**
+```
+app/src/app/api/operarios/route.ts          ← GET, lista todos los usuarios con rol OPERARIO
+app/src/components/supervisor/AsignarOperarioModal.tsx  ← modal con lista seleccionable de operarios
+app/src/components/shared/AlertasBanner.tsx ← botón 👤 conectado al modal (antes era console.warn stub)
+```
+
+**Cómo funciona:**
+- GET `/api/operarios` devuelve `[{ id, nombre }]` ordenado por nombre (solo SUPERVISOR/GERENCIA puede llamarlo)
+- Al clickear 👤 Asignar en una alerta, se abre `AsignarOperarioModal` con la lista de operarios
+- Al confirmar, llama PATCH `/api/ejecuciones/[id]/asignar` con `{ operarioId }` (endpoint ya existía)
+- Cierra modal y hace `router.refresh()`
+- Sin cambios de schema — `EjecucionEtapa.operarioId` ya existía
+
+---
+
 ## Próximas features candidatas (del spec)
 
 Nada confirmado — a decidir esta noche. Posibles:

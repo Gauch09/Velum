@@ -3,11 +3,18 @@
 import { useState } from 'react'
 import type { AlertaCuello } from '@/lib/alertas'
 import ConfiguracionModal from '@/components/supervisor/ConfiguracionModal'
+import AsignarOperarioModal from '@/components/supervisor/AsignarOperarioModal'
 
 interface Props {
   alertas: AlertaCuello[]
   readonly: boolean
   umbralHoras: number
+}
+
+type AsignandoState = {
+  ejecucionId: string
+  ordenNombre: string
+  etapaNombre: string
 }
 
 function formatMinutos(minutos: number): string {
@@ -21,10 +28,12 @@ function AlertaRow({
   alerta,
   isReadonly,
   umbralHoras,
+  onAsignar,
 }: {
   alerta: AlertaCuello
   isReadonly: boolean
   umbralHoras: number
+  onAsignar: (ejecucionId: string, ordenNombre: string, etapaNombre: string) => void
 }) {
   const esRojo = alerta.severidad === 'rojo'
 
@@ -86,8 +95,8 @@ function AlertaRow({
             </button>
           )}
           <button
-            onClick={() => console.warn('[VELUM] Asignar — Fase 3')}
-            className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-2 py-1 rounded transition-colors"
+            onClick={() => onAsignar(alerta.ejecucionId, alerta.ordenNombre, alerta.etapaNombre)}
+            className="bg-blue-700 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded transition-colors"
           >
             👤 Asignar
           </button>
@@ -106,6 +115,7 @@ function AlertaRow({
 export default function AlertasBanner({ alertas, readonly, umbralHoras }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [showConfig, setShowConfig] = useState(false)
+  const [asignando, setAsignando] = useState<AsignandoState | null>(null)
 
   const rojasCount = alertas.filter(a => a.severidad === 'rojo').length
   const ambarCount = alertas.filter(a => a.severidad === 'ambar').length
@@ -127,6 +137,14 @@ export default function AlertasBanner({ alertas, readonly, umbralHoras }: Props)
         <ConfiguracionModal
           umbralActual={umbralHoras}
           onClose={() => setShowConfig(false)}
+        />
+      )}
+      {asignando && (
+        <AsignarOperarioModal
+          ejecucionId={asignando.ejecucionId}
+          ordenNombre={asignando.ordenNombre}
+          etapaNombre={asignando.etapaNombre}
+          onClose={() => setAsignando(null)}
         />
       )}
 
@@ -178,6 +196,9 @@ export default function AlertasBanner({ alertas, readonly, umbralHoras }: Props)
                 alerta={alerta}
                 isReadonly={readonly}
                 umbralHoras={umbralHoras}
+                onAsignar={(ejecucionId, ordenNombre, etapaNombre) =>
+                  setAsignando({ ejecucionId, ordenNombre, etapaNombre })
+                }
               />
             ))}
           </div>
