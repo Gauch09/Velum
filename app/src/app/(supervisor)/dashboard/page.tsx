@@ -3,20 +3,23 @@ import OrdenCascadaCard from '@/components/supervisor/OrdenCascadaCard'
 import MaquinasStatus from '@/components/supervisor/MaquinasStatus'
 import RealtimeListener from '@/components/supervisor/RealtimeListener'
 import NuevaOrdenModal from '@/components/supervisor/NuevaOrdenModal'
+import AlertasBanner from '@/components/shared/AlertasBanner'
+import { calcularAlertas } from '@/lib/alertas'
+import type { EjecucionParaAlerta } from '@/lib/alertas'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SupervisorDashboard() {
   const supabase = createSupabaseAdminClient() as any
 
-  const [{ data: ordenes }, { data: maquinas }] = await Promise.all([
+  const [{ data: ordenes }, { data: maquinas }, { data: config }] = await Promise.all([
     supabase
       .from('OrdenProduccion')
       .select(`
         id, sistema, producto, cantidad, unidad, porcentajeGlobal, estado, prioridad,
-        proyecto:Proyecto ( nombre, cliente ),
+        proyecto:Proyecto ( nombre, cliente, fechaEntrega ),
         ejecuciones:EjecucionEtapa (
-          id, porcentajeActual, estado, fechaInicio, fueOverride,
+          id, porcentajeActual, estado, fechaInicio, fueOverride, ultimoProgresoEn,
           maquina:Maquina ( id, nombre, tipo ),
           etapaRuta:EtapaRuta ( nombreEtapa, ordenSecuencia, umbralActivacion )
         )
@@ -28,7 +31,36 @@ export default async function SupervisorDashboard() {
       .from('Maquina')
       .select('id, nombre, tipo, estadoActual')
       .order('nombre', { ascending: true }),
+    supabase
+      .from('Configuracion')
+      .select('horasSinActividadAlerta')
+      .eq('id', 'singleton')
+      .single(),
   ])
+
+  const umbralHoras: number = config?.horasSinActividadAlerta ?? 4
+
+  const ejecucionesParaAlerta: EjecucionParaAlerta[] = ((ordenes ?? []) as any[]).flatMap(
+    (orden) =>
+      ((orden.ejecuciones ?? []) as any[]).map((ej: any) => ({
+        id: ej.id,
+        estado: ej.estado,
+        ultimoProgresoEn: ej.ultimoProgresoEn ?? null,
+        fechaInicio: ej.fechaInicio ?? null,
+        porcentajeActual: ej.porcentajeActual,
+        orden: {
+          id: orden.id,
+          sistema: orden.sistema,
+          producto: orden.producto,
+          porcentajeGlobal: orden.porcentajeGlobal,
+          fechaEntrega: orden.proyecto?.fechaEntrega ?? null,
+          proyecto: orden.proyecto ? { nombre: orden.proyecto.nombre } : null,
+        },
+        etapaRuta: { nombreEtapa: ej.etapaRuta?.nombreEtapa ?? '' },
+      }))
+  )
+
+  const alertas = calcularAlertas(ejecucionesParaAlerta, umbralHoras)
 
   return (
     <main className="min-h-screen bg-gray-950 p-6">
@@ -40,11 +72,14 @@ export default async function SupervisorDashboard() {
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 flex flex-col gap-4">
+          <AlertasBanner alertas={alertas} readonly={false} umbralHoras={umbralHoras} />
           {(!ordenes || ordenes.length === 0) ? (
             <p className="text-gray-500 mt-8">No hay órdenes activas.</p>
           ) : (
             ordenes.map((orden: any) => (
-              <OrdenCascadaCard key={orden.id} orden={orden} />
+              <div id={`orden-${orden.id}`} key={orden.id}>
+                <OrdenCascadaCard orden={orden} />
+              </div>
             ))
           )}
         </div>
