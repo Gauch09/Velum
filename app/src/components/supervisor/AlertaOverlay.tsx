@@ -21,7 +21,7 @@ export default function AlertaOverlay({ alertasRojas }: Props) {
       return
     }
 
-    let toggle = false
+    let toggle = true
     const id = setInterval(() => {
       document.title = toggle ? '🔴 ALERTA — VELUM' : 'VELUM'
       toggle = !toggle
