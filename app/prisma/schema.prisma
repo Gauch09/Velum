@@ -147,6 +147,7 @@ model EjecucionEtapa {
   fueOverride      Boolean         @default(false)
   fechaInicio      DateTime?
   fechaFin         DateTime?
+  ultimoProgresoEn DateTime?
   createdAt        DateTime        @default(now())
 
   orden      OrdenProduccion    @relation(fields: [ordenId], references: [id])
@@ -154,6 +155,13 @@ model EjecucionEtapa {
   maquina    Maquina            @relation(fields: [maquinaId], references: [id])
   operario   Usuario?           @relation(fields: [operarioId], references: [id])
   registros  RegistroProgreso[]
+}
+
+model Configuracion {
+  id                      String   @id @default("singleton")
+  horasSinActividadAlerta Int      @default(4)
+  creadoEn                DateTime @default(now())
+  actualizadoEn           DateTime @updatedAt
 }
 
 model RegistroProgreso {
