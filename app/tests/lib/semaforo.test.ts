@@ -28,4 +28,12 @@ describe('calcularSemaforo', () => {
   it('devuelve verde en el límite exacto: 7 días y 60%', () => {
     expect(calcularSemaforo(d(7 * DAY), 60)).toBe('verde')
   })
+
+  it('devuelve ambar cuando el deadline venció horas atrás hoy (mismo día calendario) y progreso < 60%', () => {
+    // "rojo" se activa cuando la FECHA del deadline es estrictamente anterior a hoy
+    // Un deadline de hoy (aunque sea hace 2h) sigue siendo fecha de hoy → no es rojo
+    const haceDoHoras = new Date()
+    haceDoHoras.setHours(haceDoHoras.getHours() - 2)
+    expect(calcularSemaforo(haceDoHoras, 30)).toBe('ambar')
+  })
 })
