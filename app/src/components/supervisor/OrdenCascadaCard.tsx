@@ -1,4 +1,5 @@
 import type { OrdenConEjecuciones } from '@/types'
+import OverridePanel from './OverridePanel'
 
 const ESTADO_PILL: Record<string, string> = {
   ACTIVA:     'bg-green-900 text-green-300 border border-green-700',
@@ -13,6 +14,17 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
   const ejecucionesOrdenadas = [...(orden.ejecuciones ?? [])].sort(
     (a, b) => (a.etapaRuta?.ordenSecuencia ?? 0) - (b.etapaRuta?.ordenSecuencia ?? 0)
   )
+
+  const pendientes = ejecucionesOrdenadas
+    .filter(ej => ej.estado === 'PENDIENTE')
+    .map(ej => ({
+      id: ej.id,
+      etapaNombre: ej.etapaRuta?.nombreEtapa ?? '',
+      umbralActivacion: ej.etapaRuta?.umbralActivacion ?? 0,
+      porcentajeActual: ej.porcentajeActual,
+    }))
+
+  const ordenNombre = `${orden.sistema} / ${orden.producto}`
 
   return (
     <div className={`bg-gray-900 rounded-xl p-4 border-l-4 ${borderColor}`}>
@@ -36,6 +48,7 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
           <span key={ej.id} className={`px-2 py-1 rounded-md text-xs font-medium ${ESTADO_PILL[ej.estado] ?? ''}`}>
             {ej.etapaRuta?.nombreEtapa}
             {ej.estado === 'ACTIVA' && ` ${Number(ej.porcentajeActual).toFixed(0)}%`}
+            {ej.estado === 'ACTIVA' && ej.fueOverride && ' ⚡'}
             {ej.estado === 'PENDIENTE' && ` ⏳ ${ej.etapaRuta?.umbralActivacion}%`}
           </span>
         ))}
@@ -47,6 +60,8 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
           style={{ width: `${Math.min(Number(orden.porcentajeGlobal), 100)}%` }}
         />
       </div>
+
+      <OverridePanel ejecuciones={pendientes} ordenNombre={ordenNombre} />
     </div>
   )
 }
