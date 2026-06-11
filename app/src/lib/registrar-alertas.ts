@@ -54,7 +54,7 @@ export async function registrarAlertas(
 
   // Close logs for alerts that are no longer firing
   const ahora = new Date().toISOString()
-  const resueltos = [...openLogMap.entries()]
+  const resueltos = Array.from(openLogMap.entries())
     .filter(([ejecucionId]) => !alertaIds.has(ejecucionId))
     .map(([, logId]) => logId)
 

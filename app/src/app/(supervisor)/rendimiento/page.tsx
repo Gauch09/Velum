@@ -48,7 +48,7 @@ export default async function RendimientoPage() {
     durMap.set(nombre, { totalMins: prev.totalMins + mins, count: prev.count + 1 })
   }
 
-  const promedios: PromedioEtapa[] = [...durMap.entries()]
+  const promedios: PromedioEtapa[] = Array.from(durMap.entries())
     .map(([nombre, { totalMins, count }]) => ({ nombre, avgMins: totalMins / count, count }))
     .sort((a, b) => b.avgMins - a.avgMins)
 
@@ -69,7 +69,7 @@ export default async function RendimientoPage() {
     })
   }
 
-  const cuellos: CuelloEtapa[] = [...alertaMap.entries()]
+  const cuellos: CuelloEtapa[] = Array.from(alertaMap.entries())
     .map(([nombre, { total, rojas }]) => ({ nombre, total, rojas }))
     .sort((a, b) => b.total - a.total)
 
