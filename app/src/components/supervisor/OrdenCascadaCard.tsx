@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { OrdenConEjecuciones } from '@/types'
 import OverridePanel from './OverridePanel'
 import CancelarOrdenButton from './CancelarOrdenButton'
@@ -41,6 +42,12 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
           )}
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href={`/ordenes/${orden.id}`}
+            className="text-gray-600 hover:text-gray-400 text-xs transition-colors"
+          >
+            Historial
+          </Link>
           <span className="text-green-400 font-bold text-lg">
             {Number(orden.porcentajeGlobal).toFixed(0)}%
           </span>

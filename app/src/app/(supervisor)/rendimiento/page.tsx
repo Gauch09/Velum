@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
+import ExportarCsvButton from '@/components/shared/ExportarCsvButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,7 +105,10 @@ export default async function RendimientoPage({
             <h1 className="text-white text-2xl font-bold">VELUM · Rendimiento</h1>
           </div>
 
-          {/* period selector */}
+          {/* export + period selector */}
+          <div className="flex items-center gap-3">
+          <ExportarCsvButton tipo="alertas" label="alertas" />
+          <ExportarCsvButton tipo="trazabilidad" label="trazabilidad" />
           <div className="flex bg-gray-900 border border-gray-800 rounded-lg p-1 gap-1">
             {PERIODOS.map(p => (
               <Link
@@ -119,6 +123,7 @@ export default async function RendimientoPage({
                 {p.label}
               </Link>
             ))}
+          </div>
           </div>
         </div>
 

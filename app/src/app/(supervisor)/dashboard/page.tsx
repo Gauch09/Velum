@@ -7,13 +7,18 @@ import NuevaOrdenModal from '@/components/supervisor/NuevaOrdenModal'
 import AlertasBanner from '@/components/shared/AlertasBanner'
 import AlertaOverlay from '@/components/supervisor/AlertaOverlay'
 import HistorialAlertas from '@/components/supervisor/HistorialAlertas'
+import FiltrosPlanta from '@/components/supervisor/FiltrosPlanta'
 import { calcularAlertas } from '@/lib/alertas'
 import { registrarAlertas } from '@/lib/registrar-alertas'
 import type { EjecucionParaAlerta } from '@/lib/alertas'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SupervisorDashboard() {
+export default async function SupervisorDashboard({
+  searchParams,
+}: {
+  searchParams: { proyecto?: string; estado?: string }
+}) {
   const supabase = createSupabaseAdminClient() as any
 
   const [{ data: ordenes }, { data: maquinas }, { data: config }, { data: historial }] = await Promise.all([
@@ -48,6 +53,24 @@ export default async function SupervisorDashboard() {
   ])
 
   const umbralHoras: number = config?.horasSinActividadAlerta ?? 4
+
+  // --- filtros ---
+  const proyectoFiltro = searchParams.proyecto ?? ''
+  const estadoFiltro = searchParams.estado ?? ''
+
+  const proyectosUnicos: string[] = Array.from(
+    new Set(
+      ((ordenes ?? []) as any[])
+        .map((o: any) => o.proyecto?.nombre as string | undefined)
+        .filter((n): n is string => !!n)
+    )
+  ).sort()
+
+  const ordenesFiltradas = ((ordenes ?? []) as any[]).filter((o: any) => {
+    if (proyectoFiltro && o.proyecto?.nombre !== proyectoFiltro) return false
+    if (estadoFiltro && o.estado !== estadoFiltro) return false
+    return true
+  })
 
   const ejecucionesParaAlerta: EjecucionParaAlerta[] = ((ordenes ?? []) as any[]).flatMap(
     (orden) =>
@@ -102,6 +125,12 @@ export default async function SupervisorDashboard() {
             📁 Proyectos
           </Link>
           <Link
+            href="/calendario"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            📅 Entregas
+          </Link>
+          <Link
             href="/rendimiento"
             className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
           >
@@ -132,10 +161,21 @@ export default async function SupervisorDashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="xl:col-span-3 flex flex-col gap-4">
           <AlertasBanner alertas={alertas} readonly={false} umbralHoras={umbralHoras} />
-          {(!ordenes || ordenes.length === 0) ? (
-            <p className="text-gray-500 mt-8">No hay órdenes activas.</p>
+          <FiltrosPlanta
+            proyectos={proyectosUnicos}
+            proyectoActivo={proyectoFiltro}
+            estadoActivo={estadoFiltro}
+            total={(ordenes ?? []).length}
+            filtradas={ordenesFiltradas.length}
+          />
+          {ordenesFiltradas.length === 0 ? (
+            <p className="text-gray-500 mt-4">
+              {(ordenes ?? []).length === 0
+                ? 'No hay órdenes activas.'
+                : 'Ninguna orden coincide con los filtros.'}
+            </p>
           ) : (
-            ordenes.map((orden: any) => (
+            ordenesFiltradas.map((orden: any) => (
               <div id={`orden-${orden.id}`} key={orden.id}>
                 <OrdenCascadaCard orden={orden} />
               </div>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
+import ExportarCsvButton from '@/components/shared/ExportarCsvButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,11 +39,14 @@ export default async function HistorialOverridesPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 p-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/dashboard" className="text-gray-600 hover:text-gray-400 text-sm transition-colors">
-          ← Dashboard
-        </Link>
-        <h1 className="text-white text-2xl font-bold">Historial de overrides</h1>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard" className="text-gray-600 hover:text-gray-400 text-sm transition-colors">
+            ← Dashboard
+          </Link>
+          <h1 className="text-white text-2xl font-bold">Historial de overrides</h1>
+        </div>
+        <ExportarCsvButton tipo="overrides" />
       </div>
 
       {items.length === 0 ? (
