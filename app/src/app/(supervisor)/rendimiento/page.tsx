@@ -10,38 +10,55 @@ function formatMins(mins: number): string {
   return m > 0 ? `${h} h ${m} min` : `${h} h`
 }
 
-type PromedioEtapa = {
-  nombre: string
-  avgMins: number
-  count: number
+type PromedioEtapa = { nombre: string; avgMins: number; count: number }
+type CuelloEtapa   = { nombre: string; total: number; rojas: number }
+
+const PERIODOS = [
+  { label: '7 días',   value: '7d',  dias: 7   },
+  { label: '30 días',  value: '30d', dias: 30  },
+  { label: '90 días',  value: '90d', dias: 90  },
+  { label: 'Todo',     value: 'todo', dias: null },
+] as const
+
+type PeriodoValue = typeof PERIODOS[number]['value']
+
+function fromDate(periodo: PeriodoValue): string | null {
+  const p = PERIODOS.find(p => p.value === periodo)
+  if (!p || p.dias === null) return null
+  const d = new Date()
+  d.setDate(d.getDate() - p.dias)
+  return d.toISOString()
 }
 
-type CuelloEtapa = {
-  nombre: string
-  total: number
-  rojas: number
-}
+export default async function RendimientoPage({
+  searchParams,
+}: {
+  searchParams: { periodo?: string }
+}) {
+  const periodo = (PERIODOS.some(p => p.value === searchParams.periodo)
+    ? searchParams.periodo
+    : '30d') as PeriodoValue
 
-export default async function RendimientoPage() {
+  const desde = fromDate(periodo)
   const supabase = createSupabaseAdminClient() as any
 
-  const [{ data: ejecuciones }, { data: alertaLogs }] = await Promise.all([
-    supabase
-      .from('EjecucionEtapa')
-      .select('fechaInicio, fechaFin, etapaRuta:EtapaRuta(nombreEtapa)')
-      .eq('estado', 'COMPLETADA')
-      .not('fechaInicio', 'is', null)
-      .not('fechaFin', 'is', null),
-    supabase
-      .from('AlertaLog')
-      .select('etapaNombre, severidad'),
-  ])
+  let ejQuery = supabase
+    .from('EjecucionEtapa')
+    .select('fechaInicio, fechaFin, etapaRuta:EtapaRuta(nombreEtapa)')
+    .eq('estado', 'COMPLETADA')
+    .not('fechaInicio', 'is', null)
+    .not('fechaFin', 'is', null)
+  if (desde) ejQuery = ejQuery.gte('fechaFin', desde)
 
-  // --- compute tiempos promedio por etapa ---
+  let logQuery = supabase.from('AlertaLog').select('etapaNombre, severidad')
+  if (desde) logQuery = logQuery.gte('disparadaEn', desde)
+
+  const [{ data: ejecuciones }, { data: alertaLogs }] = await Promise.all([ejQuery, logQuery])
+
+  // --- promedios ---
   const durMap = new Map<string, { totalMins: number; count: number }>()
   for (const ej of (ejecuciones ?? []) as any[]) {
-    const mins =
-      (new Date(ej.fechaFin).getTime() - new Date(ej.fechaInicio).getTime()) / 60_000
+    const mins = (new Date(ej.fechaFin).getTime() - new Date(ej.fechaInicio).getTime()) / 60_000
     if (mins <= 0) continue
     const nombre: string = ej.etapaRuta?.nombreEtapa ?? 'Desconocida'
     const prev = durMap.get(nombre) ?? { totalMins: 0, count: 0 }
@@ -54,12 +71,11 @@ export default async function RendimientoPage() {
 
   const maxAvg = promedios[0]?.avgMins ?? 1
   const totalCompletadas = promedios.reduce((s, p) => s + p.count, 0)
-  const promedioGeneral =
-    promedios.length > 0
-      ? promedios.reduce((s, p) => s + p.avgMins * p.count, 0) / totalCompletadas
-      : 0
+  const promedioGeneral = promedios.length > 0
+    ? promedios.reduce((s, p) => s + p.avgMins * p.count, 0) / totalCompletadas
+    : 0
 
-  // --- compute cuellos históricos ---
+  // --- cuellos ---
   const alertaMap = new Map<string, { total: number; rojas: number }>()
   for (const log of (alertaLogs ?? []) as any[]) {
     const prev = alertaMap.get(log.etapaNombre) ?? { total: 0, rojas: 0 }
@@ -80,15 +96,29 @@ export default async function RendimientoPage() {
       <div className="max-w-5xl mx-auto">
 
         {/* header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <Link
-              href="/dashboard"
-              className="text-gray-600 hover:text-gray-400 text-xs transition-colors mb-1 block"
-            >
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-400 text-xs transition-colors mb-1 block">
               ← Volver a planta
             </Link>
             <h1 className="text-white text-2xl font-bold">VELUM · Rendimiento</h1>
+          </div>
+
+          {/* period selector */}
+          <div className="flex bg-gray-900 border border-gray-800 rounded-lg p-1 gap-1">
+            {PERIODOS.map(p => (
+              <Link
+                key={p.value}
+                href={`?periodo=${p.value}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  periodo === p.value
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {p.label}
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -114,7 +144,7 @@ export default async function RendimientoPage() {
         <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6">
           <h2 className="text-gray-300 text-sm font-semibold mb-4">Tiempo promedio por etapa</h2>
           {promedios.length === 0 ? (
-            <p className="text-gray-600 text-sm">Sin etapas completadas aún.</p>
+            <p className="text-gray-600 text-sm">Sin etapas completadas en este período.</p>
           ) : (
             <div className="flex flex-col gap-3">
               {promedios.map(p => (
@@ -142,9 +172,9 @@ export default async function RendimientoPage() {
 
         {/* cuellos históricos */}
         <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-          <h2 className="text-gray-300 text-sm font-semibold mb-4">Cuellos de botella históricos</h2>
+          <h2 className="text-gray-300 text-sm font-semibold mb-4">Cuellos de botella</h2>
           {cuellos.length === 0 ? (
-            <p className="text-gray-600 text-sm">Sin alertas registradas aún.</p>
+            <p className="text-gray-600 text-sm">Sin alertas en este período.</p>
           ) : (
             <div className="flex flex-col gap-3">
               {cuellos.map(c => (
@@ -180,15 +210,9 @@ export default async function RendimientoPage() {
 }
 
 function KpiCard({
-  label,
-  value,
-  sub,
-  color = 'default',
+  label, value, sub, color = 'default',
 }: {
-  label: string
-  value: string
-  sub?: string
-  color?: 'default' | 'amber' | 'red'
+  label: string; value: string; sub?: string; color?: 'default' | 'amber' | 'red'
 }) {
   const valueColor =
     color === 'amber' ? 'text-amber-300' :
