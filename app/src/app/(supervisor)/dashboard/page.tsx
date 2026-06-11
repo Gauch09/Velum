@@ -20,7 +20,7 @@ export default async function SupervisorDashboard() {
     supabase
       .from('OrdenProduccion')
       .select(`
-        id, sistema, producto, cantidad, unidad, porcentajeGlobal, estado, prioridad,
+        id, sistema, producto, cantidad, unidad, porcentajeGlobal, estado, prioridad, notas,
         proyecto:Proyecto ( nombre, cliente, fechaEntrega ),
         ejecuciones:EjecucionEtapa (
           id, porcentajeActual, estado, fechaInicio, fueOverride, ultimoProgresoEn,

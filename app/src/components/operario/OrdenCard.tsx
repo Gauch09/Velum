@@ -15,6 +15,7 @@ interface Props {
       cantidad: number
       unidad: string
       prioridad: number
+      notas: string | null
       proyecto: { nombre: string } | null
     }
   }
@@ -82,6 +83,12 @@ export default function OrdenCard({ ejecucion }: Props) {
           Activa siguiente etapa al {ejecucion.etapaRuta.umbralActivacion}%
         </p>
       </div>
+
+      {orden.notas && (
+        <div className="mb-3 border-l-2 border-gray-700 pl-2">
+          <p className="text-gray-400 text-xs leading-relaxed">{orden.notas}</p>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button

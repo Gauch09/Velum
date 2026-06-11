@@ -1,6 +1,7 @@
 import type { OrdenConEjecuciones } from '@/types'
 import OverridePanel from './OverridePanel'
 import CancelarOrdenButton from './CancelarOrdenButton'
+import NotasOrden from './NotasOrden'
 
 const ESTADO_PILL: Record<string, string> = {
   ACTIVA:     'bg-green-900 text-green-300 border border-green-700',
@@ -66,6 +67,7 @@ export default function OrdenCascadaCard({ orden }: { orden: OrdenConEjecuciones
       </div>
 
       <OverridePanel ejecuciones={pendientes} ordenNombre={ordenNombre} />
+      <NotasOrden ordenId={orden.id} notas={orden.notas ?? null} />
     </div>
   )
 }

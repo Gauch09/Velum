@@ -38,15 +38,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const body = await req.json()
-  const { prioridad } = body
+  const { prioridad, notas } = body
 
-  if (typeof prioridad !== 'number') {
-    return NextResponse.json({ error: 'Solo se puede actualizar prioridad' }, { status: 400 })
+  const updates: Record<string, unknown> = {}
+  if (typeof prioridad === 'number') updates.prioridad = prioridad
+  if ('notas' in body) updates.notas = typeof notas === 'string' ? notas.trim() || null : null
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
   }
 
   const { data, error } = await supabase
     .from('OrdenProduccion')
-    .update({ prioridad })
+    .update(updates)
     .eq('id', params.id)
     .select()
     .single()

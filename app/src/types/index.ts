@@ -9,6 +9,7 @@ export interface OrdenConEjecuciones {
   porcentajeGlobal: number
   estado: string
   prioridad: number
+  notas: string | null
   proyecto: { nombre: string; cliente: string } | null
   ejecuciones: EjecucionConDetalle[]
 }

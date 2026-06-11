@@ -40,6 +40,7 @@ export default async function OperarioPage() {
         cantidad,
         unidad,
         prioridad,
+        notas,
         proyecto:Proyecto ( nombre )
       )
     `)
