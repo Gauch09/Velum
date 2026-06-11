@@ -119,6 +119,12 @@ export default async function SupervisorDashboard() {
           >
             👥 Usuarios
           </Link>
+          <Link
+            href="/historial-overrides"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            ⚡ Overrides
+          </Link>
           <NuevaOrdenModal />
         </div>
       </div>
