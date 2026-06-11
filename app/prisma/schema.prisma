@@ -18,6 +18,7 @@ enum TipoMaquina {
   FRESADORA
   EXPANSORA
   PLEGADORA
+  PLEGADO_MANUAL
   LAVADO
   PINTADO
   HORNO
@@ -85,7 +86,7 @@ model Proyecto {
 model Maquina {
   id           String        @id @default(cuid())
   nombre       String
-  tipo         TipoMaquina   @unique
+  tipo         TipoMaquina
   estadoActual EstadoMaquina @default(OPERATIVA)
 
   operarios   Usuario[]

@@ -30,7 +30,6 @@ export default function NuevaOrdenModal() {
   const [cantidad, setCantidad] = useState('')
   const [unidad, setUnidad] = useState<Unidad>('PIEZAS')
   const [proyectoId, setProyectoId] = useState('')
-  const [maquinaCorte, setMaquinaCorte] = useState<'PUNZONADORA_CNC' | 'LASER'>('PUNZONADORA_CNC')
   const [isUrgente, setIsUrgente] = useState(false)
 
   const router = useRouter()
@@ -58,18 +57,9 @@ export default function NuevaOrdenModal() {
     .map(r => r.producto)
     .sort()
 
-  const rutaSeleccionada = rutas.find(r => r.sistema === sistema && r.producto === producto)
-  const isTipoCorteVariable = rutaSeleccionada?.primeraEtapaTipo === 'PUNZONADORA_CNC'
-
   function handleSistemaChange(s: string) {
     setSistema(s)
     setProducto('')
-    setMaquinaCorte('PUNZONADORA_CNC')
-  }
-
-  function handleProductoChange(p: string) {
-    setProducto(p)
-    setMaquinaCorte('PUNZONADORA_CNC')
   }
 
   function resetForm() {
@@ -78,7 +68,6 @@ export default function NuevaOrdenModal() {
     setCantidad('')
     setUnidad('PIEZAS')
     setProyectoId('')
-    setMaquinaCorte('PUNZONADORA_CNC')
     setIsUrgente(false)
     setErrorMsg('')
   }
@@ -105,10 +94,6 @@ export default function NuevaOrdenModal() {
       unidad,
       proyectoId: proyectoId || undefined,
       prioridad: isUrgente ? 1 : 0,
-    }
-
-    if (isTipoCorteVariable) {
-      body.maquinaCorte = maquinaCorte
     }
 
     try {
@@ -177,7 +162,7 @@ export default function NuevaOrdenModal() {
                   <label className="text-gray-400 text-xs mb-1 block">Producto *</label>
                   <select
                     value={producto}
-                    onChange={e => handleProductoChange(e.target.value)}
+                    onChange={e => setProducto(e.target.value)}
                     disabled={!sistema}
                     className="w-full bg-gray-800 text-white text-sm px-3 py-2 rounded-lg border border-gray-600 focus:border-green-500 outline-none disabled:opacity-40"
                     required
@@ -187,33 +172,6 @@ export default function NuevaOrdenModal() {
                   </select>
                 </div>
               </div>
-
-              {isTipoCorteVariable && (
-                <div>
-                  <label className="text-gray-400 text-xs mb-2 block">Máquina de corte *</label>
-                  <div className="flex gap-2">
-                    {(['PUNZONADORA_CNC', 'LASER'] as const).map(tipo => (
-                      <button
-                        key={tipo}
-                        type="button"
-                        onClick={() => setMaquinaCorte(tipo)}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                          maquinaCorte === tipo
-                            ? 'bg-green-600 border-green-500 text-white'
-                            : 'bg-gray-800 border-gray-600 text-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        {tipo === 'PUNZONADORA_CNC' ? 'Punzonadora CNC' : 'Láser'}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {maquinaCorte === 'LASER'
-                      ? 'Diseño elaborado / geometría compleja'
-                      : 'Patrón repetitivo / perforado constante'}
-                  </p>
-                </div>
-              )}
 
               <div className="flex gap-3">
                 <div className="flex-1">

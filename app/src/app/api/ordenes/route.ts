@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { sistema, producto, cantidad, unidad, proyectoId, maquinaCorte, prioridad } = body
+  const { sistema, producto, cantidad, unidad, proyectoId, prioridad } = body
 
   if (!sistema || !producto || !cantidad || !unidad) {
     return NextResponse.json(
@@ -56,23 +56,6 @@ export async function POST(req: Request) {
   const etapasOrdenadas = [...ruta.etapas].sort(
     (a: any, b: any) => a.ordenSecuencia - b.ordenSecuencia
   )
-
-  // For TIPO A/F: if caller chose a different cutting machine, override the first stage
-  const primeraEtapaTipo = etapasOrdenadas[0]?.maquina?.tipo
-  if (
-    maquinaCorte &&
-    primeraEtapaTipo === 'PUNZONADORA_CNC' &&
-    maquinaCorte !== 'PUNZONADORA_CNC'
-  ) {
-    const { data: maquinaOverride } = await supabase
-      .from('Maquina')
-      .select('id')
-      .eq('tipo', maquinaCorte)
-      .single()
-    if (maquinaOverride) {
-      etapasOrdenadas[0] = { ...etapasOrdenadas[0], maquinaId: maquinaOverride.id }
-    }
-  }
 
   // Look up assigned operario for each machine in this route
   const maquinaIds = etapasOrdenadas.map((e: any) => e.maquinaId)
