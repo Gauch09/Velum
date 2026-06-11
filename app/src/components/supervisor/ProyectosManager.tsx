@@ -41,7 +41,8 @@ export default function ProyectosManager({ proyectos: initialProyectos }: Props)
   const [creando, setCreando] = useState(false)
   const [editando, setEditando] = useState<ProyectoItem | null>(null)
   const [eliminando, setEliminando] = useState<string | null>(null)
-  const [errorEliminar, setErrorEliminar] = useState('')
+  const [cancelando, setCancelando] = useState<string | null>(null)
+  const [error, setError] = useState('')
 
   function handleSaved() {
     setCreando(false)
@@ -49,15 +50,35 @@ export default function ProyectosManager({ proyectos: initialProyectos }: Props)
     router.refresh()
   }
 
+  async function handleCancelar(proyecto: ProyectoItem) {
+    const msg = proyecto.tieneOrdenesActivas
+      ? `¿Cancelar "${proyecto.nombre}"? Sus órdenes en producción también serán canceladas.`
+      : `¿Cancelar el proyecto "${proyecto.nombre}"?`
+    if (!confirm(msg)) return
+    setCancelando(proyecto.id)
+    setError('')
+    try {
+      const res = await fetch(`/api/proyectos/${proyecto.id}/cancelar`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? 'Error al cancelar')
+        return
+      }
+      router.refresh()
+    } finally {
+      setCancelando(null)
+    }
+  }
+
   async function handleDelete(proyecto: ProyectoItem) {
     if (!confirm(`¿Eliminar el proyecto "${proyecto.nombre}"? Esta acción no se puede deshacer.`)) return
     setEliminando(proyecto.id)
-    setErrorEliminar('')
+    setError('')
     try {
       const res = await fetch(`/api/proyectos/${proyecto.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        setErrorEliminar(data.error ?? 'Error al eliminar')
+        setError(data.error ?? 'Error al eliminar')
         return
       }
       router.refresh()
@@ -91,9 +112,9 @@ export default function ProyectosManager({ proyectos: initialProyectos }: Props)
         </button>
       </div>
 
-      {errorEliminar && (
+      {error && (
         <div className="bg-red-950 border border-red-800 rounded-lg px-4 py-3 mb-4 text-red-300 text-sm">
-          {errorEliminar}
+          {error}
         </div>
       )}
 
@@ -133,6 +154,15 @@ export default function ProyectosManager({ proyectos: initialProyectos }: Props)
                   >
                     Editar
                   </button>
+                  {proyecto.estado === 'ACTIVO' && (
+                    <button
+                      onClick={() => handleCancelar(proyecto)}
+                      disabled={cancelando === proyecto.id}
+                      className="text-gray-600 hover:text-amber-400 text-xs px-2 py-1 rounded border border-gray-800 hover:border-amber-900 transition-colors disabled:opacity-40"
+                    >
+                      {cancelando === proyecto.id ? '...' : 'Cancelar'}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(proyecto)}
                     disabled={eliminando === proyecto.id || proyecto.tieneOrdenesActivas}
