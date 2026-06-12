@@ -49,6 +49,31 @@ En la planilla de piezas, sumar estas columnas para que la importación sea dire
 
 **Entregable ideal:** un único `.xlsx` con (a) hoja maestra Sistema/Producto y (b) hoja de piezas con las columnas de arriba. Pasar la **ruta del archivo** (no capturas) para importar valores exactos.
 
+## 🔎 HALLAZGO 2026-06-12 — Hoja `productos y sistemas` del Presupuestador 4.0
+
+Fuente: `\\SERVIDOR-FABRIC\Archivo HULL\HULL\HULL - Depto. Tecnico\HULL - Presupuestador 4.0 recuperado.xlsm`, hoja **`productos y sistemas`** (A1:BP80). Copia local de trabajo: `C:\Users\Nissei\Velum\_tmp_presupuestador.xlsm` (temporal, no commitear).
+
+**Esta hoja es el CATÁLOGO COMERCIAL, no el de piezas de taller.** Taxonomía encadenada de 5 niveles:
+**Sistema → Producto → Diseño → Material → Terminación.**
+
+### Corrige supuestos de ayer
+- **NO hay sistema "Fold" ni "MultiSlim".** MultiSlim es un *producto/variante* (.A/.C/.D/.E/.I/.L/.O/.V/.W/.U) que aparece bajo Sheet, Skin.Rail, Rail y Clad.
+- **Son 11 sistemas reales:** Sheet, Skin, Skin.Rail, Rail, Edge, Clad, SunShield, SkyCap, FullCustom, Organic, Frame.
+
+### Mapa de la hoja (filas)
+- **R1:R12 Sistemas** — nombre + descripción (+ columnas sueltas: Vendedores, Tipo de Cambio, Variable Si/No).
+- **R15:R31 Productos** — matriz: cada columna = un sistema, debajo cuelgan sus productos/variantes.
+- **R33:R43 Diseños** — por producto, sus formas/patrones (Smooth, Pattern55/70, MSHalfTone, Micro, A/B/C/D-Diamond, Scales, etc.).
+- **R45:R57 Materiales** — por combo Sistema+Producto (ej. `SheetStandarFlat`, `SkinPrism`, `MultiSlim.A`), lista de chapas/espesores (Galv, Alum, Steel, Luxidier, Bond, MDF, Inox).
+- **R58:R75 Terminaciones** — por familia de material (Steel/Galv/Alum/Bond/Luxi/MDF): Crudo, OxidoNatur, BlancoStd, NegroStd, GrisIceStd, CortenStd, PersonalizadoRAL, MultiColor, Anodizado, Anticorrosivo, Melamina Std/Esp.
+
+### Conclusión: son DOS catálogos distintos
+1. **Catálogo comercial** (esta hoja) → cubre SISTEMA ✅ y MATERIAL ✅. Es el menú para cotizar y para que el wizard ofrezca combinaciones válidas (Sistema→Producto→Diseño→Material→Terminación).
+2. **Catálogo de piezas de producción** (planillas de taller Cortado/Plegado/Pintado/Embalado/Codigos + carpeta CAD) → aporta PROCESO/RUTA y TIEMPOS. **Sigue faltando.**
+
+### Decisión del usuario (2026-06-12)
+Va a trabajar él en las **planillas de piezas de taller** (con proceso y tiempos). Cuando las traiga, arrancamos por el **catálogo de piezas de producción** (prioridad piezas primero). El catálogo comercial de esta hoja queda mapeado y listo para una fase posterior.
+
 ## Próximos pasos al retomar
 
 1. Recibir el `.xlsx` completo → leerlo y validar estructura.
