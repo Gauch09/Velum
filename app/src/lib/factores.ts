@@ -69,7 +69,7 @@ export function resumenPorMaquina(
     porMaquina.set(t.maquinaId, [...lista, t])
   }
 
-  return [...porMaquina.values()].map(lista => {
+  return Array.from(porMaquina.values()).map(lista => {
     const horasPreparacion = lista
       .filter(t => t.tipo === 'PREPARACION')
       .reduce((acc, t) => acc + horasDe(t), 0)
@@ -108,7 +108,7 @@ export function velocidadRealPorProductoMaquina(
     grupos.set(key, [...lista, t])
   }
 
-  return [...grupos.values()].map(lista => {
+  return Array.from(grupos.values()).map(lista => {
     const piezas = lista.reduce((acc, t) => acc + (t.cantidadProducida ?? 0), 0)
     const horas = lista.reduce((acc, t) => acc + horasDe(t), 0)
     const piezasHoraReal = horas > 0 ? piezas / horas : 0
@@ -138,7 +138,7 @@ export function setupPromedioPorProducto(tramos: TramoParaFactor[]): SetupProduc
     grupos.set(t.producto, [...lista, t])
   }
 
-  return [...grupos.values()].map(lista => ({
+  return Array.from(grupos.values()).map(lista => ({
     producto: lista[0].producto,
     minutosPromedio:
       lista.reduce((acc, t) => acc + duracionMinutos(t.inicio, t.fin), 0) / lista.length,
