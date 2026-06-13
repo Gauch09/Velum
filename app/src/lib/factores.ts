@@ -77,6 +77,8 @@ export function resumenPorMaquina(
       .filter(t => t.tipo === 'PRODUCCION')
       .reduce((acc, t) => acc + horasDe(t), 0)
     const horasFichadas = horasPreparacion + horasProduccion
+    // Días en UTC (00:00 UTC = 21:00 ART): tramos iniciados después de las 21 hs
+    // locales caen en el día UTC siguiente. Aceptado mientras no haya turno noche.
     const diasConActividad = new Set(lista.map(t => t.inicio.slice(0, 10))).size
     const horasDisponibles = diasConActividad * horasJornada
 

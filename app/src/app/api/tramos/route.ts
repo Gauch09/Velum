@@ -97,7 +97,16 @@ export async function POST(req: Request) {
     .select('id, tipo, inicio, maquinaId')
     .single()
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
+  if (insertError) {
+    // Doble apertura concurrente (índice parcial uniq_tramo_abierto_por_operario)
+    if (insertError.code === '23505') {
+      return NextResponse.json(
+        { error: 'Ya tenés un tramo abierto. Recargá la pantalla.' },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json({ error: insertError.message }, { status: 500 })
+  }
 
   return NextResponse.json({ tramo, tramoCerrado })
 }

@@ -5,7 +5,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 function escapeCsv(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''
   const s = String(value)
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
     return `"${s.replace(/"/g, '""')}"`
   }
   return s
