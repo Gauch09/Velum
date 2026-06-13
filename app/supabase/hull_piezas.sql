@@ -1,5 +1,5 @@
 -- Despiece por producto y proceso (espejo de HULL 120-despiece-pedido).
--- Es lo que se cruza con hull_tiempos para estimar días por proceso.
+-- Es lo que se cruza con "Velum_tiempos" para estimar días por proceso.
 -- Datos de ejemplo con nombres de producto reales del Excel (hoja "datos"),
 -- incluyendo algún producto sin tiempo cargado para mostrar ese caso.
 

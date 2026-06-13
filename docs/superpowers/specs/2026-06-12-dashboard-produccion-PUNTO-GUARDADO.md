@@ -41,14 +41,14 @@ El sincronizador corre **en la fábrica** porque es la única máquina que llega
 
 **Datos (Supabase — SQL en `app/supabase/`, ya corridos en el SQL Editor):**
 - `hull_dashboard.sql` → tablas `hull_proyectos`, `hull_ordenes`, `hull_sync_meta` (+ datos de ejemplo).
-- `hull_tiempos.sql` → tabla `hull_tiempos`: 55 productos con velocidad (piezas/hora) por máquina, importados de la hoja **"datos"** del Excel `Control de Produccion dinamico.xlsx`.
+- `velum_tiempos.sql` (ex `hull_tiempos.sql`) → tabla `"Velum_tiempos"` (renombrada de `hull_tiempos` el 2026-06-12): 55 productos con velocidad (piezas/hora) por máquina, importados de la hoja **"datos"** del Excel `Control de Produccion dinamico.xlsx`.
 - `hull_piezas.sql` → tabla `hull_piezas`: despiece por producto/proceso (datos de ejemplo con nombres reales del Excel; incluye un "Cassette especial" SIN tiempo para mostrar ese caso).
 
 Verificado end-to-end con datos reales de Supabase: la estimación calcula trabajo de máquina restante por proyecto y marca los productos sin tiempo. Hoy da en **horas** porque las máquinas son rápidas; estimar **fecha de entrega** necesita el modelo de capacidad (abajo).
 
 ## El Excel de tiempos (`Control de Produccion dinamico.xlsx`)
 Solo importan 2 hojas (el usuario lo confirmó):
-- **"datos"** → velocidad por producto por máquina (Láser, Plegadora, Pintura/Polvo, Embalado, Punzonadora, Fresadora) en piezas/hora. Cobertura PARCIAL (55 productos). Ya cargada en `hull_tiempos`.
+- **"datos"** → velocidad por producto por máquina (Láser, Plegadora, Pintura/Polvo, Embalado, Punzonadora, Fresadora) en piezas/hora. Cobertura PARCIAL (55 productos). Ya cargada en `"Velum_tiempos"` (ex `hull_tiempos`).
 - **"Proyecto"** → planilla de seguimiento que estima días por proceso y días restantes (la referencia de cómo se usa la capacidad).
 
 ---

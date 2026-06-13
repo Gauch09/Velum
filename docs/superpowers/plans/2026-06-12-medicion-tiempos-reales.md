@@ -31,8 +31,8 @@
 -- ============================================================================
 
 -- 1) Capacidad teórica por producto × tipo de máquina.
---    Seed desde hull_tiempos (espejo de la hoja `datos` del Excel de control).
---    OJO: los valores de hull_tiempos son piezas por DÍA (jornada de 8 h);
+--    Seed desde "Velum_tiempos" (espejo de la hoja `datos` del Excel de control).
+--    OJO: los valores de "Velum_tiempos" son piezas por DÍA (jornada de 8 h);
 --    se divide por horas_dia para obtener piezas/hora.
 create table if not exists public."CapacidadTeorica" (
   id                     text primary key default gen_random_uuid()::text,
@@ -71,10 +71,10 @@ create unique index if not exists uniq_tramo_abierto_por_operario
 create index if not exists idx_tramo_ejecucion on public."TramoTrabajo"("ejecucionEtapaId");
 create index if not exists idx_tramo_maquina_inicio on public."TramoTrabajo"("maquinaId", inicio);
 
--- 3) Seed de CapacidadTeorica desde hull_tiempos (solo filas que no existan ya).
+-- 3) Seed de CapacidadTeorica desde "Velum_tiempos" (solo filas que no existan ya).
 insert into public."CapacidadTeorica" (producto, "tipoMaquina", "piezasPorHora")
 select t.producto, v.tipo, v.val / coalesce(t.horas_dia, 8)
-from public.hull_tiempos t
+from public."Velum_tiempos" t
 cross join lateral (values
   ('LASER',           t.laser_uh),
   ('PLEGADORA',       t.plegadora_uh),
@@ -92,7 +92,7 @@ where v.val is not null and v.val > 0
 
 - [ ] **Step 2: PAUSA MANUAL — el usuario pega el SQL en el SQL Editor de Supabase y lo ejecuta**
 
-Esto NO se puede automatizar (constraint del proyecto: red local IPv4-only, nunca `prisma migrate`). Pedirle al usuario que lo corra y confirme. Si `hull_tiempos` estuviera vacía en la base, correr antes `supabase/hull_tiempos.sql` (existe en el repo con los 55 productos).
+Esto NO se puede automatizar (constraint del proyecto: red local IPv4-only, nunca `prisma migrate`). Pedirle al usuario que lo corra y confirme. Si `"Velum_tiempos"` no existiera o estuviera vacía en la base, correr antes `supabase/velum_tiempos.sql` (existe en el repo con los 55 productos; renombra `hull_tiempos` si la encuentra y si no la crea).
 
 - [ ] **Step 3: Crear script de verificación**
 
@@ -146,7 +146,7 @@ Expected: `CapacidadTeorica filas: >100`, `TramoTrabajo filas: 0`, `PIC/PEC-150 
 
 ```bash
 git add supabase/tiempos_reales.sql scripts/verificar-tiempos-sql.mjs
-git commit -m "feat: tablas CapacidadTeorica y TramoTrabajo + seed desde hull_tiempos"
+git commit -m "feat: tablas CapacidadTeorica y TramoTrabajo + seed desde Velum_tiempos"
 ```
 
 ---
@@ -1772,6 +1772,6 @@ git add -A && git commit -m "fix: ajustes de verificacion manual de tramos"
 
 ## Self-review (hecho al escribir el plan)
 
-- **Cobertura del spec:** tablas ✓ (Task 1), reglas de integridad ✓ (índice parcial + validaciones API), seed teóricos ✓ (desde `hull_tiempos`, no Excel — mejora), estados UI 1/2/3 ✓ (Task 8), setup→producción en un toque ✓, motivos de pausa ✓, fusión cantidad+tramo ✓ (PATCH terminar → `registrarProgreso`), huérfanos >12 h ✓ (cierre lazy en POST tramos), `/rendimiento` 3 niveles + n + dudosos ✓, CSV ✓, validaciones server ✓, manejo de errores del spec ✓ (rollback de cierre si falla progreso; constraint DB para doble apertura; tramo vive en server ante pérdida de conexión).
+- **Cobertura del spec:** tablas ✓ (Task 1), reglas de integridad ✓ (índice parcial + validaciones API), seed teóricos ✓ (desde `"Velum_tiempos"`, ex hull_tiempos, no Excel — mejora), estados UI 1/2/3 ✓ (Task 8), setup→producción en un toque ✓, motivos de pausa ✓, fusión cantidad+tramo ✓ (PATCH terminar → `registrarProgreso`), huérfanos >12 h ✓ (cierre lazy en POST tramos), `/rendimiento` 3 niveles + n + dudosos ✓, CSV ✓, validaciones server ✓, manejo de errores del spec ✓ (rollback de cierre si falla progreso; constraint DB para doble apertura; tramo vive en server ante pérdida de conexión).
 - **Desviaciones anotadas:** sin `GET /api/rendimiento/factores` (server component + lib directa); huérfanos se cierran lazy al abrir el siguiente tramo del mismo operario (no hay cron en el stack) — los huérfanos de operarios que nunca vuelven a fichar quedan abiertos pero se excluyen igual del cálculo (filtro `fin is not null`).
 - **Consistencia de tipos:** `TramoParaFactor`/`CapacidadRow` definidos en Task 4 y usados en Task 9; `TipoTramo`/`MotivoPausa`/`MOTIVOS_PAUSA` definidos en Task 3 y usados en Tasks 7-8; `registrarProgreso` definida en Task 5 y usada en Task 7. `esHuerfano` Task 3 → Task 6.

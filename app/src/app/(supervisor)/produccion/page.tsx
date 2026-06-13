@@ -26,7 +26,7 @@ export default async function ProduccionHullPage() {
       supabase.from('hull_proyectos').select('*').order('fecha_entrega', { ascending: true }),
       supabase.from('hull_ordenes').select('*'),
       supabase.from('hull_piezas').select('*'),
-      supabase.from('hull_tiempos').select('*'),
+      supabase.from('Velum_tiempos').select('*'),
       supabase.from('hull_sync_meta').select('ultima_sync').eq('id', 'singleton').single(),
     ])
 

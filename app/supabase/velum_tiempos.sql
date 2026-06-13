@@ -1,7 +1,17 @@
+-- Renombre desde hull_tiempos (jun 2026): si la tabla vieja existe, se renombra
+-- preservando los datos; el create posterior queda como no-op.
+do $$
+begin
+  if to_regclass('public.hull_tiempos') is not null
+     and to_regclass('public."Velum_tiempos"') is null then
+    alter table public.hull_tiempos rename to "Velum_tiempos";
+  end if;
+end $$;
+
 -- Tiempos de produccion por producto (piezas/hora por maquina).
 -- Origen: 'Control de Produccion dinamico.xlsx' hoja 'datos'. Cobertura PARCIAL (55 productos).
 -- Estimacion: dias = cantidad / piezas_hora / horas_dia(8).
-create table if not exists public.hull_tiempos (
+create table if not exists public."Velum_tiempos" (
   producto         text primary key,
   espesor          numeric,
   laser_uh         numeric,
@@ -13,9 +23,9 @@ create table if not exists public.hull_tiempos (
   horas_dia        integer not null default 8,
   actualizado_en   timestamptz not null default now()
 );
-alter table public.hull_tiempos enable row level security;
+alter table public."Velum_tiempos" enable row level security;
 
-insert into public.hull_tiempos (producto,espesor,laser_uh,plegadora_uh,punzonadora_uh,fresadora_uh,pintura_uh,embalado_uh) values
+insert into public."Velum_tiempos" (producto,espesor,laser_uh,plegadora_uh,punzonadora_uh,fresadora_uh,pintura_uh,embalado_uh) values
   ('PIC/PEC - 150',2.50,759.86,676.06,NULL,NULL,666.67,640.00),
   ('PIC/PEC - 200',2.50,567.15,676.06,NULL,NULL,666.67,640.00),
   ('PIL/PEL',2.50,950.65,676.06,NULL,NULL,666.67,960.00),
