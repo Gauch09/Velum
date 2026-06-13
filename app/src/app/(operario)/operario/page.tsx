@@ -31,7 +31,7 @@ export default async function OperarioPage() {
       id,
       porcentajeActual,
       estado,
-      maquina:Maquina ( id, nombre ),
+      maquina:Maquina ( id, nombre, tipo ),
       etapaRuta:EtapaRuta ( nombreEtapa, ordenSecuencia, umbralActivacion ),
       orden:OrdenProduccion (
         id,
@@ -49,6 +49,31 @@ export default async function OperarioPage() {
     .order('createdAt', { ascending: true })
 
   const ejecuciones = ejecucionesActivas ?? []
+
+  // Tramo abierto del operario (uno solo posible) + instancias de máquina por tipo
+  const [{ data: tramoAbiertoRow }, { data: maquinas }] = await Promise.all([
+    admin
+      .from('TramoTrabajo')
+      .select('id, tipo, inicio, ejecucionEtapaId, maquina:Maquina ( nombre )')
+      .eq('operarioId', usuario.id)
+      .is('fin', null)
+      .maybeSingle(),
+    admin
+      .from('Maquina')
+      .select('id, nombre, tipo')
+      .eq('estadoActual', 'OPERATIVA')
+      .order('nombre'),
+  ])
+
+  const tramoAbierto = tramoAbiertoRow
+    ? {
+        id: (tramoAbiertoRow as any).id,
+        tipo: (tramoAbiertoRow as any).tipo,
+        inicio: (tramoAbiertoRow as any).inicio,
+        ejecucionEtapaId: (tramoAbiertoRow as any).ejecucionEtapaId,
+        maquinaNombre: (tramoAbiertoRow as any).maquina?.nombre ?? '',
+      }
+    : null
 
   return (
     <main className="min-h-screen bg-gray-950 p-4 pb-10">
@@ -71,7 +96,12 @@ export default async function OperarioPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {ejecuciones.map((ej: any) => (
-            <OrdenCard key={ej.id} ejecucion={ej} />
+            <OrdenCard
+              key={ej.id}
+              ejecucion={ej}
+              maquinasDelTipo={(maquinas ?? []).filter((m: any) => m.tipo === ej.maquina?.tipo)}
+              tramoAbierto={tramoAbierto}
+            />
           ))}
         </div>
       )}
