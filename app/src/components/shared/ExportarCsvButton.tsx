@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type Tipo = 'trazabilidad' | 'overrides' | 'alertas'
+type Tipo = 'trazabilidad' | 'overrides' | 'alertas' | 'factores'
 
 interface Props {
   tipo: Tipo

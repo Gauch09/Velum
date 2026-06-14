@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import TramoControl from './TramoControl'
+import type { TramoAbierto, MaquinaOpcion } from './TramoControl'
 
 interface Props {
   ejecucion: {
@@ -19,9 +21,11 @@ interface Props {
       proyecto: { nombre: string } | null
     }
   }
+  maquinasDelTipo: MaquinaOpcion[]
+  tramoAbierto: TramoAbierto | null
 }
 
-export default function OrdenCard({ ejecucion }: Props) {
+export default function OrdenCard({ ejecucion, maquinasDelTipo, tramoAbierto }: Props) {
   const [cantidad, setCantidad] = useState(10)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -83,6 +87,13 @@ export default function OrdenCard({ ejecucion }: Props) {
           Activa siguiente etapa al {ejecucion.etapaRuta.umbralActivacion}%
         </p>
       </div>
+
+      <TramoControl
+        ejecucionId={ejecucion.id}
+        unidad={orden.unidad}
+        maquinas={maquinasDelTipo}
+        tramoAbierto={tramoAbierto}
+      />
 
       {orden.notas && (
         <div className="mb-3 border-l-2 border-gray-700 pl-2">
