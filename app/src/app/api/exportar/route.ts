@@ -5,7 +5,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 function escapeCsv(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''
   const s = String(value)
-  if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
     return `"${s.replace(/"/g, '""')}"`
   }
   return s
@@ -129,13 +129,52 @@ async function exportarAlertas(supabase: any): Promise<string> {
   return [headers, ...filas].join('\n')
 }
 
-const TIPOS = ['trazabilidad', 'overrides', 'alertas'] as const
+async function exportarFactores(supabase: any): Promise<string> {
+  const { data } = await supabase
+    .from('TramoTrabajo')
+    .select(`
+      tipo, inicio, fin, cantidadProducida, motivoPausa, dudoso, notas,
+      operario:Usuario ( nombre ),
+      maquina:Maquina ( nombre, tipo ),
+      ejecucionEtapa:EjecucionEtapa (
+        etapaRuta:EtapaRuta ( nombreEtapa ),
+        orden:OrdenProduccion ( sistema, producto, proyecto:Proyecto ( nombre ) )
+      )
+    `)
+    .not('fin', 'is', null)
+    .order('inicio', { ascending: false })
+    .limit(5000)
+
+  const headers = row(['Inicio', 'Fin', 'Tipo', 'Producto', 'Etapa', 'Máquina', 'Operario', 'Cantidad', 'Motivo pausa', 'Dudoso', 'Proyecto', 'Notas'])
+  const filas = ((data ?? []) as any[]).map(t => {
+    const orden = t.ejecucionEtapa?.orden
+    return row([
+      formatFecha(t.inicio),
+      formatFecha(t.fin),
+      t.tipo,
+      orden?.producto ?? '',
+      t.ejecucionEtapa?.etapaRuta?.nombreEtapa ?? '',
+      t.maquina?.nombre ?? '',
+      t.operario?.nombre ?? '',
+      t.cantidadProducida ?? '',
+      t.motivoPausa ?? '',
+      t.dudoso ? 'Sí' : 'No',
+      orden?.proyecto?.nombre ?? '',
+      t.notas ?? '',
+    ])
+  })
+
+  return [headers, ...filas].join('\n')
+}
+
+const TIPOS = ['trazabilidad', 'overrides', 'alertas', 'factores'] as const
 type Tipo = typeof TIPOS[number]
 
 const NOMBRES: Record<Tipo, string> = {
   trazabilidad: 'velum-trazabilidad',
   overrides: 'velum-overrides',
   alertas: 'velum-alertas',
+  factores: 'tramos-trabajo',
 }
 
 export async function GET(req: NextRequest) {
@@ -145,7 +184,7 @@ export async function GET(req: NextRequest) {
 
   const tipo = req.nextUrl.searchParams.get('tipo') as Tipo | null
   if (!tipo || !TIPOS.includes(tipo)) {
-    return NextResponse.json({ error: 'tipo debe ser: trazabilidad, overrides o alertas' }, { status: 400 })
+    return NextResponse.json({ error: 'tipo debe ser: trazabilidad, overrides, alertas o factores' }, { status: 400 })
   }
 
   const supabase = createSupabaseAdminClient() as any
@@ -153,6 +192,7 @@ export async function GET(req: NextRequest) {
   let csv: string
   if (tipo === 'trazabilidad') csv = await exportarTrazabilidad(supabase)
   else if (tipo === 'overrides') csv = await exportarOverrides(supabase)
+  else if (tipo === 'factores') csv = await exportarFactores(supabase)
   else csv = await exportarAlertas(supabase)
 
   const fecha = new Date().toISOString().slice(0, 10)

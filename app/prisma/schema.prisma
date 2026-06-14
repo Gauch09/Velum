@@ -70,6 +70,7 @@ model Usuario {
   maquina     Maquina?           @relation(fields: [maquinaId], references: [id])
   ejecuciones EjecucionEtapa[]
   registros   RegistroProgreso[]
+  tramos      TramoTrabajo[]
 }
 
 model Proyecto {
@@ -92,6 +93,7 @@ model Maquina {
   operarios   Usuario[]
   etapasRuta  EtapaRuta[]
   ejecuciones EjecucionEtapa[]
+  tramos      TramoTrabajo[]
 }
 
 model Ruta {
@@ -156,6 +158,7 @@ model EjecucionEtapa {
   maquina    Maquina            @relation(fields: [maquinaId], references: [id])
   operario   Usuario?           @relation(fields: [operarioId], references: [id])
   registros  RegistroProgreso[]
+  tramos     TramoTrabajo[]
 }
 
 model Configuracion {
@@ -190,4 +193,46 @@ model RegistroProgreso {
 
   ejecucionEtapa EjecucionEtapa @relation(fields: [ejecucionEtapaId], references: [id])
   usuario        Usuario        @relation(fields: [usuarioId], references: [id])
+}
+
+enum TipoTramo {
+  PREPARACION
+  PRODUCCION
+}
+
+enum MotivoPausa {
+  MATERIAL
+  OTRA_ORDEN
+  AVERIA
+  OTRO
+}
+
+model CapacidadTeorica {
+  id                   String      @id @default(cuid())
+  producto             String
+  tipoMaquina          TipoMaquina
+  piezasPorHora        Float
+  minutosSetupEstimado Float?
+  vigenteDesde         DateTime    @default(now())
+
+  @@unique([producto, tipoMaquina, vigenteDesde])
+}
+
+model TramoTrabajo {
+  id                String       @id @default(cuid())
+  ejecucionEtapaId  String
+  operarioId        String
+  maquinaId         String
+  tipo              TipoTramo
+  inicio            DateTime     @default(now())
+  fin               DateTime?
+  cantidadProducida Float?
+  motivoPausa       MotivoPausa?
+  dudoso            Boolean      @default(false)
+  notas             String?
+  createdAt         DateTime     @default(now())
+
+  ejecucionEtapa EjecucionEtapa @relation(fields: [ejecucionEtapaId], references: [id])
+  operario       Usuario        @relation(fields: [operarioId], references: [id])
+  maquina        Maquina        @relation(fields: [maquinaId], references: [id])
 }

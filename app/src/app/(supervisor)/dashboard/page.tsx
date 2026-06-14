@@ -154,6 +154,12 @@ export default async function SupervisorDashboard({
           >
             ⚡ Overrides
           </Link>
+          <Link
+            href="/ordenes-primarias"
+            className="text-gray-500 hover:text-gray-300 text-sm transition-colors"
+          >
+            📋 Órdenes Prod.
+          </Link>
           <NuevaOrdenModal />
         </div>
       </div>
