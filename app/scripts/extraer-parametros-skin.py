@@ -64,7 +64,12 @@ for row in ws_kp.iter_rows(min_row=3, max_row=12, min_col=1, max_col=2, values_o
 # ---------------------------------------------------------------------------
 # 3. MaterialVariante — Catalogo Variantes cols D(material)/E(familia)/F(espesor)
 #    Dedup por material (primera ocurrencia gana), skip si D es None.
+#    Solo incluir familias conocidas en MaterialFamilia (Skin). Omitir MDF y cualquier otra.
 # ---------------------------------------------------------------------------
+FAMILIAS_SKIN = {
+    'Acero Galvanizado', 'Acero', 'Aluminio', 'Inox', 'Al. Compuesto', 'Luxsteel'
+}
+
 print()
 print("-- MaterialVariante")
 ws_cat = wb["Catalogo Variantes"]
@@ -78,6 +83,9 @@ for row in ws_cat.iter_rows(min_row=2, min_col=4, max_col=6, values_only=True):
     seen_mat.add(mat)
     if fam is None:
         raise ValueError(f"MaterialVariante '{mat}': familia vacia")
+    if str(fam) not in FAMILIAS_SKIN:
+        # Familia no es un material Skin (ej. MDF) — omitir del seed
+        continue
     if esp is None:
         raise ValueError(f"MaterialVariante '{mat}': espesorMm vacio")
     esp = float(esp)

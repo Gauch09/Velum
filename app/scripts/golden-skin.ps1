@@ -57,8 +57,9 @@ try {
         familia     = $familia
     }
 
-    $json = $out | ConvertTo-Json
-    [System.IO.File]::WriteAllText($outPath, $json, [System.Text.Encoding]::UTF8)
+    $json = ($out | ConvertTo-Json) + "`n"
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($outPath, $json, $utf8NoBom)
 
     Write-Host "=== golden-metal.json written ==="
     Write-Host $json
