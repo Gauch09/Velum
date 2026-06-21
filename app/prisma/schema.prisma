@@ -421,3 +421,27 @@ model CatalogoRenglonMontaje {
   unidad    String
   activo    Boolean @default(true)
 }
+
+model MaterialFamilia {
+  id           String   @id @default(cuid())
+  nombre       String   @unique
+  densidad     Float
+  precioTon    Float
+  precioM2     Float    @default(0)
+  actualizadoEn DateTime @updatedAt
+}
+
+model MaterialVariante {
+  id           String   @id @default(cuid())
+  material     String   @unique
+  familia      String
+  espesorMm    Float
+  actualizadoEn DateTime @updatedAt
+}
+
+model DisenoKp {
+  id           String   @id @default(cuid())
+  diseno       String   @unique
+  kp           Float
+  actualizadoEn DateTime @updatedAt
+}
