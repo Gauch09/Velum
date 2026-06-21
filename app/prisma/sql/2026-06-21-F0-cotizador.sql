@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "Cliente" (
 -- Contacto
 CREATE TABLE IF NOT EXISTS "Contacto" (
   id          text PRIMARY KEY,
-  "clienteId" text NOT NULL,
+  "clienteId" text NOT NULL REFERENCES "Cliente"(id),
   nombre      text NOT NULL,
   cargo       text,
   email       text NOT NULL,
@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS "Contacto" (
 CREATE TABLE IF NOT EXISTS "Cotizacion" (
   id              text PRIMARY KEY,
   numero          text NOT NULL UNIQUE,
-  "clienteId"     text NOT NULL,
+  "clienteId"     text NOT NULL REFERENCES "Cliente"(id),
+  -- proyectoId apunta a la tabla Proyecto de produccion; se deja sin FK intencional para no acoplar esquemas
   "proyectoId"    text,
   version         integer NOT NULL DEFAULT 1,
   estado          "EstadoCotizacion" NOT NULL DEFAULT 'BORRADOR',
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS "Cotizacion" (
 -- CotizacionVano
 CREATE TABLE IF NOT EXISTS "CotizacionVano" (
   id               text PRIMARY KEY,
-  "cotizacionId"   text NOT NULL,
+  "cotizacionId"   text NOT NULL REFERENCES "Cotizacion"(id),
   sistema          text NOT NULL,
   material         text NOT NULL,
   terminacion      text NOT NULL,
@@ -75,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "CotizacionVano" (
 -- CondicionesComerciales
 CREATE TABLE IF NOT EXISTS "CondicionesComerciales" (
   id                   text PRIMARY KEY,
-  "cotizacionId"       text NOT NULL UNIQUE,
+  "cotizacionId"       text NOT NULL UNIQUE REFERENCES "Cotizacion"(id),
   "formaPagoProducto"  text NOT NULL,
   "modoPagoMontaje"    "ModoPagoMontaje" NOT NULL DEFAULT 'INCLUIDO_PAQUETE',
   "variosPct"          double precision NOT NULL DEFAULT 10
@@ -84,7 +85,7 @@ CREATE TABLE IF NOT EXISTS "CondicionesComerciales" (
 -- Retencion
 CREATE TABLE IF NOT EXISTS "Retencion" (
   id            text PRIMARY KEY,
-  "condicionId" text NOT NULL,
+  "condicionId" text NOT NULL REFERENCES "CondicionesComerciales"(id),
   tipo          "TipoRetencion" NOT NULL,
   porcentaje    double precision NOT NULL
 );
@@ -92,7 +93,7 @@ CREATE TABLE IF NOT EXISTS "Retencion" (
 -- Certificacion
 CREATE TABLE IF NOT EXISTS "Certificacion" (
   id            text PRIMARY KEY,
-  "condicionId" text NOT NULL,
+  "condicionId" text NOT NULL REFERENCES "CondicionesComerciales"(id),
   descripcion   text NOT NULL,
   porcentaje    double precision NOT NULL,
   monto         double precision
@@ -165,8 +166,8 @@ CREATE TABLE IF NOT EXISTS "CatalogoRenglonMontaje" (
 -- ---------------------------------------------------------------------------
 
 -- ParametroCosteo
-INSERT INTO "ParametroCosteo" (id, clave, valor, unidad, descripcion, "actualizadoEn") VALUES (gen_random_uuid()::text, 'tasa_planta', 17046.553144129102, '$/h', 'Tasa de planta unica', now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
-INSERT INTO "ParametroCosteo" (id, clave, valor, unidad, descripcion, "actualizadoEn") VALUES (gen_random_uuid()::text, 'tipo_cambio', 1460.0, '$/u$d', 'TC pesos por dolar', now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
+INSERT INTO "ParametroCosteo" (id, clave, valor, unidad, descripcion, "actualizadoEn") VALUES (gen_random_uuid()::text, 'tasa_planta', 17046.553144129102, '$/h', 'Tasa de planta unica', now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, "actualizadoEn" = now();
+INSERT INTO "ParametroCosteo" (id, clave, valor, unidad, descripcion, "actualizadoEn") VALUES (gen_random_uuid()::text, 'tipo_cambio', 1460.0, '$/u$d', 'TC pesos por dolar', now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, "actualizadoEn" = now();
 
 -- CapacidadCentro
 INSERT INTO "CapacidadCentro" (id, pieza, centro, "unidadesPorDia", "actualizadoEn") VALUES (gen_random_uuid()::text, 'PIC 150 (mensula)', 'LASER', 760.0, now()) ON CONFLICT (pieza, centro) DO UPDATE SET "unidadesPorDia" = EXCLUDED."unidadesPorDia";
@@ -209,7 +210,7 @@ INSERT INTO "CapacidadCentro" (id, pieza, centro, "unidadesPorDia", "actualizado
 INSERT INTO "CapacidadCentro" (id, pieza, centro, "unidadesPorDia", "actualizadoEn") VALUES (gen_random_uuid()::text, 'MultiSlim Custom', 'EMBALADO', 400.0, now()) ON CONFLICT (pieza, centro) DO UPDATE SET "unidadesPorDia" = EXCLUDED."unidadesPorDia";
 
 -- FactorKp
-INSERT INTO "FactorKp" (id, clave, valor, "actualizadoEn") VALUES (gen_random_uuid()::text, 'composite', 1.6, now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;
+INSERT INTO "FactorKp" (id, clave, valor, "actualizadoEn") VALUES (gen_random_uuid()::text, 'composite', 1.6, now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, "actualizadoEn" = now();
 
 -- ---------------------------------------------------------------------------
 -- 4. SEED — Retenciones default (promedios tipicos)
