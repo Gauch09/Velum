@@ -20,6 +20,9 @@ PARAMS = {
 print("-- ParametroCosteo")
 for clave, (hoja, ref, unidad, desc) in PARAMS.items():
     v = cell(hoja, ref)
+    if v is None:
+        raise ValueError(f"celda vacia: {clave} ({hoja}!{ref})")
+    v = float(v)
     print(f"INSERT INTO \"ParametroCosteo\" (id, clave, valor, unidad, descripcion, \"actualizadoEn\") "
           f"VALUES (gen_random_uuid()::text, '{clave}', {v}, '{unidad}', '{desc}', now()) "
           f"ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;")
@@ -37,6 +40,7 @@ for pieza, fila in PIEZAS.items():
         v = cell("Capacidad Fab", f"{col}{fila}")
         if v is None or v == "-":
             continue
+        v = float(v)
         print(f"INSERT INTO \"CapacidadCentro\" (id, pieza, centro, \"unidadesPorDia\", \"actualizadoEn\") "
               f"VALUES (gen_random_uuid()::text, '{pieza}', '{centro}', {v}, now()) "
               f"ON CONFLICT (pieza, centro) DO UPDATE SET \"unidadesPorDia\" = EXCLUDED.\"unidadesPorDia\";")
@@ -44,6 +48,9 @@ for pieza, fila in PIEZAS.items():
 # Kp
 print("-- FactorKp")
 kp = cell("Factores Kp", "B11")
+if kp is None:
+    raise ValueError(f"celda vacia: FactorKp (Factores Kp!B11)")
+kp = float(kp)
 print(f"INSERT INTO \"FactorKp\" (id, clave, valor, \"actualizadoEn\") "
       f"VALUES (gen_random_uuid()::text, 'composite', {kp}, now()) "
       f"ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor;")
