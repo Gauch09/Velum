@@ -236,3 +236,188 @@ model TramoTrabajo {
   operario       Usuario        @relation(fields: [operarioId], references: [id])
   maquina        Maquina        @relation(fields: [maquinaId], references: [id])
 }
+
+enum CondicionIva {
+  RESPONSABLE_INSCRIPTO
+  MONOTRIBUTO
+  EXENTO
+}
+
+enum EstadoCotizacion {
+  BORRADOR
+  ENVIADA
+  VISTA
+  ACEPTADA
+  RECHAZADA
+}
+
+enum AlcanceCotizacion {
+  PROVISION
+  PROVISION_MONTAJE
+}
+
+enum ModoPagoMontaje {
+  INCLUIDO_PAQUETE
+  CERTIFICACIONES
+}
+
+enum TipoRetencion {
+  IVA
+  GANANCIAS
+  IIBB
+  SUSS
+}
+
+enum CentroTrabajo {
+  LASER
+  PLEGADORA
+  PUNZONADORA
+  PINTURA
+  EMBALADO
+}
+
+model Cliente {
+  id             String       @id @default(cuid())
+  razonSocial    String
+  cuit           String       @unique
+  condicionIva   CondicionIva
+  domicilioFiscal String?
+  jurisdiccionIibb String?
+  esAgenteRetencion Boolean    @default(false)
+  createdAt      DateTime     @default(now())
+
+  contactos   Contacto[]
+  cotizaciones Cotizacion[]
+}
+
+model Contacto {
+  id        String  @id @default(cuid())
+  clienteId String
+  nombre    String
+  cargo     String?
+  email     String
+  telefono  String?
+
+  cliente Cliente @relation(fields: [clienteId], references: [id])
+}
+
+model Cotizacion {
+  id            String            @id @default(cuid())
+  numero        String            @unique
+  clienteId     String
+  proyectoId    String?
+  version       Int               @default(1)
+  estado        EstadoCotizacion  @default(BORRADOR)
+  alcance       AlcanceCotizacion @default(PROVISION)
+  margenPct     Float             @default(0)
+  totalProducto Float             @default(0)
+  totalMontaje  Float             @default(0)
+  tcUsado       Float
+  ubicacionObra String?
+  createdAt     DateTime          @default(now())
+
+  cliente     Cliente                  @relation(fields: [clienteId], references: [id])
+  vanos       CotizacionVano[]
+  condiciones CondicionesComerciales?
+}
+
+model CotizacionVano {
+  id           String @id @default(cuid())
+  cotizacionId String
+  sistema      String
+  material     String
+  terminacion  String
+  ancho        Float
+  alto         Float
+  costoFab     Float  @default(0)
+  costoMaterial Float @default(0)
+  precio       Float  @default(0)
+
+  cotizacion Cotizacion @relation(fields: [cotizacionId], references: [id])
+}
+
+model CondicionesComerciales {
+  id             String          @id @default(cuid())
+  cotizacionId   String          @unique
+  formaPagoProducto String
+  modoPagoMontaje ModoPagoMontaje @default(INCLUIDO_PAQUETE)
+  variosPct      Float           @default(10)
+
+  cotizacion    Cotizacion      @relation(fields: [cotizacionId], references: [id])
+  retenciones   Retencion[]
+  certificaciones Certificacion[]
+}
+
+model Retencion {
+  id          String        @id @default(cuid())
+  condicionId String
+  tipo        TipoRetencion
+  porcentaje  Float
+
+  condicion CondicionesComerciales @relation(fields: [condicionId], references: [id])
+}
+
+model Certificacion {
+  id          String  @id @default(cuid())
+  condicionId String
+  descripcion String
+  porcentaje  Float
+  monto       Float?
+
+  condicion CondicionesComerciales @relation(fields: [condicionId], references: [id])
+}
+
+model ParametroCosteo {
+  id        String   @id @default(cuid())
+  clave     String   @unique
+  valor     Float
+  unidad    String?
+  descripcion String?
+  actualizadoEn DateTime @updatedAt
+}
+
+model CapacidadCentro {
+  id        String        @id @default(cuid())
+  pieza     String
+  centro    CentroTrabajo
+  unidadesPorDia Float?
+  actualizadoEn  DateTime  @updatedAt
+
+  @@unique([pieza, centro])
+}
+
+model FactorKp {
+  id        String   @id @default(cuid())
+  clave     String   @unique
+  valor     Float
+  actualizadoEn DateTime @updatedAt
+}
+
+model SistemaCotizador {
+  id        String  @id @default(cuid())
+  nombre    String  @unique
+  activo    Boolean @default(true)
+}
+
+model MaterialCotizador {
+  id        String  @id @default(cuid())
+  codigo    String  @unique
+  nombre    String
+  precioU   Float?
+  unidad    String  @default("kg")
+}
+
+model MedioElevacion {
+  id          String  @id @default(cuid())
+  nombre      String  @unique
+  alturaMaxM  Float
+  costoDia    Float?
+}
+
+model CatalogoRenglonMontaje {
+  id        String  @id @default(cuid())
+  nombre    String  @unique
+  categoria String
+  unidad    String
+  activo    Boolean @default(true)
+}
