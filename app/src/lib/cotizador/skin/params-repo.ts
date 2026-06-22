@@ -44,8 +44,8 @@ export async function cargarSkinParams(): Promise<SkinParams> {
   const pm: Record<string, number> = {}
   for (const r of rows ?? []) pm[r.clave] = Number(r.valor)
 
-  // 2. Leer CapacidadCentro para las 4 piezas Skin
-  const PIEZAS = ['Skin Standard', 'Costilla 3000', 'PIC 150 (mensula)', 'Empalme Costilla']
+  // 2. Leer CapacidadCentro para las piezas Skin + la placa ACM
+  const PIEZAS = ['Skin Standard', 'Costilla 3000', 'PIC 150 (mensula)', 'Empalme Costilla', 'Placa ACM']
   const { data: caps, error: errCaps } = await supabase
     .from('CapacidadCentro')
     .select('pieza, centro, unidadesPorDia')
@@ -69,6 +69,14 @@ export async function cargarSkinParams(): Promise<SkinParams> {
   const fabMensula      = calcFab(capsByPieza['PIC 150 (mensula)'],   tasaPlanta, tipoCambio)
   const fabEmpalme      = calcFab(capsByPieza['Empalme Costilla'],    tasaPlanta, tipoCambio)
 
+  // fab placa ACM: preferir las capacidades de planta ('Placa ACM' = fresado +
+  // punzonado + plegado/armado); si no hay filas cargadas, caer al escalar
+  // legacy acm_fab_placa.
+  const capsPlacaAcm = capsByPieza['Placa ACM']
+  const fabPlaca = capsPlacaAcm.length > 0
+    ? calcFab(capsPlacaAcm, tasaPlanta, tipoCambio)
+    : p(pm, 'acm_fab_placa')
+
   return {
     galvDensidad:      p(pm, 'galv_densidad'),
     galvPrecioTon:     p(pm, 'galv_precio_ton'),
@@ -81,7 +89,7 @@ export async function cargarSkinParams(): Promise<SkinParams> {
     acmAccPorPanel:    p(pm, 'acm_acc_panel'),
     acmAccCosto:       p(pm, 'acm_acc_costo'),
     areaPlaca:         p(pm, 'acm_area_placa'),
-    fabPlaca:          p(pm, 'acm_fab_placa'),
+    fabPlaca,
     fabPanelSkin,
     fabCostilla3000,
     fabMensula,
