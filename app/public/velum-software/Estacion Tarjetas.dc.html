@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -598,10 +599,11 @@ class Component extends DCLogic {
       editorOpen: false,
       newProjName: '',
       editKp: { open:false, fileId:null, field:null, buffer:'' },
-      faltanteOpen:false, faltantes:this._readFaltantes(), draftFaltante:'',
-      maqEstado:this._readMaqEstado(),
+      faltanteOpen:false, faltantes:[], draftFaltante:'',
+      maqEstado:{},
       fueraModal:{ open:false, motivo:'' },
-      projects: this._loadFull()
+      proyectosCustom: [],
+      projects: []
     };
   }
 
@@ -623,55 +625,57 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
+    this._cargar();
+  }
+  _dateKey() { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  async _cargar() {
+    if (!window.VelumAPI) return;
     try {
-      this.setState(s => {
-        const next = s.projects.map(p => {
-          const raw = localStorage.getItem('velum_estacion_' + p.id);
-          if (!raw) return p;
-          const saved = JSON.parse(raw);
-          return { ...p, files: p.files.map(f => saved[f.id] ? { ...f, ...saved[f.id] } : f) };
-        });
-        this._publishObras(next);
-        return { projects: next };
-      });
+      const res = await Promise.all([
+        VelumAPI.get('estacion').catch(()=>[]),
+        VelumAPI.get('faltantes').catch(()=>[]),
+        VelumAPI.get('maquinas-estado').catch(()=>[]),
+        VelumAPI.get('proyectos').catch(()=>[]),
+        VelumAPI.get('prod-diaria').catch(()=>[])
+      ]);
+      const projects = Array.isArray(res[0]) ? res[0] : [];
+      const faltantes = Array.isArray(res[1]) ? res[1] : [];
+      const maqArr = Array.isArray(res[2]) ? res[2] : [];
+      const proyectosCustom = Array.isArray(res[3]) ? res[3] : [];
+      const prodArr = Array.isArray(res[4]) ? res[4] : [];
+      const maqEstado = {};
+      maqArr.forEach(r => { maqEstado[r.key] = { motivo:r.motivo, maquina:r.maquina, ts:r.ts }; });
+      const ds = this._dateKey();
+      const hoy = prodArr.find(x => x.dateKey === ds);
+      this._prodDia = hoy ? { dateKey:ds, byProj:(hoy.byProj||{}), fallas:(hoy.fallas||0) } : { dateKey:ds, byProj:{}, fallas:0 };
+      this.setState({ projects, faltantes, maqEstado, proyectosCustom });
     } catch (e) {}
   }
   componentWillUnmount() { clearInterval(this._clock); }
 
   _save(projectId, projects) {
-    try {
-      const p = projects.find(x => x.id === projectId);
-      const map = {};
-      p.files.forEach(f => { map[f.id] = { chapas: f.chapas, retazo: f.retazo, fallas: f.fallas, fallasProc: f.fallasProc || {} }; });
-      localStorage.setItem('velum_estacion_' + projectId, JSON.stringify(map));
-      localStorage.setItem('velum_estacion_full', JSON.stringify(projects));
-      this._publishObras(projects);
-    } catch (e) {}
+    const p = projects.find(x => x.id === projectId);
+    if (!p || !window.VelumAPI) return;
+    VelumAPI.save('estacion', { id:p.id, name:p.name, files:p.files }).catch(()=>{});
+    VelumAPI.save('obras', { projectId:p.id, pct:this._projStats(p).pct }).catch(()=>{});
   }
 
   _publishObras(projects) {
-    try {
-      const obras = {};
-      projects.forEach(p => { obras[p.id] = this._projStats(p).pct; });
-      localStorage.setItem('velum_obras', JSON.stringify(obras));
-    } catch (e) {}
+    if (!window.VelumAPI) return;
+    projects.forEach(p => { VelumAPI.save('obras', { projectId:p.id, pct:this._projStats(p).pct }).catch(()=>{}); });
   }
 
   _fmt(n) { const r = Math.round(n * 10) / 10; return (r % 1 === 0) ? String(r) : r.toFixed(1).replace('.', ','); }
   _logProd(projectId, chapas, fallas){
-    try{
-      const key='velum_prod_diaria';
-      const d=new Date(); const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      let led={}; try{ const r=localStorage.getItem(key); if(r) led=JSON.parse(r)||{}; }catch(e){}
-      const day=led[ds]||(led[ds]={byProj:{},fallas:0});
-      if(!day.byProj) day.byProj={};
-      if(chapas) day.byProj[projectId]=Math.round(((day.byProj[projectId]||0)+chapas)*10)/10;
-      if(fallas) day.fallas=(day.fallas||0)+fallas;
-      localStorage.setItem(key, JSON.stringify(led));
-    }catch(e){}
+    const ds=this._dateKey();
+    if(!this._prodDia || this._prodDia.dateKey!==ds) this._prodDia={ dateKey:ds, byProj:{}, fallas:0 };
+    const day=this._prodDia;
+    if(chapas) day.byProj[projectId]=Math.round(((day.byProj[projectId]||0)+chapas)*10)/10;
+    if(fallas) day.fallas=(day.fallas||0)+fallas;
+    if(window.VelumAPI) VelumAPI.save('prod-diaria', { dateKey:day.dateKey, byProj:day.byProj, fallas:day.fallas }).catch(()=>{});
   }
   _hhmm() { const n = new Date(); const p = x => x < 10 ? '0' + x : '' + x; return p(n.getHours()) + ':' + p(n.getMinutes()); }
-  _pushHist(rec) { try { var r = localStorage.getItem('velum_historial'); var arr = r ? JSON.parse(r) : []; if (!Array.isArray(arr)) arr = []; var ts = Date.now(); var d = new Date(ts); var pad = x => x < 10 ? '0' + x : '' + x; arr.push(Object.assign({ ts: ts, dateKey: d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()), hour: d.getHours(), dow: d.getDay() }, rec)); if (arr.length > 6000) arr = arr.slice(arr.length - 6000); localStorage.setItem('velum_historial', JSON.stringify(arr)); } catch(e){} }
+  _pushHist(rec) { if(!window.VelumAPI) return; var ts = Date.now(); var d = new Date(ts); var pad = x => x < 10 ? '0' + x : '' + x; var full = Object.assign({ ts: ts, dateKey: d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()), hour: d.getHours(), dow: d.getDay() }, rec); VelumAPI.save('historial', full).catch(()=>{}); }
 
   _procOrder(f){ return (f.procesos && f.procesos.length) ? f.procesos : ['laser']; }
   _procDefLabel(pid){ const m = { laser:'Corte láser', punzon:'Punzonado', fresa:'Fresado', plegadora:'Plegado', expansora:'Expandido', pintura:'Pintura', embalado:'Embalado' }; return m[pid] || pid; }
@@ -869,7 +873,7 @@ class Component extends DCLogic {
     };
   }
 
-  _paintInfo(pid){ try{ const r=localStorage.getItem('velum_proyectos_custom'); const d=r?JSON.parse(r):[]; const p=(Array.isArray(d)?d:[]).find(x=>x.id===pid); if(p&&p.pintado) return { pintado:true, code:((p.colorName||'').trim()||'A definir') }; }catch(e){} return { pintado:false, code:'' }; }
+  _paintInfo(pid){ const d=this.state.proyectosCustom||[]; const p=d.find(x=>x.id===pid); if(p&&p.pintado) return { pintado:true, code:((p.colorName||'').trim()||'A definir') }; return { pintado:false, code:'' }; }
 
   _projStats(p) {
     let objU = 0, totWork = 0, doneWork = 0;
@@ -889,15 +893,7 @@ class Component extends DCLogic {
     return { objU, unid, pct };
   }
 
-  _loadFull() {
-    const def = this._data();
-    try {
-      const r = localStorage.getItem('velum_estacion_full');
-      if (r) { const d = JSON.parse(r); if (Array.isArray(d) && d.length) { const ids = d.map(p=>p.id); d.forEach(p=>{ const m = def.find(x=>x.id===p.id); if(m) p.name = m.name; }); def.forEach(p=>{ if(!ids.includes(p.id)) d.push(p); }); try { localStorage.setItem('velum_estacion_full', JSON.stringify(d)); } catch(e){} return d; } }
-    } catch (e) {}
-    try { localStorage.setItem('velum_estacion_full', JSON.stringify(def)); } catch (e) {}
-    return def;
-  }
+  _loadFull() { return this._data(); }
 
   _editField(fileId, field, delta, isText, textVal) {
     this.setState(s => {
@@ -955,15 +951,15 @@ class Component extends DCLogic {
   }
   _openEditKp(fileId, field) { this.setState({ editKp: { open:true, fileId, field, buffer:'' } }, () => { try { const el = document.querySelector('input[inputmode="decimal"]'); if (el) { el.focus(); } } catch(e){} }); }
   _closeEditKp() { this.setState({ editKp: { open:false, fileId:null, field:null, buffer:'' } }); }
-  _readFaltantes(){ try{ const r=localStorage.getItem('velum_faltantes_taller'); const d=r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; }catch(e){ return []; } }
-  _readMaqEstado(){ try{ const r=localStorage.getItem('velum_maquinas_estado'); const d=r?JSON.parse(r):{}; return (d&&typeof d==='object')?d:{}; }catch(e){ return {}; } }
+  _readFaltantes(){ return (this.state&&this.state.faltantes)||[]; }
+  _readMaqEstado(){ return (this.state&&this.state.maqEstado)||{}; }
   _maqKey(){ const M=this._machines().find(x=>x.id===this.state.machineId)||this._machines()[0]; const unit=(M.units>1 && M.unitNames)?(M.unitNames[this.state.laser-1]||''):''; return unit?(M.id+'|'+unit):M.id; }
   _maqNombre(){ const M=this._machines().find(x=>x.id===this.state.machineId)||this._machines()[0]; const unit=(M.units>1 && M.unitNames)?(M.unitNames[this.state.laser-1]||''):''; return unit?(M.name+' · '+unit):M.name; }
-  _toggleFueraServicio(){ const key=this._maqKey(); const est=this._readMaqEstado(); if(est[key]){ delete est[key]; try{ localStorage.setItem('velum_maquinas_estado', JSON.stringify(est)); }catch(e){} this.setState({ maqEstado:est }); return; } this.setState({ fueraModal:{ open:true, motivo:'' } }); }
-  _confirmFuera(){ const key=this._maqKey(); const est=this._readMaqEstado(); const motivo=(this.state.fueraModal.motivo||'').trim()||'Sin especificar'; est[key]={ motivo:motivo, maquina:this._maqNombre(), ts:Date.now() }; try{ localStorage.setItem('velum_maquinas_estado', JSON.stringify(est)); }catch(e){} this.setState({ maqEstado:est, fueraModal:{ open:false, motivo:'' } }); }
+  _toggleFueraServicio(){ const key=this._maqKey(); const est=Object.assign({}, this.state.maqEstado); if(est[key]){ delete est[key]; this.setState({ maqEstado:est }); if(window.VelumAPI) VelumAPI.del('maquinas-estado', key).catch(()=>{}); return; } this.setState({ fueraModal:{ open:true, motivo:'' } }); }
+  _confirmFuera(){ const key=this._maqKey(); const est=Object.assign({}, this.state.maqEstado); const motivo=(this.state.fueraModal.motivo||'').trim()||'Sin especificar'; const ts=Date.now(); const maquina=this._maqNombre(); est[key]={ motivo:motivo, maquina:maquina, ts:ts }; this.setState({ maqEstado:est, fueraModal:{ open:false, motivo:'' } }); if(window.VelumAPI) VelumAPI.save('maquinas-estado', { key:key, motivo:motivo, maquina:maquina, ts:ts }).catch(()=>{}); }
   _cancelFuera(){ this.setState({ fueraModal:{ open:false, motivo:'' } }); }
-  _addFaltante(){ const t=(this.state.draftFaltante||'').trim(); if(!t) return; const mm=this._machines().find(x=>x.id===this.state.machineId); const maq=mm?mm.name:''; this.setState(s=>{ const faltantes=[{id:'ft'+Date.now(), text:t, maquina:maq, ts:Date.now()}, ...(s.faltantes||[])]; try{ localStorage.setItem('velum_faltantes_taller', JSON.stringify(faltantes)); }catch(e){} return { faltantes, draftFaltante:'' }; }); }
-  _delFaltante(id){ this.setState(s=>{ const faltantes=(s.faltantes||[]).filter(x=>x.id!==id); try{ localStorage.setItem('velum_faltantes_taller', JSON.stringify(faltantes)); }catch(e){} return { faltantes }; }); }
+  _addFaltante(){ const t=(this.state.draftFaltante||'').trim(); if(!t) return; const mm=this._machines().find(x=>x.id===this.state.machineId); const maq=mm?mm.name:''; const item={id:'ft'+Date.now(), text:t, maquina:maq, ts:Date.now()}; this.setState(s=>({ faltantes:[item, ...(s.faltantes||[])], draftFaltante:'' })); if(window.VelumAPI) VelumAPI.save('faltantes', item).catch(()=>{}); }
+  _delFaltante(id){ this.setState(s=>({ faltantes:(s.faltantes||[]).filter(x=>x.id!==id) })); if(window.VelumAPI) VelumAPI.del('faltantes', id).catch(()=>{}); }
   _editKpKey(k) {
     this.setState(s => {
       let b = s.editKp.buffer;
