@@ -167,7 +167,7 @@ class Component extends DCLogic {
     }; });
     // ░ Carga del proyecto activo vs capacidad ░
     var prodsArr=this.state.prods;
-    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    function ench(name){ return (window.VelumAPI&&VelumAPI.matchCap)?VelumAPI.matchCap(prodsArr,name):null; }
     var full=this.state.full||[];
     var maq={ laser:{label:'Láser',color:'#21C7D6',h:0,u:0}, plegado:{label:'Plegadora',color:'#E5A52B',h:0,u:0}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0} };
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };

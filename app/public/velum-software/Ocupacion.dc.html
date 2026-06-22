@@ -191,8 +191,9 @@ class Component extends DCLogic {
   _caps(){ const d=this.state.caps; return Array.isArray(d)?d:[]; }
   _rate(machine, pieza){
     const def=this._machineDefs().find(m=>m.id===machine); if(!def||!def.field) return 0;
-    const caps=this._caps(); const nm=(pieza||'').toLowerCase(); let r=0;
-    caps.forEach(p=>{ const pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ const v=p[def.field]||0; if(v>0) r=v; } });
+    const caps=this._caps();
+    const mp=(window.VelumAPI&&VelumAPI.matchCap)?VelumAPI.matchCap(caps,pieza):null;
+    let r=mp?(mp[def.field]||0):0;
     if(r<=0) return 0;
     if(machine==='pintura') return r*10/3; // rate = u/percha, 10 perchas en 3h
     return r;
