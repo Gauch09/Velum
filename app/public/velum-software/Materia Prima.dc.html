@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 34px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <a href="Dashboard Oficina.dc.html" title="Volver" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">INSUMOS</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">MATERIA PRIMA Y CONSUMIBLES</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:50px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:256px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="6">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.24);border:0.5px solid rgba(139,115,85,0.18);border-radius:9px;padding:4px;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+          <div onClick="{{ t.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:14px;color:{{ t.color }};background:{{ t.bg }};padding:9px 18px;border-radius:6px;cursor:pointer;">{{ t.label }}</div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ isMateria }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ onExportPdf }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:11px 16px;border-radius:10px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>Exportar PDF</div>
+      </sc-if>
+      <div onClick="{{ onOpenLoad }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;color:#0C2226;background:#C9B79A;padding:12px 18px;border-radius:10px;">
+        <span style="font-size:18px;line-height:1;">+</span> {{ addLabel }}
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1360px;margin:0 auto;padding:24px 30px 48px;">
+
+    <!-- ═══ MATERIA PRIMA ═══ -->
+    <sc-if value="{{ isMateria }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;">
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid #C9B79A;border-radius:11px;padding:16px 20px;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#C9B79A;line-height:1;font-variant-numeric:tabular-nums;">{{ kpiMateriales }}</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#9AA6A2;margin-top:6px;">Materiales cargados</div>
+        </div>
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid #E0694A;border-radius:11px;padding:16px 20px;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#E0694A;line-height:1;font-variant-numeric:tabular-nums;">{{ kpiFaltantes }}</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#9AA6A2;margin-top:6px;">Con faltante</div>
+        </div>
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid #4FB870;border-radius:11px;padding:16px 20px;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#4FB870;line-height:1;font-variant-numeric:tabular-nums;">{{ kpiCubiertos }}</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#9AA6A2;margin-top:6px;">Cubiertos</div>
+        </div>
+      </div>
+
+      <sc-if value="{{ hayFaltantes }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(224,105,74,0.1);border:0.5px solid rgba(224,105,74,0.4);border-radius:12px;padding:14px 18px;margin-bottom:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#F0B6A6;">Falta material para los proyectos activos: <b style="color:#fff;">{{ faltantesTxt }}</b></span>
+        </div>
+      </sc-if>
+
+      <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:1.3fr 100px 110px 110px 100px 110px 110px 120px 40px;gap:13px;align-items:center;padding:14px 22px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;">MATERIAL</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;">ESPESOR</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;">TERMINACIÓN</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;">DIMENSIÓN</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;text-align:right;">STOCK</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;text-align:right;">DEMANDA</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;text-align:right;">SALDO</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.12em;color:#7E8C89;">ESTADO</span>
+          <span></span>
+        </div>
+        <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1.3fr 100px 110px 110px 100px 110px 110px 120px 40px;gap:13px;align-items:center;padding:15px 22px;border-bottom:0.5px solid rgba(139,115,85,0.1);border-left:4px solid {{ r.estadoColor }};">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:17px;color:#fff;">{{ r.material }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#C2C8C4;">{{ r.espesor }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">{{ r.terminacion }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">{{ r.dimension }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:17px;color:#EAE6DF;font-variant-numeric:tabular-nums;text-align:right;">{{ r.stockStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#9AA6A2;font-variant-numeric:tabular-nums;text-align:right;">{{ r.demandaStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:{{ r.estadoColor }};font-variant-numeric:tabular-nums;text-align:right;">{{ r.saldoStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:11px;letter-spacing:0.05em;color:{{ r.estadoColor }};background:{{ r.estadoBg }};padding:6px 11px;border-radius:7px;justify-self:start;">{{ r.estado }}</span>
+              <div onClick="{{ r.onDel }}" style="width:34px;height:34px;border-radius:9px;background:rgba(224,105,74,0.12);border:0.5px solid rgba(224,105,74,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;color:#E0694A;cursor:pointer;">✕</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:50px 24px;text-align:center;font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;">Todavía no cargaste materiales. Tocá "Cargar material" para empezar.</div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasSinStock }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px;background:#1C2928;border:0.5px solid rgba(229,165,43,0.3);border-radius:14px;padding:18px 24px;">
+          <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:14px;">PIDEN LOS PROYECTOS Y NO TENÉS CARGADOS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;">
+            <sc-for list="{{ sinStock }}" as="s" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(229,165,43,0.1);border:0.5px solid rgba(229,165,43,0.35);border-radius:10px;padding:11px 16px;">
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;">{{ s.material }} {{ s.espesor }}</span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#E5A52B;font-variant-numeric:tabular-nums;">pide {{ s.demandaStr }}</span>
+                <span onClick="{{ s.onAdd }}" style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#0C2226;background:#C9B79A;padding:5px 11px;border-radius:6px;cursor:pointer;">+ Cargar</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ═══ CONSUMIBLES ═══ -->
+    <sc-if value="{{ isConsumibles }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:2fr 1fr 130px 120px 40px;gap:16px;align-items:center;padding:14px 24px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;">CONSUMIBLE</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;">CATEGORÍA</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;text-align:right;">STOCK</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;">UNIDAD</span>
+          <span></span>
+        </div>
+        <sc-if value="{{ hasCons }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ consumibles }}" as="c" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:2fr 1fr 130px 120px 40px;gap:16px;align-items:center;padding:15px 24px;border-bottom:0.5px solid rgba(139,115,85,0.1);border-left:4px solid {{ c.color }};">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:17px;color:#fff;">{{ c.nombre }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ c.color }};background:{{ c.bg }};padding:5px 11px;border-radius:6px;justify-self:start;">{{ c.categoria }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:18px;color:#EAE6DF;font-variant-numeric:tabular-nums;text-align:right;">{{ c.stockStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">{{ c.unidad }}</span>
+              <div onClick="{{ c.onDel }}" style="width:34px;height:34px;border-radius:9px;background:rgba(224,105,74,0.12);border:0.5px solid rgba(224,105,74,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;color:#E0694A;cursor:pointer;">✕</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noCons }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:50px 24px;text-align:center;font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;">Todavía no cargaste consumibles. Tocá "Cargar consumible".</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ░░ FORM MATERIA PRIMA ░░ -->
+  <sc-if value="{{ matFormOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseLoad }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:70px 24px;">
+      <div onClick="{{ stop }}" style="width:500px;max-width:100%;background:#16201F;border:0.5px solid rgba(201,183,154,0.35);border-radius:16px;padding:24px;">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;margin-bottom:18px;">Cargar material</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">MATERIAL</div>
+            <input value="{{ form.material }}" onInput="{{ form.onMaterial }}" onKeyDown="{{ form.onKey }}" list="velum-mat-list" placeholder="Ej. Acero, Inox, Galvaniz., Luxidier" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+            <datalist id="velum-mat-list"><sc-for list="{{ matSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">ESPESOR</div>
+              <input value="{{ form.espesor }}" onInput="{{ form.onEspesor }}" list="velum-esp-list" placeholder="2,0 mm" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+              <datalist id="velum-esp-list"><sc-for list="{{ espSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">DIMENSIÓN</div>
+              <input value="{{ form.dimension }}" onInput="{{ form.onDimension }}" list="velum-dim-list" placeholder="3 x 1,2" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+              <datalist id="velum-dim-list"><sc-for list="{{ dimSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">TERMINACIÓN</div>
+              <input value="{{ form.terminacion }}" onInput="{{ form.onTerminacion }}" list="velum-term-list" placeholder="Crudo, Galvaniz., etc." style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+              <datalist id="velum-term-list"><sc-for list="{{ termSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">CHAPAS EN STOCK</div>
+              <input value="{{ form.chapas }}" onInput="{{ form.onChapas }}" onKeyDown="{{ form.onKey }}" inputmode="decimal" placeholder="0" style="width:100%;font-family:'DM Sans';font-weight:700;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;font-variant-numeric:tabular-nums;" />
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:22px;">
+          <div onClick="{{ onCloseLoad }}" style="flex:1;height:50px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:15px;color:#C2C8C4;cursor:pointer;">Cancelar</div>
+        <div onClick="{{ onSaveMat }}" style="flex:2;height:50px;border-radius:11px;background:#C9B79A;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:15px;color:#0C2226;cursor:pointer;">Guardar material</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ FORM CONSUMIBLE ░░ -->
+  <sc-if value="{{ consFormOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseLoad }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:80px 24px;">
+      <div onClick="{{ stop }}" style="width:480px;max-width:100%;background:#16201F;border:0.5px solid rgba(201,183,154,0.35);border-radius:16px;padding:24px;">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;margin-bottom:18px;">Cargar consumible</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">NOMBRE</div>
+            <input value="{{ cform.nombre }}" onInput="{{ cform.onNombre }}" onKeyDown="{{ cform.onKey }}" list="velum-cons-list" placeholder="Ej. Autoperforante 1/4 x 1&quot;" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+            <datalist id="velum-cons-list"><sc-for list="{{ consSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">CATEGORÍA</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <sc-for list="{{ catOptions }}" as="c" hint-placeholder-count="3">
+                <div onClick="{{ c.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:14px;color:{{ c.color }};background:{{ c.bg }};border:0.5px solid {{ c.bd }};padding:9px 15px;border-radius:8px;cursor:pointer;">{{ c.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">STOCK</div>
+              <input value="{{ cform.stock }}" onInput="{{ cform.onStock }}" onKeyDown="{{ cform.onKey }}" inputmode="decimal" placeholder="0" style="width:100%;font-family:'DM Sans';font-weight:700;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;font-variant-numeric:tabular-nums;" />
+            </div>
+            <div style="flex:1;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">UNIDAD</div>
+              <input value="{{ cform.unidad }}" onInput="{{ cform.onUnidad }}" list="velum-unidad-list" placeholder="cajas, unidades, kg" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+              <datalist id="velum-unidad-list"><sc-for list="{{ unidadSuggest }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:22px;">
+          <div onClick="{{ onCloseLoad }}" style="flex:1;height:50px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:15px;color:#C2C8C4;cursor:pointer;">Cancelar</div>
+          <div onClick="{{ onSaveCons }}" style="flex:2;height:50px;border-radius:11px;background:#C9B79A;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:15px;color:#0C2226;cursor:pointer;">Guardar consumible</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { navOpen: false, tab: 'materia', matFormOpen: false, consFormOpen: false,
+      stock: [], estacion: [], consumibles: [],
+      form: { material:'', espesor:'', dimension:'', terminacion:'', chapas:'' },
+      cform: { nombre:'', categoria:'Fijaciones', stock:'', unidad:'' } };
+  }
+  componentDidMount() {
+    this._sync = () => this.setState({ estacion: this._readEstacion(), stock: this._readStock(), consumibles: this._readCons() });
+    this._sync();
+    window.addEventListener('storage', this._sync);
+    this._sp = setInterval(this._sync, 2000);
+  }
+  componentWillUnmount() { window.removeEventListener('storage', this._sync); clearInterval(this._sp); }
+
+  _readEstacion(){ try { const r = localStorage.getItem('velum_estacion_full'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
+  _readStock(){ try { const r = localStorage.getItem('velum_stock'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
+  _saveStock(s){ try { localStorage.setItem('velum_stock', JSON.stringify(s)); } catch(e){} }
+  _readCons(){
+    try { const r = localStorage.getItem('velum_consumibles'); if (r) { const d = JSON.parse(r); if (Array.isArray(d)) return d; } } catch(e){}
+    const def = [
+      { id:'c1', nombre:'Autoperforante 1/4 x 1"', categoria:'Fijaciones', stock:1200, unidad:'unidades' },
+      { id:'c2', nombre:'Autoperforante 1/4 x 1 1/2"', categoria:'Fijaciones', stock:800, unidad:'unidades' },
+      { id:'c3', nombre:'Pintura en polvo gris', categoria:'Pintura', stock:6, unidad:'cajas' },
+      { id:'c4', nombre:'Pintura en polvo negra', categoria:'Pintura', stock:4, unidad:'cajas' }
+    ];
+    try { localStorage.setItem('velum_consumibles', JSON.stringify(def)); } catch(e){}
+    return def;
+  }
+  _saveCons(c){ try { localStorage.setItem('velum_consumibles', JSON.stringify(c)); } catch(e){} }
+
+  _split(mt){ mt = (mt||'').trim(); const m = mt.match(/([\d.,]+\s*mm)\s*$/i); if (m) return { material: mt.slice(0, m.index).trim() || mt, espesor: m[1].replace(/\s+/g,' ') }; return { material: mt, espesor: '—' }; }
+  _key(material, espesor){ return (material+'|'+espesor).toLowerCase().replace(/\s+/g,''); }
+  _fmt(n){ const r = Math.round(n*10)/10; return (r%1===0)?String(r):r.toFixed(1).replace('.',','); }
+
+  _demanda(){
+    const d = {};
+    (this.state.estacion||[]).forEach(p => (p.files||[]).forEach(f => {
+      const sp = this._split(f.material);
+      if (!sp.material || sp.material==='Insumo' || sp.material==='Referencia') return;
+      const k = this._key(sp.material, sp.espesor);
+      if (!d[k]) d[k] = { material: sp.material, espesor: sp.espesor, demanda: 0 };
+      d[k].demanda += (f.objChapas||0);
+    }));
+    return d;
+  }
+
+  _catColor(cat){ if (cat==='Pintura') return '#E76A95'; if (cat==='Fijaciones') return '#21C7D6'; if (cat==='Abrasivos') return '#E5A52B'; return '#C9B79A'; }
+  _setForm(k, v){ this.setState(s => ({ form: Object.assign({}, s.form, { [k]: v }) })); }
+  _setC(k, v){ this.setState(s => ({ cform: Object.assign({}, s.cform, { [k]: v }) })); }
+
+  _saveMat(){
+    const f = this.state.form; const material = (f.material||'').trim(); if (!material) return;
+    const espesor = (f.espesor||'').trim() || '—';
+    const chapas = parseFloat((f.chapas||'0').replace(',','.')) || 0;
+    this.setState(s => {
+      const k = this._key(material, espesor);
+      let found = false;
+      let stock = s.stock.map(x => { if (this._key(x.material,x.espesor)===k) { found=true; return Object.assign({}, x, { chapas, dimension:(f.dimension||'').trim()||x.dimension, terminacion:(f.terminacion||'').trim()||x.terminacion }); } return x; });
+      if (!found) stock = stock.concat([{ id:'m'+Date.now(), material, espesor, dimension:(f.dimension||'').trim()||'—', terminacion:(f.terminacion||'').trim()||'—', chapas }]);
+      this._saveStock(stock);
+      return { stock, matFormOpen:false, form:{ material:'', espesor:'', dimension:'', terminacion:'', chapas:'' } };
+    });
+  }
+  _saveConsumible(){
+    const f = this.state.cform; const nombre = (f.nombre||'').trim(); if (!nombre) return;
+    const stock = parseFloat((f.stock||'0').replace(',','.')) || 0;
+    this.setState(s => {
+      const consumibles = s.consumibles.concat([{ id:'c'+Date.now(), nombre, categoria:f.categoria||'Fijaciones', stock, unidad:(f.unidad||'').trim()||'unidades' }]);
+      this._saveCons(consumibles);
+      return { consumibles, consFormOpen:false, cform:{ nombre:'', categoria:'Fijaciones', stock:'', unidad:'' } };
+    });
+  }
+  _del(id){ this.setState(s => { const stock = s.stock.filter(x=>x.id!==id); this._saveStock(stock); return { stock }; }); }
+  _delCons(id){ this.setState(s => { const consumibles = s.consumibles.filter(x=>x.id!==id); this._saveCons(consumibles); return { consumibles }; }); }
+  _prefill(material, espesor){ this.setState({ matFormOpen:true, form:{ material, espesor, dimension:'', terminacion:'', chapas:'' } }); }
+  _openLoad(){ if (this.state.tab==='materia') this.setState({ matFormOpen:true }); else this.setState({ consFormOpen:true }); }
+  _exportPdf(){
+    var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+    var self=this;
+    var dem={};
+    (this.state.estacion||[]).forEach(function(p){ (p.files||[]).forEach(function(f){ var sp=self._split(f.material||''); if(!sp.material||sp.material==='Insumo'||sp.material==='Referencia') return; var k=self._key(sp.material,sp.espesor); if(!dem[k]) dem[k]={demanda:0}; dem[k].demanda+=(f.objChapas||0); }); });
+    var rows=(this.state.stock||[]).map(function(x){ var k=self._key(x.material,x.espesor); var d=dem[k]?dem[k].demanda:0; var saldo=(x.chapas||0)-d; return '<tr><td><b>'+esc(x.material)+'</b></td><td>'+esc(x.dimension||'—')+'</td><td>'+esc(x.terminacion||'—')+'</td><td class="c">'+esc(x.espesor||'—')+'</td><td class="c">'+esc(self._fmt(x.chapas))+'</td><td class="c"></td><td class="c">'+(saldo<0?'<span style="color:#d04a2a">'+self._fmt(saldo)+'</span>':('+'+self._fmt(saldo)))+'</td></tr>'; }).join('');
+    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']; var n=new Date(); var fecha=n.getDate()+' '+meses[n.getMonth()]+' '+n.getFullYear();
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>Materia prima — Velum</title><style>'
+      +"*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      +'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}h1{font-size:22px;margin:0 0 4px;}.date{font-size:13px;color:#777;margin-bottom:8px;}.hint{font-size:12px;color:#999;margin-bottom:18px;}'
+      +'table{width:100%;border-collapse:collapse;font-size:13px;}th{text-align:left;font-size:10px;letter-spacing:0.05em;color:#888;text-transform:uppercase;border-bottom:1.5px solid #e4e2dc;padding:8px 9px;}td{padding:10px 9px;border-bottom:0.5px solid #efeee9;}.c{text-align:center;}'
+      +'</style></head><body><h1>Materia prima · VELUM</h1><div class="date">'+esc(fecha)+'</div><div class="hint">Planilla para contar en planta: anotá a mano las chapas contadas y la diferencia.</div>'
+      +'<table><thead><tr><th>Material</th><th>Dimensión</th><th>Terminación</th><th class="c">Espesor</th><th class="c">Stock sistema</th><th class="c">Contadas</th><th class="c">Diferencia</th></tr></thead><tbody>'+(rows||'<tr><td colspan="7">Sin materiales cargados</td></tr>')+'</tbody></table>'
+      +'</body></html>';
+    var win=window.open('','_blank'); if(!win) return; win.document.open(); win.document.write(doc); win.document.close(); setTimeout(function(){ try{ win.focus(); win.print(); }catch(e){} },400);
+  }
+
+  renderVals() {
+    const tab = this.state.tab;
+    const dem = this._demanda();
+    const rows = (this.state.stock||[]).map(x => {
+      const k = this._key(x.material, x.espesor);
+      const demanda = dem[k] ? dem[k].demanda : 0;
+      const saldo = x.chapas - demanda;
+      const falta = saldo < 0;
+      const justo = saldo >= 0 && saldo <= Math.max(2, demanda*0.1) && demanda > 0;
+      const estadoColor = falta ? '#E0694A' : (justo ? '#E5A52B' : '#4FB870');
+      return { id:x.id, material:x.material, espesor:x.espesor, terminacion:x.terminacion||'—', dimension:x.dimension||'—',
+        stockStr:this._fmt(x.chapas), demandaStr:this._fmt(demanda), saldoStr:(saldo>=0?'+':'')+this._fmt(saldo),
+        estado: falta ? 'FALTA '+this._fmt(-saldo) : (justo ? 'JUSTO' : 'OK'), estadoColor, estadoBg: estadoColor+'22', onDel:()=>this._del(x.id) };
+    });
+    rows.sort((a,b)=>{ const ka=a.estado.indexOf('FALTA')===0?0:(a.estado==='JUSTO'?1:2); const kb=b.estado.indexOf('FALTA')===0?0:(b.estado==='JUSTO'?1:2); return ka-kb; });
+
+    const stockKeys = {}; (this.state.stock||[]).forEach(x=>{ stockKeys[this._key(x.material,x.espesor)]=1; });
+    const sinStock = Object.keys(dem).filter(k=>!stockKeys[k]).map(k=>({ material:dem[k].material, espesor:dem[k].espesor, demandaStr:this._fmt(dem[k].demanda)+' chapas', onAdd:()=>this._prefill(dem[k].material, dem[k].espesor) }));
+    const faltantes = rows.filter(r=>r.estado.indexOf('FALTA')===0);
+
+    const consumibles = (this.state.consumibles||[]).map(c=>({ id:c.id, nombre:c.nombre, categoria:c.categoria, stockStr:this._fmt(c.stock), unidad:c.unidad, color:this._catColor(c.categoria), bg:this._catColor(c.categoria)+'22', onDel:()=>this._delCons(c.id) }));
+
+    const tabs = [['materia','Materia prima'],['consumibles','Consumibles']].map(([id,label])=>{ const on=id===tab; return { label, color: on?'#0C2226':'#8E9A96', bg: on?'#C9B79A':'transparent', onClick:()=>this.setState({ tab:id }) }; });
+    const catOptions = ['Fijaciones','Pintura','Abrasivos','Otros'].map(c=>{ const on=c===this.state.cform.categoria; const col=this._catColor(c); return { label:c, color: on?'#0C2226':col, bg: on?col:'transparent', bd: col+'66', onClick:()=>this._setC('categoria',c) }; });
+
+    return {
+      navOpen: this.state.navOpen,
+      onToggleNav: () => this.setState(s=>({ navOpen: !s.navOpen })),
+      navLinks: [
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso + cargar', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Insumos', desc:'Materia prima y consumibles', dot:'#8B7355', bg:'rgba(201,183,154,0.12)' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ],
+      tabs, isMateria: tab==='materia', isConsumibles: tab==='consumibles',
+      addLabel: tab==='materia' ? 'Cargar material' : 'Cargar consumible',
+      onOpenLoad: () => this._openLoad(),
+      onExportPdf: () => this._exportPdf(),
+      onCloseLoad: () => this.setState({ matFormOpen:false, consFormOpen:false }),
+      matFormOpen: this.state.matFormOpen, consFormOpen: this.state.consFormOpen, stop:(e)=>e.stopPropagation(),
+      form: { material:this.state.form.material, espesor:this.state.form.espesor, dimension:this.state.form.dimension, terminacion:this.state.form.terminacion, chapas:this.state.form.chapas, onKey:(e)=>{ if(e.key==='Enter') this._saveMat(); },
+        onMaterial:(e)=>this._setForm('material',e.target.value), onEspesor:(e)=>this._setForm('espesor',e.target.value), onDimension:(e)=>this._setForm('dimension',e.target.value), onTerminacion:(e)=>this._setForm('terminacion',e.target.value), onChapas:(e)=>this._setForm('chapas',e.target.value) },
+      cform: { nombre:this.state.cform.nombre, stock:this.state.cform.stock, unidad:this.state.cform.unidad, onKey:(e)=>{ if(e.key==='Enter') this._saveConsumible(); }, onNombre:(e)=>this._setC('nombre',e.target.value), onStock:(e)=>this._setC('stock',e.target.value), onUnidad:(e)=>this._setC('unidad',e.target.value) },
+      catOptions, onSaveMat:()=>this._saveMat(), onSaveCons:()=>this._saveConsumible(),
+      unidadSuggest: (function(){ const base=['unidades','cajas','kg','litros','metros','bolsas','rollos']; const set={}; base.forEach(x=>set[x]=1); (this.state.consumibles||[]).forEach(x=>{if(x.unidad)set[x.unidad]=1;}); return Object.keys(set); }).call(this),
+      matSuggest: (function(){ const base=['Acero','Inox','Galvaniz.','Luxidier','Aluminio','Chapa galv.']; const set={}; base.forEach(x=>set[x]=1); (this.state.stock||[]).forEach(x=>set[x.material]=1); Object.keys(dem).forEach(k=>set[dem[k].material]=1); return Object.keys(set); }).call(this),
+      espSuggest: (function(){ const base=['0,6 mm','0,8 mm','1,0 mm','1,2 mm','1,5 mm','1,6 mm','2,0 mm','3,0 mm']; const set={}; base.forEach(x=>set[x]=1); (this.state.stock||[]).forEach(x=>{if(x.espesor)set[x.espesor]=1;}); return Object.keys(set); }).call(this),
+      dimSuggest: (function(){ const base=['3 x 1,2','2,5 x 1,2','2 x 1','3 x 1,5','6 x 1,5']; const set={}; base.forEach(x=>set[x]=1); (this.state.stock||[]).forEach(x=>{if(x.dimension&&x.dimension!=='—')set[x.dimension]=1;}); return Object.keys(set); }).call(this),
+      termSuggest: (function(){ const base=['Crudo','Galvanizado','Inoxidable','Prepintado','Anodizado']; const set={}; base.forEach(x=>set[x]=1); (this.state.stock||[]).forEach(x=>{if(x.terminacion&&x.terminacion!=='—')set[x.terminacion]=1;}); return Object.keys(set); }).call(this),
+      consSuggest: (function(){ const base=['Autoperforante 1/4 x 1"','Autoperforante 1/4 x 1 1/2"','Pintura en polvo gris','Pintura en polvo negra','Disco de corte','Electrodos','Gas de corte']; const set={}; base.forEach(x=>set[x]=1); (this.state.consumibles||[]).forEach(x=>set[x.nombre]=1); return Object.keys(set); }).call(this),
+      rows, hasRows: rows.length>0, noRows: rows.length===0,
+      consumibles, hasCons: consumibles.length>0, noCons: consumibles.length===0,
+      sinStock, hasSinStock: sinStock.length>0,
+      faltantesTxt: faltantes.map(r=>r.material+' '+r.espesor).join(' · '), hayFaltantes: faltantes.length>0,
+      kpiMateriales: this.state.stock.length, kpiFaltantes: faltantes.length, kpiCubiertos: rows.filter(r=>r.estado==='OK').length
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 110% at 50% 0%, #21302F 0%, #1A2625 45%, #121C1B 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;display:flex;flex-direction:column;">
+
+  <!-- TOP BAR -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 36px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <svg width="30" height="38" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div>
+        <div style="font-family:'DM Sans';font-weight:700;font-size:17px;letter-spacing:0.18em;color:#fff;line-height:1;">VELUM</div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:11px;letter-spacing:0.22em;color:#8B7355;">PRODUCCIÓN</div>
+      </div>
+    </div>
+    <sc-if value="{{ logged }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.3);padding:8px 14px;border-radius:22px;">
+          <span style="width:30px;height:30px;border-radius:50%;background:{{ userColor }};display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#15201d;">{{ userInitial }}</span>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:14px;color:#fff;">{{ userName }}</div>
+        </div>
+        <div onClick="{{ onLogout }}" style="cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(201,183,154,0.1);border:0.5px solid rgba(201,183,154,0.3);padding:9px 14px;border-radius:9px;">Cambiar usuario</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ░░ PASO 1 · ELEGIR USUARIO ░░ -->
+  <sc-if value="{{ notLogged }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 36px 60px;">
+      <div style="text-align:center;margin-bottom:40px;animation:fadeUp 0.4s ease;">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:34px;color:#fff;letter-spacing:-0.01em;">¿Quién sos?</div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:16px;color:#9AA6A2;margin-top:8px;">Elegí tu usuario para entrar a la app</div>
+      </div>
+      <div style="width:100%;max-width:1040px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.14em;color:#8B7355;">OFICINA</span>
+          <div style="flex:1;height:0.5px;background:rgba(139,115,85,0.25);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:30px;">
+          <sc-for list="{{ oficina }}" as="u" hint-placeholder-count="5">
+            <div onClick="{{ u.onPick }}" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:{{ u.bgCard }};border:0.5px solid rgba(139,115,85,0.18);border-top:3px solid {{ u.color }};border-radius:14px;padding:22px 16px;cursor:pointer;transition:transform 0.15s;" style-hover="transform:translateY(-3px);">
+              <span style="width:56px;height:56px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:22px;color:#15201d;"><sc-if value="{{ u.isDisplay }}" hint-placeholder-val="{{ false }}">{{ u.iconEl }}</sc-if><sc-if value="{{ u.notDisplay }}" hint-placeholder-val="{{ true }}">{{ u.initial }}</sc-if></span>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:18px;color:#fff;">{{ u.name }}</div>
+              <sc-if value="{{ u.isDisplay }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#8E9A96;margin-top:-4px;">TRANSMISIÓN</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.14em;color:#8B7355;">PLANTA</span>
+          <div style="flex:1;height:0.5px;background:rgba(139,115,85,0.25);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+          <sc-for list="{{ planta }}" as="u" hint-placeholder-count="5">
+            <div onClick="{{ u.onPick }}" style="display:flex;flex-direction:column;align-items:center;gap:12px;background:{{ u.bgCard }};border:0.5px solid rgba(139,115,85,0.18);border-top:3px solid {{ u.color }};border-radius:14px;padding:22px 16px;cursor:pointer;transition:transform 0.15s;" style-hover="transform:translateY(-3px);">
+              <span style="width:56px;height:56px;border-radius:50%;background:{{ u.color }};display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:22px;color:#15201d;"><sc-if value="{{ u.isDisplay }}" hint-placeholder-val="{{ false }}">{{ u.iconEl }}</sc-if><sc-if value="{{ u.notDisplay }}" hint-placeholder-val="{{ true }}">{{ u.initial }}</sc-if></span>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:18px;color:#fff;">{{ u.name }}</div>
+              <sc-if value="{{ u.isDisplay }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#8E9A96;margin-top:-4px;">TRANSMISIÓN</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;margin-top:36px;text-align:center;max-width:520px;line-height:1.5;">Por ahora sin contraseña (modo prueba). Cuando esté el servidor, cada usuario va a tener su acceso propio y su registro de actividad.</div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ PASO 2 · LANZADOR ░░ -->
+  <sc-if value="{{ logged }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;padding:8px 36px 56px;max-width:1180px;margin:0 auto;width:100%;">
+      <div style="margin:18px 0 26px;animation:fadeUp 0.35s ease;">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:28px;color:#fff;">Hola, {{ userFirst }} 👋</div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#9AA6A2;margin-top:4px;">{{ accesoMsg }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+        <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="6">
+          <a href="{{ t.href }}" style="display:flex;flex-direction:column;gap:14px;text-decoration:none;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid {{ t.color }};border-radius:14px;padding:22px 24px;transition:transform 0.15s,border-color 0.15s;" style-hover="transform:translateY(-3px);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span style="width:44px;height:44px;border-radius:11px;background:{{ t.soft }};display:flex;align-items:center;justify-content:center;">{{ t.iconEl }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:10px;letter-spacing:0.12em;color:{{ t.color }};background:{{ t.soft }};padding:4px 9px;border-radius:20px;">{{ t.tag }}</span>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:19px;color:#fff;line-height:1.1;">{{ t.name }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;margin-top:6px;line-height:1.45;">{{ t.desc }}</div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){ super(props); this.state = { user: this._loadUser() }; }
+  _loadUser(){ try{ const r=localStorage.getItem('velum_usuario_actual'); if(r){ const d=JSON.parse(r); if(d&&d.id) return d; } }catch(e){} return null; }
+  _usuarios(){ return [
+    { id:'luciano', name:'Luciano', color:'#E0A56A', area:'Oficina' },
+    { id:'german', name:'Germán', color:'#5FB87E', area:'Oficina' },
+    { id:'mariu', name:'Mariu', color:'#E76A95', area:'Oficina' },
+    { id:'joaquin', name:'Joaquín', color:'#8CB7E8', area:'Oficina' },
+    { id:'juani', name:'Juani', color:'#C9B79A', area:'Oficina' },
+    { id:'pc_oficina', name:'PC Oficina', color:'#6E7E85', area:'Oficina', display:true },
+    { id:'alexis', name:'Alexis', color:'#E5A52B', area:'Planta' },
+    { id:'fran', name:'Fran', color:'#21C7D6', area:'Planta' },
+    { id:'lionel', name:'Lionel', color:'#9B82DC', area:'Planta' },
+    { id:'erick', name:'Erick', color:'#F0814F', area:'Planta' },
+    { id:'javier', name:'Javier', color:'#4FB870', area:'Planta' },
+    { id:'pc_planta', name:'PC Planta', color:'#6E7E85', area:'Planta', display:true }
+  ]; }
+  // pantallas por área (oficina = todo; planta = estación + TV)
+  _accesoOficina(){ return ['dashboard','gestion','ocupacion','capacidad','tiempos','tareas','insumos','tv','estacion']; }
+  _accesoPlanta(){ return ['estacion','tv']; }
+  _accesos(){ const m={}; this._usuarios().forEach(u=>{
+    if(u.id==='pc_oficina') m[u.id]=['dashboard','gestion','tv'];
+    else if(u.id==='pc_planta') m[u.id]=['tv'];
+    else m[u.id]= u.area==='Planta'?this._accesoPlanta():this._accesoOficina();
+  }); return m; }
+  _monitorIcon(c){ return React.createElement('svg',{width:26,height:26,viewBox:'0 0 24 24',fill:'none',stroke:c,strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round'},[React.createElement('rect',{key:1,x:2,y:3,width:20,height:14,rx:2}),React.createElement('path',{key:2,d:'M8 21h8'}),React.createElement('path',{key:3,d:'M12 17v4'})]); }
+  _catalogo(){ return {
+    dashboard: { name:'Panel de oficina', href:'Dashboard Oficina.dc.html', color:'#C9B79A', tag:'OFICINA', icon:'office', desc:'Todos los proyectos en curso: avance, entrega, prioridad y carga de proyectos.' },
+    gestion:   { name:'Gestión de producción', href:'Gestion Resumen.dc.html', color:'#4FB870', tag:'JEFATURA', icon:'mgmt', desc:'Tu vista: resumen, métricas, riesgo de fechas y reportes.' },
+    ocupacion: { name:'Ocupación de máquinas', href:'Ocupacion.dc.html', color:'#E5A52B', tag:'EFICIENCIA', icon:'chart', desc:'Cuán demandada está la planta y cada máquina (día, semana, mes).' },
+    capacidad: { name:'Capacidad y tiempos', href:'Capacidad.dc.html', color:'#21C7D6', tag:'CONFIG', icon:'gauge', desc:'Ritmos por máquina, dimensiones y peso de cada pieza.' },
+    tiempos:   { name:'Tiempos y carga', href:'Tiempos.dc.html', color:'#9B82DC', tag:'PLANIF', icon:'clock', desc:'Días de fabricación y carga por máquina del proyecto activo.' },
+    tareas:    { name:'Tareas de oficina', href:'Tareas.dc.html', color:'#A78BDC', tag:'EQUIPO', icon:'tasks', desc:'Diseño, ingeniería y jefatura: quién hace qué y en qué estado.' },
+    insumos:   { name:'Insumos', href:'Materia Prima.dc.html', color:'#8B7355', tag:'STOCK', icon:'box', desc:'Materia prima (chapas) y consumibles, con alertas de faltante.' },
+    tv:        { name:'Monitor TV · Planta', href:'TV Bloques con Embalado.dc.html', color:'#21C7D6', tag:'EN PLANTA', icon:'tv', desc:'La pantalla grande de la planta: qué hace cada máquina.' },
+    estacion:  { name:'Estación de máquina', href:'Estacion Tarjetas.dc.html', color:'#E5A52B', tag:'EN PLANTA', icon:'station', desc:'Carga táctil por máquina: chapas, lotes, paquetes y fallas.' }
+  }; }
+  _icon(type, color){
+    const c=color; const common={ width:22, height:22, viewBox:'0 0 24 24', fill:'none', stroke:c, strokeWidth:2, strokeLinecap:'round', strokeLinejoin:'round' };
+    const P=(d)=>React.createElement('path',{d:d});
+    const paths={
+      office:['M3 21h18','M5 21V7l8-4v18','M19 21V11l-6-3'],
+      mgmt:['M3 3v18h18','M7 14l3-3 3 3 5-6'],
+      chart:['M3 3v18h18','M7 13v5','M12 9v9','M17 5v13'],
+      gauge:['M12 14a4 4 0 1 0-4-4','M12 14l3-3','M3 12a9 9 0 0 1 18 0'],
+      clock:['M12 7v5l3 2','M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z'],
+      tasks:['M9 11l3 3L22 4','M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+      box:['M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z','M3.3 7L12 12l8.7-5','M12 22V12'],
+      tv:['M2 7h20v12H2z','M8 3l4 4 4-4'],
+      station:['M4 20h16','M6 20V10h12v10','M9 10V6a3 3 0 0 1 6 0v4']
+    };
+    return React.createElement('svg', common, (paths[type]||paths.office).map((d,i)=>React.createElement('path',{key:i,d:d})));
+  }
+  _pick(id){ const u=this._usuarios().find(x=>x.id===id); if(!u) return; const rec={ id:u.id, name:u.name, area:u.area, color:u.color, display:!!u.display }; try{ localStorage.setItem('velum_usuario_actual', JSON.stringify(rec)); }catch(e){} this.setState({ user: rec }); }
+  _logout(){ try{ localStorage.removeItem('velum_usuario_actual'); }catch(e){} this.setState({ user:null }); }
+  renderVals(){
+    const u=this.state.user;
+    const mk=x=>({ id:x.id, name:x.name, color:x.color, initial:x.name.charAt(0), isDisplay:!!x.display, notDisplay:!x.display, iconEl:this._monitorIcon('#15201d'), bgCard: x.display?'#18211F':'#1C2928', onPick:()=>this._pick(x.id) });
+    const ordenar=arr=>arr.slice().sort((a,b)=>{ if(!!a.display!==!!b.display) return a.display?1:-1; return a.name.localeCompare(b.name,'es'); });
+    const oficina=ordenar(this._usuarios().filter(x=>x.area==='Oficina')).map(mk);
+    const planta=ordenar(this._usuarios().filter(x=>x.area==='Planta')).map(mk);
+    let tiles=[]; let accesoMsg='';
+    if(u){
+      const ids=this._accesos()[u.id]||[]; const cat=this._catalogo();
+      tiles=ids.map(id=>cat[id]).filter(Boolean).map(t=>({ name:t.name, href:t.href, color:t.color, tag:t.tag, desc:t.desc, soft:t.color+'22', iconEl:this._icon(t.icon, t.color) }));
+      accesoMsg = (u.area==='Planta') ? 'Tus pantallas de planta.' : 'Tenés acceso a todas las pantallas de oficina.';
+    }
+    return {
+      logged: !!u, notLogged: !u,
+      oficina, planta,
+      userName: u?u.name:'', userFirst: u?u.name.split(' ')[0]:'', userColor: u?u.color:'#8B7355', userInitial: u?u.name.charAt(0):'',
+      onLogout: ()=>this._logout(),
+      tiles, accesoMsg
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 34px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <a href="Gestion Resumen.dc.html" title="Volver" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">CAPACIDAD Y TIEMPOS</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">JORNADA DE {{ horas }} HS</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:50px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:256px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="6">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#7E8C89;">Editá las unidades/hora · la capacidad diaria se calcula a {{ horas }} hs</div>
+    </div>
+  </div>
+
+  <div style="max-width:1480px;margin:0 auto;padding:24px 26px 48px;">
+
+    <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;overflow-x:auto;">
+      <div style="display:grid;grid-template-columns:minmax(150px,1fr) 78px 58px 58px 52px 70px 62px 62px 74px 78px 80px 86px 90px 78px 34px;gap:9px;align-items:center;padding:14px 22px;min-width:1340px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">PRODUCTO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">MATERIAL</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">ANCHO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">ALTO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">ESP</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.06em;color:#4FB870;text-align:center;">PESO kg</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;text-align:center;">U/CHAPA</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#A9D9DE;text-align:center;">U/LOTE</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#C9B79A;text-align:center;">U/PAQUETE</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#21C7D6;text-align:center;">LÁSER u/h</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#E5A52B;text-align:center;">PLEGADO u/h</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#3E7CE0;text-align:center;">PUNZON u/h</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#E76A95;text-align:center;">PINT u/percha</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#C9B79A;text-align:center;">EMBAL u/h</span>
+        <span></span>
+      </div>
+      <div onClick="{{ onInsertTop }}" style="height:13px;min-width:1340px;display:flex;align-items:center;justify-content:flex-start;padding-left:22px;cursor:pointer;color:#3a4644;" style-hover="color:#21C7D6;"><span style="font-family:'DM Sans';font-weight:700;font-size:13px;line-height:1;">+</span></div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:minmax(150px,1fr) 78px 58px 58px 52px 70px 62px 62px 74px 78px 80px 86px 90px 78px 34px;gap:9px;align-items:center;padding:11px 22px;min-width:1340px;border-bottom:0.5px solid rgba(139,115,85,0.1);">
+          <input value="{{ r.nombre }}" onInput="{{ r.onNombre }}" placeholder="Producto" style="width:100%;height:34px;font-family:'DM Sans';font-weight:700;font-size:15px;color:#fff;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.2);border-radius:7px;outline:none;padding:0 9px;" />
+          <select value="{{ r.material }}" onChange="{{ r.onMaterial }}" style="width:100%;height:34px;font-family:'DM Sans';font-weight:600;font-size:12px;color:#C2C8C4;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:7px;outline:none;text-align:center;"><option value="Acero">Acero</option><option value="Galvanizado">Galvaniz.</option><option value="Inoxidable">Inox</option><option value="Aluminio">Aluminio</option><option value="MDF">MDF</option></select>
+          <input value="{{ r.ancho }}" onInput="{{ r.onAncho }}" inputmode="decimal" placeholder="mm" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C2C8C4;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.alto }}" onInput="{{ r.onAlto }}" inputmode="decimal" placeholder="mm" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C2C8C4;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.esp }}" onInput="{{ r.onEsp }}" inputmode="decimal" placeholder="mm" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C2C8C4;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <div style="width:100%;height:34px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#4FB870;background:rgba(79,184,112,0.08);border:0.5px solid rgba(79,184,112,0.25);border-radius:7px;font-variant-numeric:tabular-nums;">{{ r.pesoStr }}</div>
+          <input value="{{ r.enChapa }}" onInput="{{ r.onEnChapa }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C2C8C4;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.lote }}" onInput="{{ r.onLote }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#A9D9DE;background:rgba(33,199,214,0.06);border:0.5px solid rgba(33,199,214,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.paquete }}" onInput="{{ r.onPaquete }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#C9B79A;background:rgba(201,183,154,0.06);border:0.5px solid rgba(201,183,154,0.25);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.laser }}" onInput="{{ r.onLaser }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#21C7D6;background:rgba(33,199,214,0.08);border:0.5px solid rgba(33,199,214,0.3);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.plegado }}" onInput="{{ r.onPlegado }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#E5A52B;background:rgba(229,165,43,0.08);border:0.5px solid rgba(229,165,43,0.3);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.fresado }}" onInput="{{ r.onFresado }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#3E7CE0;background:rgba(62,124,224,0.08);border:0.5px solid rgba(62,124,224,0.3);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.pintura }}" onInput="{{ r.onPintura }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#E76A95;background:rgba(231,106,149,0.08);border:0.5px solid rgba(231,106,149,0.3);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <input value="{{ r.embalado }}" onInput="{{ r.onEmbalado }}" inputmode="decimal" style="width:100%;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:14px;color:#C9B79A;background:rgba(201,183,154,0.08);border:0.5px solid rgba(201,183,154,0.3);border-radius:7px;outline:none;font-variant-numeric:tabular-nums;" />
+          <div onClick="{{ r.onDel }}" title="Eliminar" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:7px;color:#6E7E85;" style-hover="color:#E0694A;background:rgba(224,105,74,0.12);"><span style="font-family:'DM Sans';font-weight:600;font-size:18px;line-height:1;">×</span></div>
+        </div>
+        <div onClick="{{ r.onInsert }}" style="height:13px;min-width:1340px;display:flex;align-items:center;justify-content:flex-start;padding-left:22px;cursor:pointer;color:#3a4644;" style-hover="color:#21C7D6;"><span style="font-family:'DM Sans';font-weight:700;font-size:13px;line-height:1;">+</span></div>
+      </sc-for>
+    </div>
+
+    <!-- capacidad diaria calculada -->
+    <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;margin:26px 0 12px;">CAPACIDAD DIARIA · UNIDADES A {{ horas }} HS (calculada)</div>
+    <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:13px 22px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">PRODUCTO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#21C7D6;text-align:right;">LÁSER</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#E5A52B;text-align:right;">PLEGADORA</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#3E7CE0;text-align:right;">PUNZONADORA</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#E76A95;text-align:right;">PINTURA</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#C9B79A;text-align:right;">EMBALADO</span>
+      </div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:12px 22px;border-bottom:0.5px solid rgba(139,115,85,0.1);">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;">{{ r.nombre }}</span>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#21C7D6;text-align:right;font-variant-numeric:tabular-nums;">{{ r.capLaser }}</span>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#E5A52B;text-align:right;font-variant-numeric:tabular-nums;">{{ r.capPlegado }}</span>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#3E7CE0;text-align:right;font-variant-numeric:tabular-nums;">{{ r.capFresado }}</span>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#E76A95;text-align:right;font-variant-numeric:tabular-nums;">{{ r.capPintura }}</span>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#C9B79A;text-align:right;font-variant-numeric:tabular-nums;">{{ r.capEmbalado }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;margin-top:16px;line-height:1.5;">La capacidad diaria = unidades/hora × {{ horas }} hs. Editá las unidades/hora de cada producto arriba y se recalcula sola.<br><span style="color:#E76A95;">Pintura</span> es una línea por perchas: el dato es <b>unidades por percha</b>. El horno admite <b>10 perchas</b> y un lote completo tarda <b>3 hs</b> (incluye cocción) → cada percha ≈ 0,3 h. La capacidad diaria de pintura = unidades por percha × perchas posibles en la jornada.</div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1480,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props){ super(props); this.state = { navOpen:false, horas:8, prods:this._load() }; }
+  componentDidMount(){ this._sync=()=>{ try{ const r=localStorage.getItem('velum_capacidades'); if(r){ const d=JSON.parse(r); if(Array.isArray(d)&&d.length) this.setState({prods:d}); } }catch(e){} }; }
+  _seed(){
+    return [
+      { id:'pic150', nombre:'PIC 150', enChapa:135, laser:95, plegado:85, fresado:0, pintura:25, embalado:80 },
+      { id:'cost1500', nombre:'Costilla 1500', enChapa:13, laser:13, plegado:103, fresado:0, pintura:12, embalado:100 },
+      { id:'cost3000', nombre:'Costilla 3000', enChapa:7, laser:7, plegado:92, fresado:0, pintura:6, embalado:150 },
+      { id:'empcost', nombre:'Empalme Costilla', enChapa:90, laser:54, plegado:86, fresado:0, pintura:25, embalado:115 },
+      { id:'skinstd', nombre:'Skin Standard', enChapa:2, laser:2, plegado:24, fresado:0, pintura:2, embalado:25 },
+      { id:'skinctm', nombre:'Skin Custom', enChapa:2, laser:2, plegado:24, fresado:0, pintura:2, embalado:25 },
+      { id:'msstd', nombre:'MultiSlim Standard', enChapa:3, laser:3, plegado:40, fresado:60, pintura:3, embalado:50 },
+      { id:'msctm', nombre:'MultiSlim Custom', enChapa:3, laser:3, plegado:40, fresado:48, pintura:3, embalado:50 }
+    ];
+  }
+  _load(){ try{ const r=localStorage.getItem('velum_capacidades'); if(r){ const d=JSON.parse(r); if(Array.isArray(d)&&d.length) return d; } }catch(e){} const s=this._seed(); try{ localStorage.setItem('velum_capacidades', JSON.stringify(s)); }catch(e){} return s; }
+  _save(p){ try{ localStorage.setItem('velum_capacidades', JSON.stringify(p)); }catch(e){} }
+  _set(id, field, val){ var v=parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p,[field]:Math.max(0,v)}:p); this._save(prods); return {prods}; }); }
+  _setStr(id, field, val){ this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p,[field]:val}:p); this._save(prods); return {prods}; }); }
+  _setName(id, val){ this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p, nombre:val}:p); this._save(prods); return {prods}; }); }
+  _blank(){ return { id:'p'+Date.now()+Math.floor(Math.random()*1000), nombre:'', enChapa:0, lote:20, paquete:0, laser:0, plegado:0, fresado:0, pintura:0, embalado:0 }; }
+  _insertAt(idx){ this.setState(s=>{ const prods=s.prods.slice(); prods.splice(idx,0,this._blank()); this._save(prods); return {prods}; }); }
+  _del(id){ this.setState(s=>{ const prods=s.prods.filter(p=>p.id!==id); this._save(prods); return {prods}; }); }
+  _fmt(n){ return Math.round(n); }
+  _density(m){ const D={ 'Acero':7850, 'Galvanizado':7850, 'Inoxidable':8000, 'Aluminio':2700, 'MDF':750 }; return D[m]!=null?D[m]:7850; }
+  _peso(p){ const pf=v=>parseFloat(String(v==null?'':v).replace(',','.'))||0; const a=pf(p.ancho), h=pf(p.alto), e=pf(p.esp); if(a<=0||h<=0||e<=0) return 0; return (a/1000)*(h/1000)*(e/1000)*this._density(p.material||'Acero'); }
+  renderVals(){
+    const H=this.state.horas;
+    const rows=this.state.prods.map((p,i)=>{ const pk=this._peso(p); return {
+      id:p.id, nombre:p.nombre, enChapa:p.enChapa, lote:(p.lote!=null?p.lote:20), paquete:(p.paquete!=null?p.paquete:0), laser:p.laser, plegado:p.plegado, fresado:p.fresado, pintura:p.pintura, embalado:p.embalado,
+      material:(p.material||'Acero'), ancho:(p.ancho!=null?p.ancho:''), alto:(p.alto!=null?p.alto:''), esp:(p.esp!=null?p.esp:''), pesoStr:(pk>0?(pk>=10?pk.toFixed(0):pk.toFixed(2).replace('.',',')):'—'),
+      onMaterial:(e)=>this._setStr(p.id,'material',e.target.value), onAncho:(e)=>this._setStr(p.id,'ancho',e.target.value), onAlto:(e)=>this._setStr(p.id,'alto',e.target.value), onEsp:(e)=>this._setStr(p.id,'esp',e.target.value),
+      capLaser:this._fmt(p.laser*H), capPlegado:this._fmt(p.plegado*H), capFresado: p.fresado>0?this._fmt(p.fresado*H):'—', capPintura:this._fmt(p.pintura*(H/3)*10), capEmbalado:this._fmt(p.embalado*H),
+      onNombre:(e)=>this._setName(p.id,e.target.value), onInsert:()=>this._insertAt(i+1), onDel:()=>this._del(p.id),
+      onEnChapa:(e)=>this._set(p.id,'enChapa',e.target.value), onLote:(e)=>this._set(p.id,'lote',e.target.value), onPaquete:(e)=>this._set(p.id,'paquete',e.target.value), onLaser:(e)=>this._set(p.id,'laser',e.target.value), onPlegado:(e)=>this._set(p.id,'plegado',e.target.value), onFresado:(e)=>this._set(p.id,'fresado',e.target.value), onPintura:(e)=>this._set(p.id,'pintura',e.target.value), onEmbalado:(e)=>this._set(p.id,'embalado',e.target.value)
+    }; });
+    // ░ Carga del proyecto activo vs capacidad ░
+    var prodsArr=this.state.prods;
+    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    var full=[]; try{ var rr=localStorage.getItem('velum_estacion_full'); if(rr){ var dd=JSON.parse(rr); if(Array.isArray(dd)) full=dd; } }catch(e){}
+    var maq={ laser:{label:'Láser',color:'#21C7D6',h:0,u:0}, plegado:{label:'Plegadora',color:'#E5A52B',h:0,u:0}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0} };
+    var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
+    var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
+    full.forEach(function(pr){ (pr.files||[]).forEach(function(f){ var pd=ench(f.pieza||f.archivo||''); if(!pd) return; var units=(f.objUni!=null?f.objUni:((f.objChapas||0)*(f.ppc||1))); if(!units) return; var procs=f.procesos||[]; procs.forEach(function(pid){ var mk=procMap[pid]; if(!mk||!maq[mk]) return; var rate=pd[rateField[mk]]||0; if(rate>0){ var addH=(mk==='pintura')?(units/rate)*(3/10):(units/rate); maq[mk].h += addH; maq[mk].u += units; } }); var er=pd[rateField.embalado]||0; if(er>0){ maq.embalado.h += units/er; maq.embalado.u += units; } }); });
+    var cargaRows=Object.keys(maq).map(function(k){ var m=maq[k]; var dias=m.h/H; return { label:m.label, color:m.color, unidades:Math.round(m.u), horas:(Math.round(m.h*10)/10), dias:(Math.round(dias*100)/100), pct: Math.min(100, Math.round((m.h/H)*100)), barW: Math.min(100, Math.round((m.h/H)*100))+'%', activo:m.u>0 }; }).filter(function(r){ return r.activo; });
+    var maxH=0; cargaRows.forEach(function(r){ if(r.horas>maxH) maxH=r.horas; });
+    cargaRows.forEach(function(r){ r.cuello = (r.horas===maxH && maxH>0); });
+    var hayCarga=cargaRows.length>0;
+    return {
+      horas:H, rows, cargaRows, hayCarga, sinCargaShow: !hayCarga,
+      onInsertTop:()=>this._insertAt(0),
+      navOpen:this.state.navOpen, onToggleNav:()=>this.setState(s=>({navOpen:!s.navOpen})),
+      navLinks:[
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Insumos', desc:'Materia prima y consumibles', dot:'#8B7355', bg:'transparent' },
+        { href:'Capacidad.dc.html', label:'Capacidad y tiempos', desc:'Unidades/hora por máquina', dot:'#21C7D6', bg:'rgba(33,199,214,0.12)' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

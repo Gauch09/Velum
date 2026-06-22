@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELUM — Sistema de Identidad de Marca</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --graphite: #1C2E2E;
+  --charcoal: #2A3F3F;
+  --slate:    #4A5F6F;
+  --stone:    #8B7355;
+  --pewter:   #6E7E85;
+  --iron:     #2E3338;
+  --cream:    #E8E4DE;
+  --white:    #FFFFFF;
+  --fd: 'Cormorant Garamond', Georgia, serif;
+  --fb: 'Jost', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: #F4F2EE;
+  color: var(--graphite);
+  font-family: var(--fb);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── NAV LATERAL ── */
+.sidenav {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 220px;
+  background: var(--graphite);
+  border-right: 0.5px solid rgba(139,115,85,0.2);
+  display: flex; flex-direction: column;
+  padding: 44px 0 32px;
+  z-index: 100;
+}
+.sidenav-logo {
+  padding: 0 30px 36px;
+  border-bottom: 0.5px solid rgba(139,115,85,0.18);
+  margin-bottom: 28px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sidenav-word {
+  font-family: var(--fd);
+  font-size: 20px; font-weight: 300;
+  letter-spacing: 0.28em; color: var(--white);
+}
+.sidenav-links { flex: 1; overflow-y: auto; }
+.sidenav-section {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.2em; color: rgba(139,115,85,0.6);
+  padding: 0 30px; margin: 20px 0 6px;
+}
+.sidenav-links a {
+  display: block;
+  font-size: 11px; font-weight: 400;
+  letter-spacing: 0.08em; color: var(--pewter);
+  padding: 7px 30px;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.25s ease;
+}
+.sidenav-links a:hover,
+.sidenav-links a.active {
+  color: var(--white);
+  border-left-color: var(--stone);
+  background: rgba(139,115,85,0.06);
+}
+.sidenav-version {
+  padding: 20px 30px 0;
+  font-size: 10px; color: rgba(110,126,133,0.5);
+  letter-spacing: 0.1em;
+  border-top: 0.5px solid rgba(139,115,85,0.12);
+}
+
+/* ── MAIN ── */
+main { margin-left: 220px; }
+
+/* ── PORTADA ── */
+.cover {
+  min-height: 100vh;
+  background: var(--graphite);
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+  padding: 80px;
+  position: relative; overflow: hidden;
+}
+.cover-bg {
+  position: absolute; right: -80px; top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.04; pointer-events: none;
+}
+.cover-tag {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.26em; color: var(--stone);
+  margin-bottom: 20px;
+}
+.cover-title {
+  font-family: var(--fd);
+  font-size: clamp(90px, 14vw, 180px);
+  font-weight: 300; letter-spacing: 0.18em;
+  color: var(--white); line-height: 1;
+  margin-bottom: 0;
+}
+.cover-rule { width: 100%; height: 0.5px; background: var(--stone); margin: 32px 0; }
+.cover-sub {
+  display: flex; justify-content: space-between; align-items: flex-end;
+}
+.cover-sub-l {
+  font-family: var(--fd);
+  font-size: 24px; font-weight: 300; font-style: italic;
+  color: var(--pewter);
+}
+.cover-sub-r { text-align: right; }
+.cover-sub-r p {
+  font-size: 10px; font-weight: 400;
+  letter-spacing: 0.14em; color: var(--slate);
+  line-height: 2;
+}
+
+/* ── SECCIONES ── */
+.section {
+  padding: 100px 80px;
+  border-bottom: 0.5px solid rgba(42,63,63,0.1);
+}
+.section:nth-child(even) { background: #EDEAE4; }
+.section:nth-child(odd)  { background: #F4F2EE; }
+
+.section-dark {
+  background: var(--graphite) !important;
+  color: var(--cream);
+}
+.section-iron {
+  background: var(--iron) !important;
+  color: var(--cream);
+}
+
+.sec-num {
+  font-family: var(--fd);
+  font-size: 11px; font-weight: 300;
+  letter-spacing: 0.16em; color: var(--stone);
+  margin-bottom: 4px;
+}
+.sec-title {
+  font-family: var(--fd);
+  font-size: clamp(42px, 5vw, 64px);
+  font-weight: 300; color: inherit;
+  line-height: 1.05; margin-bottom: 12px;
+}
+.sec-title-light { color: var(--white); }
+.sec-rule {
+  width: 60px; height: 1.5px;
+  background: var(--stone); margin-bottom: 60px;
+}
+.sec-intro {
+  font-size: 15px; font-weight: 300;
+  color: var(--slate); line-height: 1.9;
+  max-width: 620px; margin-bottom: 60px;
+}
+.sec-intro-light { color: var(--pewter); }
+
+/* ── GRID UTILS ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+
+/* ══════════════════════════════════
+   01 CONCEPTO
+══════════════════════════════════ */
+.concept-card {
+  background: var(--graphite);
+  padding: 44px; border-radius: 2px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.concept-n {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.22em; color: var(--stone);
+}
+.concept-kw {
+  font-family: var(--fd);
+  font-size: 36px; font-weight: 300;
+  color: var(--white); letter-spacing: 0.06em;
+}
+.concept-def {
+  font-size: 13px; font-weight: 300;
+  color: var(--pewter); line-height: 1.85;
+}
+
+/* ══════════════════════════════════
+   02 LOGO
+══════════════════════════════════ */
+.logo-canvas {
+  border-radius: 2px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 40px; gap: 10px;
+  min-height: 220px;
+  position: relative;
+}
+.logo-canvas-label {
+  position: absolute; bottom: 16px; left: 0; right: 0;
+  text-align: center;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.2em;
+}
+.logo-symbol-wrap { display: flex; align-items: center; gap: 20px; }
+.logo-wordmark {
+  font-family: var(--fd);
+  font-size: 38px; font-weight: 300;
+  letter-spacing: 0.22em;
+}
+
+/* Anatomy */
+.anatomy-wrap {
+  background: #EDEAE4; padding: 60px;
+  border-radius: 2px; position: relative;
+}
+.anatomy-title {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.22em; color: var(--slate);
+  margin-bottom: 40px;
+}
+.anatomy-center {
+  display: flex; justify-content: center; margin-bottom: 48px;
+}
+.ann-item {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+}
+.ann-line { flex: 0 0 40px; height: 0.5px; background: var(--stone); }
+.ann-label { font-size: 11px; font-weight: 400; letter-spacing: 0.1em; color: var(--slate); }
+
+/* Logo positivo/negativo */
+.pn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.pn-cell {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 44px 24px 24px;
+  position: relative; min-height: 180px;
+  border-radius: 2px;
+}
+.pn-label {
+  position: absolute; bottom: 14px;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.18em; text-align: center;
+}
+
+/* Espacio libre */
+.clearspace-box {
+  background: #EDEAE4; padding: 60px;
+  border-radius: 2px;
+}
+.clearspace-inner {
+  position: relative;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  margin: 40px auto; display: flex;
+}
+.clearspace-border {
+  border: 1px dashed rgba(139,115,85,0.45);
+  padding: 36px; position: relative;
+}
+.cs-top, .cs-bottom, .cs-left, .cs-right {
+  position: absolute;
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--stone);
+}
+.cs-top    { top: -28px; left: 50%; transform: translateX(-50%); }
+.cs-bottom { bottom: -28px; left: 50%; transform: translateX(-50%); }
+.cs-left   { left: -32px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+.cs-right  { right: -32px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+/* Usos incorrectos */
+.dont-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+.dont-card {
+  background: #EDEAE4; padding: 32px 28px;
+  border-radius: 2px; position: relative;
+  border-top: 3px solid #C0392B;
+}
+.dont-badge {
+  display: inline-block; background: #C0392B;
+  color: white; font-size: 8px; font-weight: 600;
+  letter-spacing: 0.16em; padding: 3px 10px;
+  margin-bottom: 20px;
+}
+.dont-demo {
+  min-height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+  border-radius: 2px;
+}
+.dont-text {
+  font-size: 11px; font-weight: 300;
+  color: var(--slate); line-height: 1.6;
+}
+
+/* Tamaños mínimos */
+.size-row {
+  display: flex; align-items: flex-end;
+  gap: 48px; margin-top: 40px;
+}
+.size-item { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.size-lbl { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; color: var(--slate); }
+
+/* ══════════════════════════════════
+   03 PALETA
+══════════════════════════════════ */
+.color-band {
+  display: flex; height: 12px; border-radius: 1px;
+  overflow: hidden; margin-bottom: 48px;
+}
+.color-band span { flex: 1; }
+
+.color-card {
+  border-radius: 2px; overflow: hidden;
+}
+.color-swatch { height: 130px; position: relative; }
+.color-badge {
+  position: absolute; top: 12px; left: 12px;
+  font-size: 8px; font-weight: 600;
+  letter-spacing: 0.18em; padding: 3px 9px;
+}
+.color-info { padding: 16px 18px; background: #EDEAE4; }
+.color-name { font-size: 13px; font-weight: 500; color: var(--graphite); margin-bottom: 4px; }
+.color-hex  { font-family: monospace; font-size: 11px; color: var(--slate); margin-bottom: 8px; }
+.color-meta { font-size: 11px; font-weight: 300; color: var(--slate); line-height: 1.6; }
+
+.pair-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 48px; }
+.pair-card {
+  border-radius: 2px; overflow: hidden;
+  height: 90px; display: flex;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 4px;
+  position: relative;
+}
+.pair-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 0.14em; text-align: center;
+}
+.pair-sub { font-size: 10px; font-weight: 300; text-align: center; opacity: 0.7; }
+
+/* ══════════════════════════════════
+   04 TIPOGRAFÍA
+══════════════════════════════════ */
+.type-specimen {
+  background: var(--graphite); padding: 60px;
+  border-radius: 2px; margin-bottom: 24px;
+}
+.type-display {
+  font-family: var(--fd);
+  font-size: clamp(60px, 10vw, 110px);
+  font-weight: 300; letter-spacing: 0.16em;
+  color: var(--white); line-height: 1;
+  margin-bottom: 16px;
+}
+.type-subtitle {
+  font-family: var(--fd);
+  font-size: 22px; font-weight: 300; font-style: italic;
+  color: var(--pewter); margin-bottom: 24px;
+}
+.type-body-demo {
+  font-family: var(--fb);
+  font-size: 14px; font-weight: 300;
+  color: var(--pewter); line-height: 1.9;
+  max-width: 500px;
+}
+
+.weights-row {
+  display: flex; flex-direction: column; gap: 0;
+  background: #EDEAE4; border-radius: 2px; overflow: hidden;
+}
+.weight-item {
+  display: grid; grid-template-columns: 120px 1fr 80px;
+  align-items: center; gap: 32px;
+  padding: 20px 32px;
+  border-bottom: 0.5px solid rgba(42,63,63,0.08);
+}
+.weight-item:last-child { border-bottom: none; }
+.weight-meta { font-size: 10px; font-weight: 400; letter-spacing: 0.1em; color: var(--slate); }
+.weight-sample { color: var(--graphite); }
+.weight-use { font-size: 10px; font-weight: 400; letter-spacing: 0.06em; color: var(--pewter); text-align: right; }
+
+.hierarchy-box {
+  background: var(--iron); padding: 56px 60px;
+  border-radius: 2px;
+}
+.h-row {
+  padding: 20px 0;
+  border-bottom: 0.5px solid rgba(110,126,133,0.14);
+  display: grid; grid-template-columns: 90px 1fr;
+  gap: 24px; align-items: center;
+}
+.h-row:last-child { border-bottom: none; }
+.h-meta { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; color: var(--stone); }
+
+/* ══════════════════════════════════
+   05 VOZ
+══════════════════════════════════ */
+.voice-card {
+  background: var(--charcoal); padding: 36px;
+  border-radius: 2px;
+}
+.voice-icon { margin-bottom: 16px; }
+.voice-title {
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--white);
+  margin-bottom: 10px;
+}
+.voice-desc { font-size: 12px; font-weight: 300; color: var(--pewter); line-height: 1.8; }
+.voice-example {
+  font-family: var(--fd); font-size: 18px; font-weight: 300; font-style: italic;
+  color: var(--stone); margin-top: 14px; line-height: 1.5;
+}
+
+.do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 48px; }
+.do-box, .dt-box {
+  padding: 36px; border-radius: 0;
+}
+.do-box { background: var(--charcoal); }
+.dt-box { background: #3A2828; }
+.do-tag, .dt-tag {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.2em; margin-bottom: 20px;
+}
+.do-tag { color: #6BBF6B; }
+.dt-tag { color: #C07070; }
+.do-item, .dt-item {
+  font-size: 13px; font-weight: 300;
+  line-height: 1.8; margin-bottom: 8px;
+  padding-left: 16px; position: relative;
+}
+.do-item::before { content: '—'; position: absolute; left: 0; color: #6BBF6B; }
+.dt-item::before { content: '—'; position: absolute; left: 0; color: #C07070; }
+.do-item { color: var(--cream); }
+.dt-item { color: var(--pewter); }
+
+/* ══════════════════════════════════
+   06 APLICACIONES
+══════════════════════════════════ */
+.app-card {
+  background: #EDEAE4; border-radius: 2px;
+  overflow: hidden;
+}
+.app-preview { padding: 40px; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+.app-footer { padding: 14px 20px; border-top: 0.5px solid rgba(42,63,63,0.1); }
+.app-name { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; color: var(--slate); }
+
+/* ── TARJETA ── */
+.bcard {
+  width: 200px; height: 115px;
+  background: var(--graphite); padding: 16px;
+  position: relative; border-radius: 2px;
+}
+.bcard-name { font-family: var(--fd); font-size: 13px; font-weight: 400; letter-spacing: 0.06em; color: var(--white); margin-top: 8px; }
+.bcard-role { font-size: 7px; font-weight: 400; letter-spacing: 0.14em; color: var(--pewter); }
+.bcard-line { position: absolute; bottom: 30px; left: 16px; width: 80px; height: 0.5px; background: var(--stone); }
+.bcard-contact { position: absolute; bottom: 12px; left: 16px; font-size: 7px; font-weight: 300; letter-spacing: 0.06em; color: var(--slate); }
+
+/* ── LETTERHEAD ── */
+.lh-paper {
+  background: var(--white); padding: 28px 32px;
+  width: 160px; min-height: 220px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  border-radius: 1px;
+}
+.lh-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 0.5px solid rgba(139,115,85,0.3); }
+.lh-body-line { height: 2px; background: #E0DDD8; border-radius: 1px; margin-bottom: 5px; }
+.lh-body-line.s { width: 70%; }
+
+/* ── SOBRE ── */
+.envelope {
+  width: 220px; height: 140px;
+  background: var(--iron); border-radius: 2px;
+  position: relative; overflow: hidden;
+}
+.env-flap {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 70px; background: var(--charcoal);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.env-logo { position: absolute; bottom: 18px; right: 20px; }
+.env-line { position: absolute; bottom: 36px; left: 20px; width: 50px; height: 0.5px; background: var(--stone); }
+
+/* ── SELLO ── */
+.stamp {
+  width: 100px; height: 100px; border-radius: 50%;
+  background: var(--graphite);
+  border: 2px solid var(--stone);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+}
+.stamp-arc {
+  font-size: 6.5px; font-weight: 500;
+  letter-spacing: 0.16em; color: var(--pewter);
+}
+
+/* ── FIRMA EMAIL ── */
+.sig {
+  background: var(--white); padding: 22px 26px;
+  border-left: 3px solid var(--stone);
+  width: 280px;
+}
+.sig-name { font-family: var(--fd); font-size: 16px; font-weight: 400; color: var(--graphite); }
+.sig-role { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; color: var(--stone); margin-bottom: 8px; }
+.sig-div  { height: 0.5px; background: rgba(139,115,85,0.3); margin: 10px 0; }
+.sig-data { font-size: 9px; font-weight: 300; color: var(--slate); line-height: 1.8; }
+
+/* ══════════════════════════════════
+   07 PATRÓN
+══════════════════════════════════ */
+.pattern-demo {
+  height: 200px; border-radius: 2px;
+  overflow: hidden; position: relative;
+}
+
+/* ══════════════════════════════════
+   BACK COVER
+══════════════════════════════════ */
+.back-cover {
+  min-height: 100vh;
+  background: var(--iron);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 28px; padding: 80px;
+}
+.back-title {
+  font-family: var(--fd);
+  font-size: 72px; font-weight: 300;
+  letter-spacing: 0.3em; color: var(--white);
+}
+.back-line { width: 120px; height: 1.5px; background: var(--stone); }
+.back-sub {
+  font-family: var(--fd);
+  font-size: 20px; font-weight: 300; font-style: italic;
+  color: var(--pewter); letter-spacing: 0.04em;
+}
+
+/* ── SCROLLSPY ── */
+.scrollspy-target { scroll-margin-top: 0; }
+
+/* ── PRINT ── */
+@media print {
+  .sidenav { display: none; }
+  main { margin-left: 0; }
+  .section { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav">
+  <div class="sidenav-logo">
+    <svg width="22" height="28" viewBox="0 0 28 36">
+      <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+      <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+      <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+    </svg>
+    <span class="sidenav-word">VELUM</span>
+  </div>
+  <div class="sidenav-links">
+    <div class="sidenav-section">BRANDBOOK</div>
+    <a href="#portada"    class="active">Portada</a>
+    <a href="#concepto">01 — Concepto</a>
+    <a href="#logo">02 — Logo</a>
+    <a href="#paleta">03 — Paleta de colores</a>
+    <a href="#tipografia">04 — Tipografía</a>
+    <a href="#voz">05 — Voz de marca</a>
+    <a href="#aplicaciones">06 — Aplicaciones</a>
+    <a href="#patron">07 — Patrón gráfico</a>
+    <a href="#cierre">Cierre</a>
+  </div>
+  <div class="sidenav-version">VERSIÓN 1.0 — 2025</div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+<!-- ════════════════════════════
+     PORTADA
+════════════════════════════ -->
+<div class="cover scrollspy-target" id="portada">
+  <svg class="cover-bg" width="800" height="960" viewBox="0 0 60 72">
+    <polygon points="0,0 10,0 30,52 20,52" fill="white"/>
+    <polygon points="50,0 60,0 40,52 30,52" fill="white"/>
+    <rect x="8" y="29" width="44" height="3" fill="#8B7355"/>
+  </svg>
+  <p class="cover-tag">SISTEMA DE IDENTIDAD DE MARCA</p>
+  <h1 class="cover-title">VELUM</h1>
+  <div class="cover-rule"></div>
+  <div class="cover-sub">
+    <p class="cover-sub-l">La piel noble de la arquitectura</p>
+    <div class="cover-sub-r">
+      <p>Brandbook · Versión 1.0</p>
+      <p>Buenos Aires · 2025</p>
+      <p>Uso interno y proveedores</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════
+     01 CONCEPTO
+════════════════════════════ -->
+<section class="section section-dark scrollspy-target" id="concepto">
+  <div class="sec-num">01</div>
+  <h2 class="sec-title sec-title-light">Concepto</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro sec-intro-light">
+    VELUM es más que un nombre. Es una filosofía de trabajo que entiende al revestimiento como la piel de la arquitectura: la capa que transforma, protege y define la identidad de cada proyecto.
+  </p>
+
+  <div class="g3" style="margin-bottom:48px;">
+    <div class="concept-card">
+      <span class="concept-n">ETIMOLOGÍA</span>
+      <span class="concept-kw">Velum</span>
+      <p class="concept-def">Del latín: velo, manto, cubierta noble. La tela que envuelve y realza aquello que protege. No oculta — transforma.</p>
+    </div>
+    <div class="concept-card">
+      <span class="concept-n">PROPÓSITO</span>
+      <span class="concept-kw">Proteger</span>
+      <p class="concept-def">Somos la primera y última capa visible de un edificio. Nuestra misión es que esa capa sea técnicamente perfecta y estéticamente noble.</p>
+    </div>
+    <div class="concept-card">
+      <span class="concept-n">DIFERENCIADOR</span>
+      <span class="concept-kw">Armonía</span>
+      <p class="concept-def">El encuentro entre un revestimiento y otro debe ser siempre armónico. Esa transición es donde se juega la calidad del proyecto.</p>
+    </div>
+  </div>
+
+  <div style="background: var(--iron); padding:48px 52px; border-radius:2px;">
+    <p style="font-family:var(--fd); font-size:clamp(22px,3vw,38px); font-weight:300; color:var(--white); line-height:1.55; max-width:680px; font-style:italic;">
+      "Trabajamos junto a arquitectos, estudios de diseño y desarrolladoras para que la materialidad de cada proyecto sea una decisión de diseño, no un compromiso."
+    </p>
+    <div style="width:60px; height:1px; background:var(--stone); margin-top:28px;"></div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     02 LOGO
+════════════════════════════ -->
+<section class="section scrollspy-target" id="logo">
+  <div class="sec-num">02</div>
+  <h2 class="sec-title">Logo</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro">El sistema de logo de VELUM se compone de un monograma geométrico y un wordmark en Cormorant Garamond. Pueden usarse juntos o por separado según el contexto.</p>
+
+  <!-- VERSIÓN PRINCIPAL -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:16px;">VERSIÓN PRINCIPAL — POSITIVO SOBRE OSCURO</p>
+  <div class="logo-canvas" style="background:var(--graphite); margin-bottom:3px;">
+    <div class="logo-symbol-wrap">
+      <svg width="48" height="60" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="logo-wordmark" style="color:var(--white); letter-spacing:0.28em;">VELUM</span>
+    </div>
+    <div style="width:280px; height:1px; background:var(--stone); margin-top:4px;"></div>
+    <span style="font-family:var(--fb);font-size:9px;font-weight:400;letter-spacing:0.22em;color:var(--pewter);">REVESTIMIENTOS DE DISEÑO</span>
+    <span class="logo-canvas-label" style="color:rgba(110,126,133,0.5);">LOGO COMPLETO · SOBRE GRAPHITE DEEP</span>
+  </div>
+
+  <!-- ANATOMÍA -->
+  <div class="anatomy-wrap" style="margin: 32px 0;">
+    <p class="anatomy-title">ANATOMÍA DEL LOGO</p>
+    <div class="anatomy-center">
+      <div style="position:relative; display:inline-block;">
+        <svg width="200" height="90" viewBox="0 0 200 90">
+          <!-- monograma -->
+          <polygon points="30,10 38,10 52,52 44,52" fill="#2A3F3F"/>
+          <polygon points="66,10 74,10 60,52 52,52" fill="#2A3F3F"/>
+          <rect x="36" y="30" width="32" height="2.5" fill="#8B7355"/>
+          <!-- wordmark -->
+          <text x="96" y="38" font-family="Cormorant Garamond,Georgia,serif" font-size="26" font-weight="300" letter-spacing="6" fill="#2A3F3F">VELUM</text>
+          <!-- rule -->
+          <rect x="96" y="44" width="96" height="0.8" fill="#8B7355"/>
+          <!-- tagline -->
+          <text x="96" y="57" font-family="Jost,sans-serif" font-size="6" font-weight="400" letter-spacing="2.5" fill="#6E7E85">REVESTIMIENTOS DE DISEÑO</text>
+          <!-- dimension lines -->
+          <line x1="20" y1="10" x2="20" y2="52" stroke="#8B7355" stroke-width="0.5" stroke-dasharray="2 2"/>
+          <line x1="16" y1="10" x2="24" y2="10" stroke="#8B7355" stroke-width="0.5"/>
+          <line x1="16" y1="52" x2="24" y2="52" stroke="#8B7355" stroke-width="0.5"/>
+        </svg>
+      </div>
+    </div>
+    <div class="g3" style="gap:12px;">
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Monograma geométrico (V)</span></div>
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Wordmark · Cormorant Garamond Light</span></div>
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Línea de acento Stone Warm</span></div>
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Tagline · Jost 400</span></div>
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Proporción monograma : wordmark = 1 : 4</span></div>
+      <div class="ann-item"><div class="ann-line"></div><span class="ann-label">Acento Stone Warm — firma de marca</span></div>
+    </div>
+  </div>
+
+  <!-- POSITIVO / NEGATIVO -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:16px;">VERSIONES POSITIVO Y NEGATIVO</p>
+  <div class="pn-grid" style="margin-bottom:32px;">
+
+    <div class="pn-cell" style="background:var(--graphite);">
+      <svg width="36" height="46" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(110,126,133,0.6);">POSITIVO · GRAPHITE</span>
+    </div>
+
+    <div class="pn-cell" style="background:var(--iron);">
+      <svg width="36" height="46" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(110,126,133,0.6);">POSITIVO · IRON GREY</span>
+    </div>
+
+    <div class="pn-cell" style="background:var(--stone);">
+      <svg width="36" height="46" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#1C2E2E"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(28,46,46,0.5);">POSITIVO · STONE WARM</span>
+    </div>
+
+    <div class="pn-cell" style="background:#EDEAE4; border: 0.5px solid #D8D4CE;">
+      <svg width="36" height="46" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#2A3F3F"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#2A3F3F"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:var(--slate);">NEGATIVO · CLARO</span>
+    </div>
+
+  </div>
+
+  <!-- SOLO SÍMBOLO -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:16px;">SÍMBOLO AUTÓNOMO</p>
+  <div class="g4" style="margin-bottom:32px;">
+    <div class="pn-cell" style="background:var(--graphite); min-height:130px;">
+      <svg width="44" height="56" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(110,126,133,0.6); font-size:8px;">GRANDE</span>
+    </div>
+    <div class="pn-cell" style="background:var(--iron); min-height:130px;">
+      <svg width="32" height="40" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(110,126,133,0.6); font-size:8px;">MEDIANO</span>
+    </div>
+    <div class="pn-cell" style="background:var(--charcoal); min-height:130px;">
+      <svg width="22" height="28" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(110,126,133,0.6); font-size:8px;">PEQUEÑO</span>
+    </div>
+    <div class="pn-cell" style="background:var(--stone); min-height:130px;">
+      <svg width="16" height="20" viewBox="0 0 28 36">
+        <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+        <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+        <rect x="4" y="14" width="20" height="2" fill="#1C2E2E"/>
+      </svg>
+      <span class="pn-label" style="color:rgba(28,46,46,0.5); font-size:8px;">MÍNIMO</span>
+    </div>
+  </div>
+
+  <!-- ESPACIO LIBRE -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:16px;">ESPACIO LIBRE MÍNIMO</p>
+  <div class="clearspace-box">
+    <p style="font-size:12px;font-weight:300;color:var(--slate);margin-bottom:36px;max-width:500px;">El espacio libre alrededor del logo debe ser como mínimo igual a la altura de la "V" del monograma (denominado "x"). Nunca interferir con otros elementos gráficos.</p>
+    <div style="display:flex; justify-content:center; margin:40px 0;">
+      <div class="clearspace-border">
+        <span class="cs-top">x</span>
+        <span class="cs-bottom">x</span>
+        <span class="cs-left">x</span>
+        <span class="cs-right">x</span>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <svg width="32" height="40" viewBox="0 0 28 36">
+            <polygon points="0,0 5,0 14,26 9,26" fill="#2A3F3F"/>
+            <polygon points="23,0 28,0 19,26 14,26" fill="#2A3F3F"/>
+            <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+          </svg>
+          <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:var(--graphite);">VELUM</span>
+        </div>
+      </div>
+    </div>
+    <div class="g3" style="gap:12px;">
+      <div style="background:#F4F2EE; padding:16px 20px; border-radius:1px;">
+        <p style="font-size:9px;font-weight:500;letter-spacing:0.14em;color:var(--stone);margin-bottom:4px;">LOGO COMPLETO</p>
+        <p style="font-size:12px;font-weight:300;color:var(--slate);">Mínimo 48px de altura en digital · 12mm en impresión</p>
+      </div>
+      <div style="background:#F4F2EE; padding:16px 20px; border-radius:1px;">
+        <p style="font-size:9px;font-weight:500;letter-spacing:0.14em;color:var(--stone);margin-bottom:4px;">SOLO SÍMBOLO</p>
+        <p style="font-size:12px;font-weight:300;color:var(--slate);">Mínimo 24px en digital · 7mm en impresión</p>
+      </div>
+      <div style="background:#F4F2EE; padding:16px 20px; border-radius:1px;">
+        <p style="font-size:9px;font-weight:500;letter-spacing:0.14em;color:var(--stone);margin-bottom:4px;">SOLO WORDMARK</p>
+        <p style="font-size:12px;font-weight:300;color:var(--slate);">Mínimo 80px de ancho en digital</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- USOS INCORRECTOS -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin:48px 0 16px;">USO INCORRECTO DEL LOGO</p>
+  <div class="dont-grid">
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:#EDEAE4;">
+        <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:var(--graphite);transform:rotate(-15deg);display:inline-block;">VELUM</span>
+      </div>
+      <p class="dont-text">No rotar el logo bajo ninguna circunstancia</p>
+    </div>
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:#EDEAE4;">
+        <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:#4A90D9;">VELUM</span>
+      </div>
+      <p class="dont-text">No cambiar los colores del logo por colores ajenos a la paleta</p>
+    </div>
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:#EDEAE4;">
+        <span style="font-family:'Arial',sans-serif;font-size:28px;font-weight:700;letter-spacing:0.1em;color:var(--graphite);">VELUM</span>
+      </div>
+      <p class="dont-text">No cambiar la tipografía del wordmark</p>
+    </div>
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:linear-gradient(135deg,#4A90D9,#9B59B6); border-radius:2px;">
+        <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:white;">VELUM</span>
+      </div>
+      <p class="dont-text">No usar sobre fondos de colores ajenos a la paleta</p>
+    </div>
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:#EDEAE4;">
+        <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:var(--graphite);transform:scaleX(1.4);display:inline-block;">VELUM</span>
+      </div>
+      <p class="dont-text">No deformar ni estirar el logo horizontalmente</p>
+    </div>
+
+    <div class="dont-card">
+      <span class="dont-badge">NO HACER</span>
+      <div class="dont-demo" style="background:#EDEAE4; position:relative;">
+        <span style="font-family:var(--fd);font-size:28px;font-weight:300;letter-spacing:0.22em;color:rgba(42,63,63,0.2);">VELUM</span>
+      </div>
+      <p class="dont-text">No usar el logo con opacidad reducida o como fondo</p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     03 PALETA
+════════════════════════════ -->
+<section class="section section-iron scrollspy-target" id="paleta">
+  <div class="sec-num">03</div>
+  <h2 class="sec-title sec-title-light">Paleta de colores</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro sec-intro-light">La paleta VELUM está construida sobre una familia de grises-verdes profundos con un acento cálido. Comunica solidez técnica, elegancia y materialidad noble. No hay colores estridentes.</p>
+
+  <div class="color-band" style="margin-bottom:56px;">
+    <span style="background:#1C2E2E;"></span>
+    <span style="background:#2A3F3F;"></span>
+    <span style="background:#2E3338;"></span>
+    <span style="background:#4A5F6F;"></span>
+    <span style="background:#6E7E85;"></span>
+    <span style="background:#8B7355;"></span>
+  </div>
+
+  <div class="g3" style="gap:3px; margin-bottom:48px;">
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#1C2E2E;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">PRIMARIO</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Graphite Deep</div>
+        <div class="color-hex">#1C2E2E · RGB 28/46/46</div>
+        <div class="color-meta">Fondo oscuro principal. Contraste máximo. Comunica autoridad y permanencia.</div>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#2A3F3F;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">LOGO</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Charcoal Noble</div>
+        <div class="color-hex">#2A3F3F · RGB 42/63/63</div>
+        <div class="color-meta">Color del logo y títulos principales. Sofisticación sin agresividad.</div>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#2E3338;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">FONDO</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Iron Grey</div>
+        <div class="color-hex">#2E3338 · RGB 46/51/56</div>
+        <div class="color-meta">Fondo neutro oscuro. Evoca acero y aluminio anodizado. Complementario al Graphite.</div>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#4A5F6F;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">TEXTO</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Slate Refined</div>
+        <div class="color-hex">#4A5F6F · RGB 74/95/111</div>
+        <div class="color-meta">Textos secundarios y apoyo. Profesionalismo y claridad. Jamás agresivo.</div>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#6E7E85;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">METÁLICO</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Pewter Noble</div>
+        <div class="color-hex">#6E7E85 · RGB 110/126/133</div>
+        <div class="color-meta">Acento metálico mate. Aluminio anodizado, acero cepillado. Sin brillo.</div>
+      </div>
+    </div>
+
+    <div class="color-card">
+      <div class="color-swatch" style="background:#8B7355;">
+        <span class="color-badge" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);">FIRMA</span>
+      </div>
+      <div class="color-info">
+        <div class="color-name">Stone Warm</div>
+        <div class="color-hex">#8B7355 · RGB 139/115/85</div>
+        <div class="color-meta">El acento diferenciador de VELUM. Aparece en todos los soportes. Es la firma visual de la marca.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMBINACIONES -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:rgba(139,115,85,0.7);margin-bottom:20px;">COMBINACIONES RECOMENDADAS</p>
+  <div class="pair-row">
+    <div class="pair-card" style="background:var(--graphite);">
+      <span class="pair-label" style="color:var(--white);">Graphite + Stone</span>
+      <span class="pair-sub" style="color:var(--stone);">Identidad principal</span>
+    </div>
+    <div class="pair-card" style="background:var(--charcoal);">
+      <span class="pair-label" style="color:var(--white);">Charcoal + Pewter</span>
+      <span class="pair-sub" style="color:var(--pewter);">Materiales metálicos</span>
+    </div>
+    <div class="pair-card" style="background:var(--iron);">
+      <span class="pair-label" style="color:var(--white);">Iron + Slate</span>
+      <span class="pair-sub" style="color:var(--slate);">Digital y contenido</span>
+    </div>
+    <div class="pair-card" style="background:var(--stone);">
+      <span class="pair-label" style="color:var(--white);">Stone + Graphite</span>
+      <span class="pair-sub" style="color:rgba(28,46,46,0.7);">Acento sobre oscuro</span>
+    </div>
+    <div class="pair-card" style="background:#EDEAE4; border: 0.5px solid rgba(42,63,63,0.15);">
+      <span class="pair-label" style="color:var(--charcoal);">Claro + Charcoal</span>
+      <span class="pair-sub" style="color:var(--slate);">Impresión / catálogos</span>
+    </div>
+    <div class="pair-card" style="background:var(--slate);">
+      <span class="pair-label" style="color:var(--white);">Slate + Stone</span>
+      <span class="pair-sub" style="color:var(--stone);">Variante cálida</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     04 TIPOGRAFÍA
+════════════════════════════ -->
+<section class="section scrollspy-target" id="tipografia">
+  <div class="sec-num">04</div>
+  <h2 class="sec-title">Tipografía</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro">VELUM usa dos familias tipográficas con roles precisos. La tensión entre la elegancia clásica de la serif y la precisión geométrica de la sans define el carácter de toda la comunicación.</p>
+
+  <!-- SPECIMEN -->
+  <div class="type-specimen">
+    <div class="type-display">VELUM</div>
+    <div class="type-subtitle">La piel noble de la arquitectura</div>
+    <div style="width:200px;height:1px;background:var(--stone);margin:0 0 24px;"></div>
+    <p class="type-body-demo">
+      Diseñamos y fabricamos soluciones de ingeniería para fachadas, cielorasos y revestimientos de interiores. Trabajamos con materiales nobles seleccionados para cada proyecto.
+    </p>
+  </div>
+
+  <!-- FAMILIA 1 -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:20px;">FAMILIA DISPLAY — CORMORANT GARAMOND</p>
+  <div class="weights-row" style="margin-bottom:32px;">
+    <div class="weight-item">
+      <span class="weight-meta">Light 300</span>
+      <span class="weight-sample" style="font-family:var(--fd);font-size:28px;font-weight:300;">Arquitectura noble</span>
+      <span class="weight-use">Wordmark · Títulos h1</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Regular 400</span>
+      <span class="weight-sample" style="font-family:var(--fd);font-size:28px;font-weight:400;">Arquitectura noble</span>
+      <span class="weight-use">Subtítulos · Destacados</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Italic 300</span>
+      <span class="weight-sample" style="font-family:var(--fd);font-size:28px;font-weight:300;font-style:italic;">La piel de la arquitectura</span>
+      <span class="weight-use">Citas · Taglines</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Medium 500</span>
+      <span class="weight-sample" style="font-family:var(--fd);font-size:28px;font-weight:500;">Fachadas · Interiores</span>
+      <span class="weight-use">Énfasis ocasional</span>
+    </div>
+  </div>
+
+  <!-- FAMILIA 2 -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:20px;">FAMILIA TEXTO — JOST</p>
+  <div class="weights-row" style="margin-bottom:48px;">
+    <div class="weight-item">
+      <span class="weight-meta">Light 300</span>
+      <span class="weight-sample" style="font-family:var(--fb);font-size:16px;font-weight:300;">Cuerpo de texto y descripciones largas en todos los soportes</span>
+      <span class="weight-use">Párrafos · Descripciones</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Regular 400</span>
+      <span class="weight-sample" style="font-family:var(--fb);font-size:16px;font-weight:400;">Materiales · Servicios · Contacto</span>
+      <span class="weight-use">Navegación · Subtítulos</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Medium 500</span>
+      <span class="weight-sample" style="font-family:var(--fb);font-size:16px;font-weight:500;">VELUM · REVESTIMIENTOS</span>
+      <span class="weight-use">Labels · UI · Tags</span>
+    </div>
+    <div class="weight-item">
+      <span class="weight-meta">Semibold 600</span>
+      <span class="weight-sample" style="font-family:var(--fb);font-size:16px;font-weight:600;">VER PROYECTOS →</span>
+      <span class="weight-use">CTAs · Botones</span>
+    </div>
+  </div>
+
+  <!-- JERARQUÍA -->
+  <p style="font-size:9px;font-weight:500;letter-spacing:0.22em;color:var(--slate);margin-bottom:20px;">JERARQUÍA TIPOGRÁFICA</p>
+  <div class="hierarchy-box">
+    <div class="h-row">
+      <span class="h-meta">H1</span>
+      <span style="font-family:var(--fd);font-size:clamp(48px,7vw,88px);font-weight:300;letter-spacing:0.14em;color:var(--white);">VELUM</span>
+    </div>
+    <div class="h-row">
+      <span class="h-meta">H2</span>
+      <span style="font-family:var(--fd);font-size:clamp(32px,4vw,52px);font-weight:300;color:var(--white);">Fachadas de diseño</span>
+    </div>
+    <div class="h-row">
+      <span class="h-meta">H3 ITALIC</span>
+      <span style="font-family:var(--fd);font-size:clamp(20px,2.5vw,32px);font-weight:300;font-style:italic;color:var(--pewter);">La piel noble de tu arquitectura</span>
+    </div>
+    <div class="h-row">
+      <span class="h-meta">SUBTÍTULO</span>
+      <span style="font-family:var(--fb);font-size:16px;font-weight:400;letter-spacing:0.08em;color:var(--cream);">Revestimientos de interiores y exteriores</span>
+    </div>
+    <div class="h-row">
+      <span class="h-meta">CUERPO</span>
+      <span style="font-family:var(--fb);font-size:14px;font-weight:300;color:var(--pewter);line-height:1.85;max-width:480px;">Trabajamos con materiales nobles para lograr que el encuentro entre revestimientos sea siempre armónico y técnicamente preciso.</span>
+    </div>
+    <div class="h-row">
+      <span class="h-meta">LABEL</span>
+      <span style="font-family:var(--fb);font-size:10px;font-weight:500;letter-spacing:0.22em;color:var(--stone);">ALUMINIO COMPUESTO · ACERO INOX · MADERA</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     05 VOZ DE MARCA
+════════════════════════════ -->
+<section class="section section-dark scrollspy-target" id="voz">
+  <div class="sec-num">05</div>
+  <h2 class="sec-title sec-title-light">Voz de marca</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro sec-intro-light">La forma en que VELUM habla debe ser tan cuidadosa como los materiales que usa. La voz de marca define cómo nos comunicamos en todos los puntos de contacto.</p>
+
+  <div class="g3" style="margin-bottom:0;">
+    <div class="voice-card">
+      <div class="voice-title">EXPERTO · CERCANO</div>
+      <p class="voice-desc">Sabemos de lo que hablamos, pero no usamos tecnicismos para impresionar. Hablamos como el socio técnico que todo arquitecto quisiera tener.</p>
+      <p class="voice-example">"Este material va a lograr exactamente lo que buscás en esa fachada."</p>
+    </div>
+    <div class="voice-card">
+      <div class="voice-title">PRECISO · SIN EXCESOS</div>
+      <p class="voice-desc">Cada palabra tiene un propósito. No exageramos ni inflamos. La calidad se demuestra con hechos, no con adjetivos.</p>
+      <p class="voice-example">"Fabricamos en Buenos Aires. Control total desde el diseño hasta la instalación."</p>
+    </div>
+    <div class="voice-card">
+      <div class="voice-title">COLABORATIVO · RESPETUOSO</div>
+      <p class="voice-desc">El proyecto es del arquitecto. Nosotros aportamos valor sin imponer criterio. Siempre respetamos la visión original del diseño.</p>
+      <p class="voice-example">"¿Cómo podemos acompañar lo que tenés pensado para esta fachada?"</p>
+    </div>
+  </div>
+
+  <div class="do-dont">
+    <div class="do-box">
+      <p class="do-tag">✓ DECIMOS</p>
+      <p class="do-item">Fabricamos soluciones de revestimiento de diseño</p>
+      <p class="do-item">Trabajamos con materiales nobles</p>
+      <p class="do-item">Acompañamos tu proyecto desde el diseño</p>
+      <p class="do-item">Logramos que los encuentros sean armónicos</p>
+      <p class="do-item">Asesoramos en la selección del material</p>
+    </div>
+    <div class="dt-box">
+      <p class="dt-tag">✗ NO DECIMOS</p>
+      <p class="dt-item">Los mejores del mercado</p>
+      <p class="dt-item">Soluciones integrales de vanguardia</p>
+      <p class="dt-item">Productos de calidad inigualable</p>
+      <p class="dt-item">Garantizamos el éxito de tu proyecto</p>
+      <p class="dt-item">Hacemos de todo en revestimientos</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     06 APLICACIONES
+════════════════════════════ -->
+<section class="section scrollspy-target" id="aplicaciones">
+  <div class="sec-num">06</div>
+  <h2 class="sec-title">Aplicaciones</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro">El sistema de identidad VELUM aplicado a los soportes principales. Cada pieza mantiene coherencia con la paleta, la tipografía y el monograma.</p>
+
+  <div class="g3" style="gap:3px; margin-bottom:3px;">
+
+    <!-- TARJETA PERSONAL -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div class="bcard">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="16" height="20" viewBox="0 0 28 36">
+              <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+              <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+              <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+            </svg>
+            <span style="font-family:var(--fd);font-size:11px;font-weight:300;letter-spacing:0.2em;color:var(--white);">VELUM</span>
+          </div>
+          <div class="bcard-name">Nombre Apellido</div>
+          <div class="bcard-role">CEO · DIRECTOR DE DISEÑO</div>
+          <div class="bcard-line"></div>
+          <div class="bcard-contact">nombre@velum.com.ar · +54 11 0000-0000</div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">TARJETA PERSONAL · 90×55mm</span></div>
+    </div>
+
+    <!-- FIRMA EMAIL -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#F0EEE8;">
+        <div class="sig">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <svg width="14" height="18" viewBox="0 0 28 36">
+              <polygon points="0,0 5,0 14,26 9,26" fill="#2A3F3F"/>
+              <polygon points="23,0 28,0 19,26 14,26" fill="#2A3F3F"/>
+              <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+            </svg>
+            <span style="font-family:var(--fd);font-size:10px;font-weight:300;letter-spacing:0.2em;color:var(--graphite);">VELUM</span>
+          </div>
+          <div class="sig-name">Nombre Apellido</div>
+          <div class="sig-role">CEO · VELUM</div>
+          <div class="sig-div"></div>
+          <div class="sig-data">nombre@velum.com.ar<br>+54 11 0000-0000<br>velum.com.ar</div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">FIRMA DE EMAIL</span></div>
+    </div>
+
+    <!-- SELLO / STAMP -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div class="stamp">
+          <svg width="28" height="36" viewBox="0 0 28 36">
+            <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+            <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+            <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+          </svg>
+          <span class="stamp-arc">VELUM</span>
+          <span class="stamp-arc">BUENOS AIRES</span>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">SELLO / LACRE · 30mm</span></div>
+    </div>
+
+  </div>
+
+  <div class="g3" style="gap:3px; margin-bottom:3px;">
+
+    <!-- LIBRETA -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div style="background:var(--charcoal);width:90px;height:130px;border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+          <svg width="22" height="28" viewBox="0 0 28 36">
+            <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+            <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+            <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+          </svg>
+          <span style="font-family:var(--fd);font-size:8px;font-weight:300;letter-spacing:0.22em;color:var(--white);">VELUM</span>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">LIBRETA A5 · TAPA DURA</span></div>
+    </div>
+
+    <!-- CASCO -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div style="position:relative;width:110px;height:75px;">
+          <div style="position:absolute;inset:0;background:var(--iron);border-radius:50% 50% 8px 8px / 60% 60% 8px 8px;display:flex;align-items:center;justify-content:center;padding-top:10px;">
+            <svg width="28" height="18" viewBox="0 0 28 18">
+              <polygon points="0,0 5,0 14,14 9,14" fill="#FFFFFF" opacity="0.9"/>
+              <polygon points="23,0 28,0 19,14 14,14" fill="#FFFFFF" opacity="0.9"/>
+              <rect x="4" y="7" width="20" height="1.5" fill="#8B7355"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">CASCO DE SEGURIDAD</span></div>
+    </div>
+
+    <!-- TOTE BAG -->
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div style="position:relative;width:90px;height:120px;">
+          <div style="position:absolute;top:18px;left:0;right:0;bottom:0;background:#C4B99A;border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+            <svg width="22" height="28" viewBox="0 0 28 36">
+              <polygon points="0,0 5,0 14,26 9,26" fill="#2A3F3F"/>
+              <polygon points="23,0 28,0 19,26 14,26" fill="#2A3F3F"/>
+              <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+            </svg>
+            <span style="font-family:var(--fd);font-size:7px;font-weight:300;letter-spacing:0.2em;color:var(--graphite);">VELUM</span>
+          </div>
+          <div style="position:absolute;top:0;left:22px;width:46px;height:20px;border-top:3px solid #9A8E7A;border-radius:50% 50% 0 0 / 100% 100% 0 0;"></div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">TOTE BAG DE LONA</span></div>
+    </div>
+
+  </div>
+
+  <!-- SOBRE + LAPICERA + TAZA -->
+  <div class="g3" style="gap:3px;">
+
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div class="envelope">
+          <div class="env-flap"></div>
+          <div class="env-line"></div>
+          <div class="env-logo">
+            <svg width="18" height="22" viewBox="0 0 28 36">
+              <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF" opacity="0.7"/>
+              <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF" opacity="0.7"/>
+              <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">SOBRE PREMIUM · C5</span></div>
+    </div>
+
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div style="background:#6E7E85;height:12px;width:140px;border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="10" viewBox="0 0 28 18">
+            <polygon points="0,0 4,0 9,12 5,12" fill="#C0CDD2" opacity="0.9"/>
+            <polygon points="19,0 23,0 18,12 14,12" fill="#C0CDD2" opacity="0.9"/>
+            <rect x="3" y="6" width="16" height="1.2" fill="#8B7355"/>
+          </svg>
+          <span style="font-family:var(--fb);font-size:6px;font-weight:400;letter-spacing:3px;color:#C0CDD2;margin-left:5px;">VELUM</span>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">LAPICERA METÁLICA</span></div>
+    </div>
+
+    <div class="app-card">
+      <div class="app-preview" style="background:#EDEAE4;">
+        <div style="position:relative;width:80px;height:96px;">
+          <div style="position:absolute;inset:0;bottom:4px;background:var(--charcoal);border-radius:4px 4px 6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+            <svg width="22" height="28" viewBox="0 0 28 36">
+              <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"/>
+              <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"/>
+              <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+            </svg>
+            <span style="font-family:var(--fd);font-size:7px;font-weight:300;letter-spacing:0.2em;color:var(--white);">VELUM</span>
+          </div>
+          <div style="position:absolute;right:-14px;top:24px;width:16px;height:40px;background:var(--slate);border-radius:0 8px 8px 0;"></div>
+        </div>
+      </div>
+      <div class="app-footer"><span class="app-name">TAZA CERÁMICA</span></div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     07 PATRÓN GRÁFICO
+════════════════════════════ -->
+<section class="section section-dark scrollspy-target" id="patron">
+  <div class="sec-num">07</div>
+  <h2 class="sec-title sec-title-light">Patrón gráfico</h2>
+  <div class="sec-rule"></div>
+  <p class="sec-intro sec-intro-light">El patrón VELUM está construido sobre la geometría del monograma — líneas diagonales y horizontales que evocan paneles de fachada, juntas de revestimiento y modulación arquitectónica.</p>
+
+  <div class="g2" style="gap:3px; margin-bottom:3px;">
+    <div class="pattern-demo" style="background:var(--graphite); overflow:hidden;">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="p1" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="40" x2="40" y2="0" stroke="#8B7355" stroke-width="0.5" opacity="0.35"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#p1)"/>
+        <g transform="translate(50%,50%) translate(-80,-30)">
+          <svg width="160" height="60" viewBox="0 0 160 60">
+            <polygon points="0,0 10,0 28,52 18,52" fill="white" opacity="0.9"/>
+            <polygon points="46,0 56,0 38,52 28,52" fill="white" opacity="0.9"/>
+            <rect x="8" y="28" width="40" height="2" fill="#8B7355"/>
+            <text x="68" y="38" font-family="Cormorant Garamond,serif" font-size="32" font-weight="300" letter-spacing="8" fill="white" opacity="0.9">VELUM</text>
+          </svg>
+        </g>
+      </svg>
+    </div>
+    <div class="pattern-demo" style="background:var(--iron); overflow:hidden;">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="p2" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="30" y2="30" stroke="#6E7E85" stroke-width="0.3" opacity="0.3"/>
+            <line x1="30" y1="0" x2="0" y2="30" stroke="#6E7E85" stroke-width="0.3" opacity="0.3"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#p2)"/>
+        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="80" font-weight="300" letter-spacing="20" fill="white" opacity="0.04">VELUM</text>
+        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="22" font-weight="300" letter-spacing="12" fill="white" opacity="0.75">VELUM</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="g3" style="gap:3px;">
+    <div class="pattern-demo" style="background:var(--charcoal); height:140px; overflow:hidden;">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern id="p3" x="0" y="0" width="20" height="60" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="9" height="60" fill="#8B7355" opacity="0.12"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#p3)"/>
+        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Jost,sans-serif" font-size="9" font-weight="500" letter-spacing="8" fill="white" opacity="0.6">REVESTIMIENTOS DE DISEÑO</text>
+      </svg>
+    </div>
+    <div class="pattern-demo" style="background:var(--stone); height:140px; overflow:hidden;">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern id="p4" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="12" cy="12" r="1" fill="#1C2E2E" opacity="0.2"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#p4)"/>
+        <g transform="translate(50%,50%) translate(-20,-26)">
+          <svg width="40" height="52" viewBox="0 0 28 36">
+            <polygon points="0,0 5,0 14,26 9,26" fill="#1C2E2E" opacity="0.8"/>
+            <polygon points="23,0 28,0 19,26 14,26" fill="#1C2E2E" opacity="0.8"/>
+            <rect x="4" y="14" width="20" height="2" fill="#1C2E2E"/>
+          </svg>
+        </g>
+      </svg>
+    </div>
+    <div class="pattern-demo" style="background:var(--graphite); height:140px; overflow:hidden;">
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern id="p5" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+            <polygon points="0,0 6,0 25,50 19,50" fill="#8B7355" opacity="0.08"/>
+            <polygon points="44,0 50,0 31,50 25,50" fill="#8B7355" opacity="0.08"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#p5)"/>
+        <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="300" font-style="italic" letter-spacing="4" fill="white" opacity="0.5">La piel noble de la arquitectura</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════
+     CIERRE
+════════════════════════════ -->
+<div class="back-cover scrollspy-target" id="cierre">
+  <svg width="120" height="154" viewBox="0 0 28 36">
+    <polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF" opacity="0.9"/>
+    <polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF" opacity="0.9"/>
+    <rect x="4" y="14" width="20" height="2" fill="#8B7355"/>
+  </svg>
+  <div class="back-title">VELUM</div>
+  <div class="back-line"></div>
+  <div class="back-sub">La piel noble de la arquitectura</div>
+  <p style="font-family:var(--fb);font-size:10px;font-weight:400;letter-spacing:0.22em;color:var(--slate);margin-top:16px;text-align:center;line-height:2.2;">
+    SISTEMA DE IDENTIDAD DE MARCA — VERSIÓN 1.0 — 2025<br>
+    DOCUMENT CONFIDENCIAL · USO INTERNO Y PROVEEDORES AUTORIZADOS
+  </p>
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('.scrollspy-target');
+  const navLinks = document.querySelectorAll('.sidenav-links a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`.sidenav-links a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
