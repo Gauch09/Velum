@@ -7,6 +7,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Puente VELUM (/api/velum/*) y pantallas de planta (/velum-software/*.dc.html):
+  // la app de planta hoy no tiene auth (acceso por red local de la fábrica), así
+  // que se dejan públicas. ⚠️ Si esto se expone a internet, restringir por red o
+  // agregar un token compartido.
+  const p = request.nextUrl.pathname
+  if (p.startsWith('/api/velum') || p.startsWith('/velum-software')) {
+    return NextResponse.next()
+  }
+
   let response = NextResponse.next({ request: { headers: request.headers } })
 
   const supabase = createServerClient(
