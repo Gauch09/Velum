@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -103,9 +104,12 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  constructor(props){ super(props); this.state = { user: this._loadUser() }; }
+  constructor(props){ super(props); this.state = { user: this._loadUser(), usuarios: this._usuariosDefault() }; }
+  componentDidMount(){ this._cargarUsuarios(); }
+  async _cargarUsuarios(){ if(!window.VelumAPI) return; try{ const u = await VelumAPI.get('usuarios'); if(Array.isArray(u) && u.length) this.setState({ usuarios: u }); }catch(e){} }
   _loadUser(){ try{ const r=localStorage.getItem('velum_usuario_actual'); if(r){ const d=JSON.parse(r); if(d&&d.id) return d; } }catch(e){} return null; }
-  _usuarios(){ return [
+  _usuarios(){ var u=this.state&&this.state.usuarios; return (u&&u.length)?u:this._usuariosDefault(); }
+  _usuariosDefault(){ return [
     { id:'luciano', name:'Luciano', color:'#E0A56A', area:'Oficina' },
     { id:'german', name:'Germán', color:'#5FB87E', area:'Oficina' },
     { id:'mariu', name:'Mariu', color:'#E76A95', area:'Oficina' },
