@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -137,15 +138,20 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  constructor(props){ super(props); this.state = { navOpen:false, view:'dia', offset:0, hist:[], showClear:false }; }
+  constructor(props){ super(props); this.state = { navOpen:false, view:'dia', offset:0, hist:[], caps:[], showClear:false }; this._cargar=this._cargar.bind(this); }
   componentDidMount(){
     this._seedIfEmpty();
-    this._sync=()=>this.setState({ hist:this._loadHist() });
-    window.addEventListener('storage', this._sync);
-    this.setState({ hist:this._loadHist() });
+    this._cargar();
+    this._timer=setInterval(this._cargar, 2000);
   }
-  componentWillUnmount(){ window.removeEventListener('storage', this._sync); }
-  _loadHist(){ try{ const r=localStorage.getItem('velum_historial'); const d=r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; }catch(e){ return []; } }
+  componentWillUnmount(){ if(this._timer) clearInterval(this._timer); }
+  async _cargar(){
+    try{
+      const hist=await VelumAPI.get('historial');
+      const caps=await VelumAPI.get('capacidades');
+      this.setState({ hist:Array.isArray(hist)?hist:[], caps:Array.isArray(caps)?caps:[] });
+    }catch(e){ /* silencioso */ }
+  }
   _exportPdf(){
     const r=this._ocuReport; if(!r) return;
     const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -182,7 +188,7 @@ class Component extends DCLogic {
     { id:'pintura', unit:null, name:'Pintura', color:'#E76A95', field:'pintura', units:1 },
     { id:'embalado', unit:null, name:'Embalado', color:'#C9B79A', field:'embalado', units:1 }
   ]; }
-  _caps(){ try{ const r=localStorage.getItem('velum_capacidades'); const d=r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; }catch(e){ return []; } }
+  _caps(){ const d=this.state.caps; return Array.isArray(d)?d:[]; }
   _rate(machine, pieza){
     const def=this._machineDefs().find(m=>m.id===machine); if(!def||!def.field) return 0;
     const caps=this._caps(); const nm=(pieza||'').toLowerCase(); let r=0;
@@ -192,38 +198,7 @@ class Component extends DCLogic {
     return r;
   }
   _seedIfEmpty(){
-    return; // datos reales: el historial se llena solo con las marcas de los operarios
-    if(this._loadHist().length>0) return;
-    const projs=['CASINO TORRES','HOSPITAL SUR','LOCAL CENTRO'];
-    // piezas válidas por máquina (las que tienen ritmo en Capacidad)
-    const byMaq={ laser:['PIC 150','Costilla 1500','Skin Standard','Empalme Costilla'], plegadora:['PIC 150','Costilla 1500','Skin Standard'], punzon:['MultiSlim Standard','MultiSlim Custom'], pintura:['PIC 150','Costilla 1500','Skin Standard'], embalado:['PIC 150','Costilla 1500','Skin Standard'] };
-    const defs=this._machineDefs(); const dm={}; defs.forEach(d=>dm[d.id]=d);
-    const arr=[]; const now=new Date(); const pad=x=>x<10?'0'+x:''+x; const rnd=(a,b)=>a+Math.random()*(b-a);
-    for(let d=20; d>=0; d--){
-      const day=new Date(now.getTime()-d*86400000);
-      if(day.getDay()===0) continue; // domingo no
-      const sat=day.getDay()===6;
-      Object.keys(byMaq).forEach(maq=>{
-        const units=(dm[maq].units||1);
-        // ocupación objetivo del día (0 = no trabajó); algunos días baja, pintura suele alta
-        let target= rnd(0.35,0.95); if(maq==='pintura') target=rnd(0.6,0.98); if(sat) target*=0.5;
-        if(Math.random()<0.12) target=0; // algún día sin trabajo en esa máquina
-        let remH = target*8*units;
-        let guard=0;
-        while(remH>0.15 && guard<40){ guard++;
-          const pieza=byMaq[maq][Math.floor(Math.random()*byMaq[maq].length)];
-          const rate=this._rate(maq, pieza); if(rate<=0) break;
-          const chunkH=Math.min(remH, rnd(0.4,1.6)); remH-=chunkH;
-          const pieces=Math.max(1, Math.round(rate*chunkH));
-          const hour=7+Math.floor(Math.random()*(sat?5:11));
-          const ts=new Date(day.getFullYear(),day.getMonth(),day.getDate(),hour,Math.floor(Math.random()*60)).getTime();
-          let unit=null; if(maq==='laser') unit=Math.random()<0.5?'LEAPION':'BODOR'; else if(maq==='plegadora') unit=Math.random()<0.5?'DERATECH':'HUAXIA';
-          arr.push({ ts, dateKey:(new Date(ts).getFullYear()+'-'+pad(new Date(ts).getMonth()+1)+'-'+pad(new Date(ts).getDate())), hour, dow:new Date(ts).getDay(), projectId:'demo', project:projs[Math.floor(Math.random()*projs.length)], machineId:maq, unit:unit, fileId:'f', pieza, field:(maq==='laser'?'chapas':'x'), kind:'chapa', delta:pieces, pieces });
-        }
-      });
-    }
-    arr.sort((a,b)=>a.ts-b.ts);
-    try{ localStorage.setItem('velum_historial', JSON.stringify(arr)); localStorage.setItem('velum_historial_demo','1'); }catch(e){}
+    return; // datos reales: el historial se llena solo con las marcas de los operarios — sin sembrado
   }
   _periodRange(){
     const base=new Date(); base.setHours(0,0,0,0);
@@ -293,7 +268,7 @@ class Component extends DCLogic {
     const tabs=[['dia','Día'],['semana','Semana'],['mes','Mes']];
     this._ocuReport = { periodLabel, viewLabel:(v==='dia'?'Día':(v==='semana'?'Semana':'Mes')), globalPct, totalPiezas, machines: machines.map(m=>({ name:m.name, hasRate:m.hasRate, pctStr:m.pctStr, piezas:m.piezas, detail:m.detail })), breakdownTitle, breakdown: breakdown.map(b=>({ label:b.label, val:b.val })) };
     const viewTabs=tabs.map(([id,label])=>({ label, onClick:()=>this.setState({view:id, offset:0}), color: v===id?'#0C2226':'#9AA6A2', bg: v===id?'#C9B79A':'transparent' }));
-    const isDemo = (function(){ try{ return localStorage.getItem('velum_historial_demo')==='1'; }catch(e){ return false; } })();
+    const isDemo = false;
     return {
       navOpen:this.state.navOpen, onToggleNav:()=>this.setState(s=>({navOpen:!s.navOpen})),
       viewTabs, periodLabel, onExportPdf:()=>this._exportPdf(),
@@ -304,7 +279,7 @@ class Component extends DCLogic {
       topMaq:top.name, topPct:top.pctStr, topColor:top.color,
       machines, breakdown, breakdownTitle, breakdownHint, barGap, barW, hasData, noData:!hasData,
       clearLabel: isDemo?'Borrar datos de ejemplo':'Borrar historial',
-      onClearDemo:()=>{ if(confirm('¿Borrar todo el historial de marcas? Esto no afecta los proyectos, solo las métricas de ocupación.')){ try{ localStorage.removeItem('velum_historial'); localStorage.removeItem('velum_historial_demo'); }catch(e){} this.setState({hist:[]}); } },
+      onClearDemo:()=>{ if(confirm('¿Borrar todo el historial de marcas? Esto no afecta los proyectos, solo las métricas de ocupación.')){ fetch('/api/velum/historial?all=true',{method:'DELETE'}).then(()=>this._cargar()).catch(()=>{}); } },
       navLinks:[
         { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
         { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso', dot:'#C9B79A', bg:'transparent' },

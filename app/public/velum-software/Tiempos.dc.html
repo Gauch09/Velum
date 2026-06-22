@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -109,16 +110,38 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:760}}">
 class Component extends DCLogic {
-  constructor(props){ super(props); this.state = { horas:8, now:Date.now(), vista:'auto' }; }
-  componentDidMount(){ this._t=setInterval(()=>this.setState({now:Date.now()}),2000); }
+  constructor(props){ super(props); this.state = { horas:8, now:Date.now(), vista:'auto', caps:[], full:[], maqEstado:{}, custom:[] }; }
+  componentDidMount(){
+    this._cargar = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        const maqEstado = {}; (Array.isArray(res[2])?res[2]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        this.setState({
+          caps: Array.isArray(res[0])?res[0]:[],
+          full: Array.isArray(res[1])?res[1]:[],
+          maqEstado,
+          custom: Array.isArray(res[3])?res[3]:[],
+          now: Date.now()
+        });
+      } catch (e) {}
+    };
+    this._cargar();
+    this._t = setInterval(this._cargar, 2000);
+  }
   componentWillUnmount(){ clearInterval(this._t); }
   renderVals(){
     const H=this.state.horas;
-    var prodsArr=[]; try{ var rc=localStorage.getItem('velum_capacidades'); if(rc){ var dc=JSON.parse(rc); if(Array.isArray(dc)) prodsArr=dc; } }catch(e){}
+    var prodsArr=Array.isArray(this.state.caps)?this.state.caps:[];
     function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
-    var full=[]; try{ var rr=localStorage.getItem('velum_estacion_full'); if(rr){ var dd=JSON.parse(rr); if(Array.isArray(dd)) full=dd; } }catch(e){}
+    var full=Array.isArray(this.state.full)?this.state.full:[];
     var maq={ laser:{label:'Láser (×2)',color:'#21C7D6',h:0,u:0,n:2}, plegado:{label:'Plegadora (×2)',color:'#E5A52B',h:0,u:0,n:2}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0,n:1}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0,n:1}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0,n:1} };
-    var _est={}; try{ var _r=localStorage.getItem('velum_maquinas_estado'); if(_r){ var _d=JSON.parse(_r); if(_d&&typeof _d==='object') _est=_d; } }catch(e){}
+    var _est=(this.state.maqEstado&&typeof this.state.maqEstado==='object')?this.state.maqEstado:{};
     var _fueraMap={ laser:0, plegado:0, punzonado:0, pintura:0, embalado:0 };
     var _uMap={ 'laser|LEAPION':'laser','laser|BODOR':'laser','plegadora|DERATECH':'plegado','plegadora|HUAXIA':'plegado','punzon':'punzonado','pintura':'pintura','embalado':'embalado' };
     var _fueraLabels={ laser:[], plegado:[] };
@@ -131,7 +154,7 @@ class Component extends DCLogic {
     var maxEf=0; cargaRows.forEach(function(r){ if(r._ef>maxEf) maxEf=r._ef; });
     cargaRows.forEach(function(r){ r.cuello=(r._ef===maxEf && maxEf>0); });
     // ░ Programación finita con máquinas en paralelo ░
-    var custom=[]; try{ var rk=localStorage.getItem('velum_proyectos_custom'); if(rk){ var dk=JSON.parse(rk); if(Array.isArray(dk)) custom=dk; } }catch(e){}
+    var custom=Array.isArray(this.state.custom)?this.state.custom:[];
     function prioRank(u){ u=(u||'').toUpperCase(); if(u==='URGENTE'||u==='ALTA') return 0; if(u==='BAJA') return 2; return 1; }
     var palette=['#21C7D6','#E5A52B','#9B82DC','#4FB870','#E76A95','#F0814F','#5BC0BE','#D98C5F'];
     var MACH=[ {id:'leapion',proc:'laser',label:'Láser · Leapion',color:'#21C7D6'}, {id:'bodor',proc:'laser',label:'Láser · Bodor',color:'#34C2CE'}, {id:'punzon',proc:'punzonado',label:'Punzonadora',color:'#3E7CE0'}, {id:'deratech',proc:'plegado',label:'Plegadora · Deratech',color:'#E5A52B'}, {id:'muaxia',proc:'plegado',label:'Plegadora · Muaxia',color:'#EFBE57'}, {id:'pintura',proc:'pintura',label:'Pintura',color:'#E76A95'}, {id:'embalado',proc:'embalado',label:'Embalado',color:'#C9B79A'} ];

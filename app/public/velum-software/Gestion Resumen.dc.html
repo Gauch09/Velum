@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -715,12 +716,42 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { variant: null, now: new Date(), openId: null, metricMode: 'dia', navOpen: false, estacion: this._readEstacion(), obras: this._readObras() };
+    this.state = { variant: null, now: new Date(), openId: null, metricMode: 'dia', navOpen: false, estacion: [], obras: {}, custom: [], maqEstado: {}, historial: [], caps: [], prodDiaria: {} };
   }
-  componentDidMount() { this._t = setInterval(() => this.setState({ now: new Date() }), 30000); this._sync = () => this.setState({ estacion: this._readEstacion(), obras: this._readObras() }); this._sync(); window.addEventListener('storage', this._sync); this._sp = setInterval(this._sync, 2000); }
-  componentWillUnmount() { clearInterval(this._t); clearInterval(this._sp); window.removeEventListener('storage', this._sync); }
-  _readEstacion(){ try { const r = localStorage.getItem('velum_estacion_full'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
-  _readObras(){ try { const r = localStorage.getItem('velum_obras'); return r?JSON.parse(r):{}; } catch(e){ return {}; } }
+  componentDidMount() {
+    this._t = setInterval(() => this.setState({ now: new Date() }), 30000);
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('historial').catch(()=>[]),
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('prod-diaria').catch(()=>[])
+        ]);
+        const obras = {}; (Array.isArray(res[1])?res[1]:[]).forEach(o => { obras[o.projectId] = o.pct; });
+        const maqEstado = {}; (Array.isArray(res[3])?res[3]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const _pd = res[6]; let prodDiaria = {};
+        if (Array.isArray(_pd)) { _pd.forEach(r => { if(r && r.fecha) prodDiaria[r.fecha] = r; }); }
+        else if (_pd && typeof _pd==='object') { prodDiaria = _pd; }
+        this.setState({
+          estacion: Array.isArray(res[0])?res[0]:[],
+          obras,
+          custom: Array.isArray(res[2])?res[2]:[],
+          maqEstado,
+          historial: Array.isArray(res[4])?res[4]:[],
+          caps: Array.isArray(res[5])?res[5]:[],
+          prodDiaria
+        });
+      } catch (e) {}
+    };
+    this._sync();
+    this._sp = setInterval(this._sync, 2000);
+  }
+  componentWillUnmount() { clearInterval(this._t); clearInterval(this._sp); }
   _procOrder(f){ return (f.procesos&&f.procesos.length)?f.procesos:['laser']; }
   _progOf(f,pid){ if(f.prog&&f.prog[pid]!=null) return f.prog[pid]; const o=this._procOrder(f); return pid===o[0]?(f.chapas||0):0; }
   _liveStages(pid){
@@ -745,7 +776,7 @@ class Component extends DCLogic {
   }
 
   _data() {
-    var custom=[]; try{ var r=localStorage.getItem('velum_proyectos_custom'); if(r){ var d=JSON.parse(r); if(Array.isArray(d)) custom=d; } }catch(e){}
+    var custom=Array.isArray(this.state.custom)?this.state.custom:[];
     return custom.map(function(p){ return {
       id:p.id, name:p.name, producto:p.producto||'—', cliente:(p.contacto||''),
       responsable:(p.contacto||'—'), ingreso:(function(){ if(p.createdTs){ var d=new Date(p.createdTs); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); } return ''; })(), deadlineDays:(p.deadlineDays!=null?p.deadlineDays:7),
@@ -784,9 +815,9 @@ class Component extends DCLogic {
     return { color:'#E0694A', soft:'rgba(224,105,74,0.16)' };
   }
 
-  _maquinasFuera(){ var arr=[]; try{ var r=localStorage.getItem('velum_maquinas_estado'); if(r){ var d=JSON.parse(r); if(d&&typeof d==='object'){ Object.keys(d).forEach(function(k){ arr.push({ maquina:(d[k].maquina||k), motivo:(d[k].motivo||'Sin especificar') }); }); } } }catch(e){} return arr; }
-  _ocupacionHoy(){    var hist=[]; try{ var r=localStorage.getItem('velum_historial'); if(r){ var d=JSON.parse(r); if(Array.isArray(d)) hist=d; } }catch(e){}
-    var caps=[]; try{ var rc=localStorage.getItem('velum_capacidades'); if(rc){ var dc=JSON.parse(rc); if(Array.isArray(dc)) caps=dc; } }catch(e){}
+  _maquinasFuera(){ var arr=[]; var d=this.state.maqEstado; if(d&&typeof d==='object'){ Object.keys(d).forEach(function(k){ arr.push({ maquina:(d[k].maquina||k), motivo:(d[k].motivo||'Sin especificar') }); }); } return arr; }
+  _ocupacionHoy(){    var hist=Array.isArray(this.state.historial)?this.state.historial:[];
+    var caps=Array.isArray(this.state.caps)?this.state.caps:[];
     var base=new Date(); base.setHours(0,0,0,0); var start=base.getTime(), end=start+86400000;
     var recs=hist.filter(function(x){ return x.ts>=start && x.ts<end; });
     var defs=[ {id:'laser',unit:'LEAPION',name:'Leapion',field:'laser'}, {id:'laser',unit:'BODOR',name:'Bodor',field:'laser'}, {id:'punzon',unit:null,name:'Punzonadora',field:'fresado'}, {id:'plegadora',unit:'DERATECH',name:'Deratech',field:'plegado'}, {id:'plegadora',unit:'HUAXIA',name:'Huaxia',field:'plegado'}, {id:'pintura',unit:null,name:'Pintura',field:'pintura'}, {id:'embalado',unit:null,name:'Embalado',field:'embalado'} ];
@@ -810,7 +841,7 @@ class Component extends DCLogic {
   }
 
   _fabDays(piezas){
-    var prods=[]; try{ var r=localStorage.getItem('velum_capacidades'); if(r){ var d=JSON.parse(r); if(Array.isArray(d)) prods=d; } }catch(e){}
+    var prods=Array.isArray(this.state.caps)?this.state.caps:[];
     function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
     var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
@@ -841,7 +872,7 @@ class Component extends DCLogic {
     else if (pendientes===0) desp={label:'LISTO PARA DESPACHO', color:'#4FB870'};
     else desp={label:'EN FABRICACIÓN', color:'#C9B79A'};
     const pc = c => parseInt(c)||0;
-    var _ef=[]; try{ var _r=localStorage.getItem('velum_estacion_full'); if(_r){ var _d=JSON.parse(_r); if(Array.isArray(_d)) _ef=_d; } }catch(e){}
+    var _ef=Array.isArray(this.state.estacion)?this.state.estacion:[];
     var _pr=_ef.find(x=>x.id===p.id); var _files=(_pr&&_pr.files)?_pr.files:[];
     var chapasTotal = _files.length ? _files.reduce((a,z)=>a+(z.objChapas||0),0) : p.piezas.reduce((a,z)=>a+pc(z.cant),0);
     var chapasHechas = _files.length ? _files.reduce((a,z)=>a+(z.chapas||0),0) : p.piezas.reduce((a,z)=>a+Math.round(z.pct/100*pc(z.cant)),0);
@@ -982,7 +1013,7 @@ class Component extends DCLogic {
     const metricToggle = [['dia','Por día'],['proj','Por proyecto']].map(([id,label])=>({ label, color: mm===id?'#0C2226':'#8E9A96', bg: mm===id?'#C9B79A':'transparent', onClick:()=>this.setState({metricMode:id}) }));
     const _pal=['#21C7D6','#E5A52B','#9B82DC','#4FB870','#E76A95','#F0814F'];
     const projsLeg = projects.map((p,i)=>({ id:p.id, name:p.name, color:_pal[i%_pal.length] }));
-    let _led={}; try{ const r=localStorage.getItem('velum_prod_diaria'); if(r) _led=JSON.parse(r)||{}; }catch(e){}
+    let _led=(this.state.prodDiaria&&typeof this.state.prodDiaria==='object')?this.state.prodDiaria:{};
     const _dw=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     const _now=this.state.now||new Date();
     const dailyRaw=[]; const dailyFallas=[];

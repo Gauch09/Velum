@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -144,9 +145,24 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  constructor(props){ super(props); this.state = { tareas:this._load(), respMenu:null, prioMenu:null, estadoMenu:null, navOpen:false }; }
-  componentDidMount(){ this._sync=()=>this.setState({ tareas:this._load() }); window.addEventListener('storage', this._sync); }
-  componentWillUnmount(){ window.removeEventListener('storage', this._sync); }
+  constructor(props){ super(props); this.state = { tareas:[], proyectosCustom:[], respMenu:null, prioMenu:null, estadoMenu:null, navOpen:false }; }
+  componentDidMount(){
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('tareas').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        this.setState({
+          tareas: Array.isArray(res[0]) ? res[0] : [],
+          proyectosCustom: Array.isArray(res[1]) ? res[1] : []
+        });
+      } catch (e) {}
+    };
+    this._cargar = this._sync;
+    this._cargar();
+  }
   _people(){ return [ {id:'lucho',name:'Lucho',color:'#8CB7E8'}, {id:'juani',name:'Juani',color:'#5FB87E'}, {id:'joa',name:'Joa',color:'#E0A56A'}, {id:'german',name:'Germán',color:'#D9C24E'}, {id:'mariu',name:'Mariu',color:'#E86A8E'}, {id:'claudio',name:'Claudio',color:'#9BC8E8'}, {id:'produccion',name:'Producción',color:'#A78BDC'} ]; }
   _equipo(){ return [ {name:'Lucho',rol:'Jefe de planta',color:'#8CB7E8'}, {name:'Juani',rol:'Diseño',color:'#5FB87E'}, {name:'Joa',rol:'Ingeniería',color:'#E0A56A'} ]; }
   _prios(){ return [ {id:'Urgente',color:'#E0694A'}, {id:'Alta',color:'#E5A52B'}, {id:'Media',color:'#D9C24E'}, {id:'Baja',color:'#4FB870'} ]; }
@@ -159,18 +175,19 @@ class Component extends DCLogic {
     {id:'t4',proyecto:'LOCAL CENTRO',tarea:'Generar propuestas',resp:['joa','juani'],prioridad:'Baja',estado:'En curso',fecha:'',obs:'Generar propuestas a partir de malla.'},
     {id:'t5',proyecto:'EDIFICIO NORTE',tarea:'Diseño terminado — avanzar con ingeniería',resp:['juani'],prioridad:'Media',estado:'Sin iniciar',fecha:'',obs:'Diseño listo, pasa a ingeniería para cálculo.'}
   ]; }
-  _load(){ try{ const r=localStorage.getItem('velum_tareas'); if(r){ const d=JSON.parse(r); if(Array.isArray(d)) return d; } }catch(e){} const def=this._seed(); try{ localStorage.setItem('velum_tareas', JSON.stringify(def)); }catch(e){} return def; }
-  _save(t){ try{ localStorage.setItem('velum_tareas', JSON.stringify(t)); }catch(e){} }
-  _mut(fn){ this.setState(s=>{ const tareas=fn(s.tareas.slice()); this._save(tareas); return {tareas}; }); }
-  _add(){ this._mut(t=>[...t, {id:'t'+Date.now(), proyecto:'', tarea:'', resp:[], prioridad:'Media', estado:'Sin iniciar', fecha:'', obs:''}]); }
-  _del(id){ this._mut(t=>t.filter(x=>x.id!==id)); }
-  _set(id,f,v){ this._mut(t=>t.map(x=>x.id===id?Object.assign({},x,{[f]:v}):x)); }
-  _toggleResp(id,pid){ this._mut(t=>t.map(x=>{ if(x.id!==id) return x; var r=(x.resp||[]).slice(); var i=r.indexOf(pid); if(i>=0) r.splice(i,1); else r.push(pid); return Object.assign({},x,{resp:r}); })); }
+  _load(){ return (this.state && Array.isArray(this.state.tareas)) ? this.state.tareas : this._seed(); }
+  _cols(t){ return { id:t.id, proyecto:t.proyecto||'', tarea:t.tarea||'', resp:t.resp||[], prioridad:t.prioridad, estado:t.estado, fecha:t.fecha||'', obs:t.obs||'' }; }
+  _persist(id){ this.setState(s=>{ const reg=(s.tareas||[]).find(x=>x.id===id); if(reg && window.VelumAPI) VelumAPI.save('tareas', this._cols(reg)).catch(()=>{}); return {}; }); }
+  _mut(fn){ this.setState(s=>({ tareas: fn((s.tareas||[]).slice()) })); }
+  _add(){ const reg={id:'t'+Date.now(), proyecto:'', tarea:'', resp:[], prioridad:'Media', estado:'Sin iniciar', fecha:'', obs:''}; this._mut(t=>[...t, reg]); if(window.VelumAPI) VelumAPI.save('tareas', this._cols(reg)).catch(()=>{}); }
+  _del(id){ this._mut(t=>t.filter(x=>x.id!==id)); if(window.VelumAPI) VelumAPI.del('tareas', id).catch(()=>{}); }
+  _set(id,f,v){ this._mut(t=>t.map(x=>x.id===id?Object.assign({},x,{[f]:v}):x)); this._persist(id); }
+  _toggleResp(id,pid){ this._mut(t=>t.map(x=>{ if(x.id!==id) return x; var r=(x.resp||[]).slice(); var i=r.indexOf(pid); if(i>=0) r.splice(i,1); else r.push(pid); return Object.assign({},x,{resp:r}); })); this._persist(id); }
   renderVals(){
     const people=this._people(); const pmap={}; people.forEach(p=>{pmap[p.id]=p;});
     const prios=this._prios(); const pcol={}; prios.forEach(p=>{pcol[p.id]=p.color;});
     const estados=this._estados(); const ecol={}; estados.forEach(e=>{ecol[e.id]=e.color;});
-    var projNames=[]; try{ var r=localStorage.getItem('velum_proyectos_custom'); if(r){ var d=JSON.parse(r); if(Array.isArray(d)) projNames=d.map(p=>p.name); } }catch(e){}
+    var projNames=(this.state.proyectosCustom||[]).map(p=>p.name).filter(Boolean);
     const total=this.state.tareas.length;
     const ordered=this.state.tareas.map((t,idx)=>({t,idx})).sort((a,b)=>{ var ah=a.t.estado==='Hecho'?1:0, bh=b.t.estado==='Hecho'?1:0; return ah!==bh?ah-bh:a.idx-b.idx; }).map(o=>o.t);
     const rows=ordered.map((t,i)=>{

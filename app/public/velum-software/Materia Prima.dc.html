@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -255,28 +256,23 @@ class Component extends DCLogic {
       cform: { nombre:'', categoria:'Fijaciones', stock:'', unidad:'' } };
   }
   componentDidMount() {
-    this._sync = () => this.setState({ estacion: this._readEstacion(), stock: this._readStock(), consumibles: this._readCons() });
-    this._sync();
-    window.addEventListener('storage', this._sync);
-    this._sp = setInterval(this._sync, 2000);
+    this._cargar();
+    this._sp = setInterval(() => this._cargar(), 2000);
   }
-  componentWillUnmount() { window.removeEventListener('storage', this._sync); clearInterval(this._sp); }
+  componentWillUnmount() { clearInterval(this._sp); }
 
-  _readEstacion(){ try { const r = localStorage.getItem('velum_estacion_full'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
-  _readStock(){ try { const r = localStorage.getItem('velum_stock'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
-  _saveStock(s){ try { localStorage.setItem('velum_stock', JSON.stringify(s)); } catch(e){} }
-  _readCons(){
-    try { const r = localStorage.getItem('velum_consumibles'); if (r) { const d = JSON.parse(r); if (Array.isArray(d)) return d; } } catch(e){}
-    const def = [
-      { id:'c1', nombre:'Autoperforante 1/4 x 1"', categoria:'Fijaciones', stock:1200, unidad:'unidades' },
-      { id:'c2', nombre:'Autoperforante 1/4 x 1 1/2"', categoria:'Fijaciones', stock:800, unidad:'unidades' },
-      { id:'c3', nombre:'Pintura en polvo gris', categoria:'Pintura', stock:6, unidad:'cajas' },
-      { id:'c4', nombre:'Pintura en polvo negra', categoria:'Pintura', stock:4, unidad:'cajas' }
-    ];
-    try { localStorage.setItem('velum_consumibles', JSON.stringify(def)); } catch(e){}
-    return def;
+  async _cargar(){
+    try {
+      const [stock, consumibles, estacion] = await Promise.all([
+        VelumAPI.get('stock'), VelumAPI.get('consumibles'), VelumAPI.get('estacion')
+      ]);
+      this.setState({
+        stock: Array.isArray(stock)?stock:[],
+        consumibles: Array.isArray(consumibles)?consumibles:[],
+        estacion: Array.isArray(estacion)?estacion:[]
+      });
+    } catch(e){ /* silencioso */ }
   }
-  _saveCons(c){ try { localStorage.setItem('velum_consumibles', JSON.stringify(c)); } catch(e){} }
 
   _split(mt){ mt = (mt||'').trim(); const m = mt.match(/([\d.,]+\s*mm)\s*$/i); if (m) return { material: mt.slice(0, m.index).trim() || mt, espesor: m[1].replace(/\s+/g,' ') }; return { material: mt, espesor: '—' }; }
   _key(material, espesor){ return (material+'|'+espesor).toLowerCase().replace(/\s+/g,''); }
@@ -302,26 +298,24 @@ class Component extends DCLogic {
     const f = this.state.form; const material = (f.material||'').trim(); if (!material) return;
     const espesor = (f.espesor||'').trim() || '—';
     const chapas = parseFloat((f.chapas||'0').replace(',','.')) || 0;
-    this.setState(s => {
-      const k = this._key(material, espesor);
-      let found = false;
-      let stock = s.stock.map(x => { if (this._key(x.material,x.espesor)===k) { found=true; return Object.assign({}, x, { chapas, dimension:(f.dimension||'').trim()||x.dimension, terminacion:(f.terminacion||'').trim()||x.terminacion }); } return x; });
-      if (!found) stock = stock.concat([{ id:'m'+Date.now(), material, espesor, dimension:(f.dimension||'').trim()||'—', terminacion:(f.terminacion||'').trim()||'—', chapas }]);
-      this._saveStock(stock);
-      return { stock, matFormOpen:false, form:{ material:'', espesor:'', dimension:'', terminacion:'', chapas:'' } };
-    });
+    const k = this._key(material, espesor);
+    let found = null;
+    const stock = this.state.stock.map(x => { if (this._key(x.material,x.espesor)===k) { found = Object.assign({}, x, { chapas, dimension:(f.dimension||'').trim()||x.dimension, terminacion:(f.terminacion||'').trim()||x.terminacion }); return found; } return x; });
+    const item = found || { id:'m'+Date.now(), material, espesor, dimension:(f.dimension||'').trim()||'—', terminacion:(f.terminacion||'').trim()||'—', chapas };
+    const nextStock = found ? stock : stock.concat([item]);
+    VelumAPI.save('stock', item);
+    this.setState({ stock: nextStock, matFormOpen:false, form:{ material:'', espesor:'', dimension:'', terminacion:'', chapas:'' } });
   }
   _saveConsumible(){
     const f = this.state.cform; const nombre = (f.nombre||'').trim(); if (!nombre) return;
     const stock = parseFloat((f.stock||'0').replace(',','.')) || 0;
-    this.setState(s => {
-      const consumibles = s.consumibles.concat([{ id:'c'+Date.now(), nombre, categoria:f.categoria||'Fijaciones', stock, unidad:(f.unidad||'').trim()||'unidades' }]);
-      this._saveCons(consumibles);
-      return { consumibles, consFormOpen:false, cform:{ nombre:'', categoria:'Fijaciones', stock:'', unidad:'' } };
-    });
+    const item = { id:'c'+Date.now(), nombre, categoria:f.categoria||'Fijaciones', stock, unidad:(f.unidad||'').trim()||'unidades' };
+    const consumibles = this.state.consumibles.concat([item]);
+    VelumAPI.save('consumibles', item);
+    this.setState({ consumibles, consFormOpen:false, cform:{ nombre:'', categoria:'Fijaciones', stock:'', unidad:'' } });
   }
-  _del(id){ this.setState(s => { const stock = s.stock.filter(x=>x.id!==id); this._saveStock(stock); return { stock }; }); }
-  _delCons(id){ this.setState(s => { const consumibles = s.consumibles.filter(x=>x.id!==id); this._saveCons(consumibles); return { consumibles }; }); }
+  _del(id){ const stock = this.state.stock.filter(x=>x.id!==id); VelumAPI.del('stock', id); this.setState({ stock }); }
+  _delCons(id){ const consumibles = this.state.consumibles.filter(x=>x.id!==id); VelumAPI.del('consumibles', id); this.setState({ consumibles }); }
   _prefill(material, espesor){ this.setState({ matFormOpen:true, form:{ material, espesor, dimension:'', terminacion:'', chapas:'' } }); }
   _openLoad(){ if (this.state.tab==='materia') this.setState({ matFormOpen:true }); else this.setState({ consFormOpen:true }); }
   _exportPdf(){
