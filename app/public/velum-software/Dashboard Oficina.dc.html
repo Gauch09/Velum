@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -568,16 +569,41 @@
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { now: new Date(), liveObras: {}, custom: [], archivados: [], verArchivados: false, loadOpen: false, detailId: null, procMode: false, closedZ: {}, navOpen: false, matMenuZ: null, dimMenuZ: null, espMenuZ: null, estacion: [], fitScale: null, fitCols: null, avisosOpen:false, avisos:[], draftAviso:'', alertasOpen:false, archModal:{ open:false, pid:null }, form: { nombre:'', lugar:'', persona:'', tel:'', producto:'', material:'', montaje:false, pintado:false, codigoPintura:'', fecha:'', prioridad:'NORMAL' } };
+    this.state = { now: new Date(), liveObras: {}, custom: [], archivados: [], verArchivados: false, loadOpen: false, detailId: null, procMode: false, closedZ: {}, navOpen: false, matMenuZ: null, dimMenuZ: null, espMenuZ: null, estacion: [], caps: [], stock: [], maqEstado: {}, fitScale: null, fitCols: null, avisosOpen:false, avisos:[], draftAviso:'', alertasOpen:false, archModal:{ open:false, pid:null }, form: { nombre:'', lugar:'', persona:'', tel:'', producto:'', material:'', montaje:false, pintado:false, codigoPintura:'', fecha:'', prioridad:'NORMAL' } };
   }
 
   componentDidMount() {
     try{ var h=location.hash||''; if(h.indexOf('#p=')===0){ var id=decodeURIComponent(h.slice(3)); if(id) this.setState({ detailId:id }); } }catch(e){}
     this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
-    this._sync = () => this.setState({ liveObras: this._readObras(), estacion: this._readEstacion(), stock: this._readStock(), archivados: this._readArch(), avisos: this._readAvisos(), maqEstado: this._readMaqEstado() });
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('stock').catch(()=>[]),
+          VelumAPI.get('archivados').catch(()=>[]),
+          VelumAPI.get('avisos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        const liveObras = {}; (Array.isArray(res[0])?res[0]:[]).forEach(o => { liveObras[o.projectId] = o.pct; });
+        const maqEstado = {}; (Array.isArray(res[5])?res[5]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const archivados = (Array.isArray(res[3])?res[3]:[]).map(a => a.projectId);
+        this.setState({
+          liveObras,
+          estacion: Array.isArray(res[1])?res[1]:[],
+          stock: Array.isArray(res[2])?res[2]:[],
+          archivados,
+          avisos: Array.isArray(res[4])?res[4]:[],
+          maqEstado,
+          caps: Array.isArray(res[6])?res[6]:[],
+          custom: Array.isArray(res[7])?res[7]:[]
+        });
+      } catch (e) {}
+    };
     this._sync();
-    try { const r = localStorage.getItem('velum_proyectos_custom'); if (r) { const d = JSON.parse(r); if (Array.isArray(d)) this.setState({ custom: d }); } } catch (e) {}
-    window.addEventListener('storage', this._sync);
     this._poll = setInterval(this._sync, 2000);
     this._fitFn = () => this._measureFit();
     window.addEventListener('resize', this._fitFn);
@@ -594,17 +620,17 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this._fitFn);
     if (this._fitT) clearTimeout(this._fitT);
   }
-  _readObras() { try { const r = localStorage.getItem('velum_obras'); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } }
-  _readAvisos() { try { const r = localStorage.getItem('velum_avisos'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch (e) { return []; } }
-  _addAviso(){ const t=(this.state.draftAviso||'').trim(); if(!t) return; this.setState(s=>{ const avisos=[{id:'a'+Date.now(), text:t, ts:Date.now()}, ...(s.avisos||[])]; try{ localStorage.setItem('velum_avisos', JSON.stringify(avisos)); }catch(e){} return { avisos, draftAviso:'' }; }); }
-  _delAviso(id){ this.setState(s=>{ const avisos=(s.avisos||[]).filter(x=>x.id!==id); try{ localStorage.setItem('velum_avisos', JSON.stringify(avisos)); }catch(e){} return { avisos }; }); }
-  _readArch(){ try { const r = localStorage.getItem('velum_archivados'); const d=r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
-  _readMaqEstado(){ try { const r = localStorage.getItem('velum_maquinas_estado'); const d=r?JSON.parse(r):{}; return (d&&typeof d==='object')?d:{}; } catch(e){ return {}; } }
+  _readObras() { return this.state.liveObras||{}; }
+  _readAvisos() { return this.state.avisos||[]; }
+  _addAviso(){ const t=(this.state.draftAviso||'').trim(); if(!t) return; const item={id:'a'+Date.now(), text:t, ts:Date.now()}; this.setState(s=>({ avisos:[item, ...(s.avisos||[])], draftAviso:'' })); if(window.VelumAPI) VelumAPI.save('avisos', item).catch(()=>{}); }
+  _delAviso(id){ this.setState(s=>({ avisos:(s.avisos||[]).filter(x=>x.id!==id) })); if(window.VelumAPI) VelumAPI.del('avisos', id).catch(()=>{}); }
+  _readArch(){ return this.state.archivados||[]; }
+  _readMaqEstado(){ return this.state.maqEstado||{}; }
   _toggleArch(pid){ const yaArch=(this.state.archivados||[]).indexOf(pid)>=0; if(!yaArch){ this.setState({ archModal:{ open:true, pid:pid } }); return; } this._doToggleArch(pid); }
-  _doToggleArch(pid){ this.setState(s=>{ const set=(s.archivados||[]).slice(); const i=set.indexOf(pid); if(i>=0) set.splice(i,1); else set.push(pid); try{ localStorage.setItem('velum_archivados', JSON.stringify(set)); }catch(e){} return { archivados:set, detailId: i>=0?s.detailId:null, archModal:{ open:false, pid:null } }; }); }
+  _doToggleArch(pid){ const ya=(this.state.archivados||[]).indexOf(pid)>=0; this.setState(s=>{ const set=(s.archivados||[]).slice(); const i=set.indexOf(pid); if(i>=0) set.splice(i,1); else set.push(pid); return { archivados:set, detailId: i>=0?s.detailId:null, archModal:{ open:false, pid:null } }; }); if(window.VelumAPI){ if(ya) VelumAPI.del('archivados', pid).catch(()=>{}); else VelumAPI.save('archivados', { projectId:pid, archivedTs:Date.now() }).catch(()=>{}); } }
   _cancelArch(){ this.setState({ archModal:{ open:false, pid:null } }); }
   _fabDays(piezas){
-    var prods=[]; try{ var r=localStorage.getItem('velum_capacidades'); if(r){ var d=JSON.parse(r); if(Array.isArray(d)) prods=d; } }catch(e){}
+    var prods=this.state.caps||[];
     function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
     var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
@@ -613,7 +639,7 @@ class Component extends DCLogic {
     return { hours: total, days: total/H, matched: matched && total>0 };
   }
 
-  _readStock(){ try { const r = localStorage.getItem('velum_stock'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch(e){ return []; } }
+  _readStock(){ return this.state.stock||[]; }
   _splitMat(mt){ mt=(mt||'').trim(); const m=mt.match(/([\d.,]+\s*mm)\s*$/i); if(m) return { material: mt.slice(0,m.index).trim()||mt, espesor: m[1].replace(/\s+/g,' ') }; return { material:mt, espesor:'—' }; }
   _matKey(material,espesor){ return (material+'|'+espesor).toLowerCase().replace(/\s+/g,''); }
   _stockAlertas(){
@@ -623,7 +649,7 @@ class Component extends DCLogic {
     const out=[];
     Object.keys(dem).forEach(k=>{ const d=dem[k]; const s=stock[k]; if(!s){ out.push({ txt:d.material+' '+d.espesor, det:'falta cargar stock', color:'#E5A52B' }); return; } const saldo=s.chapas-d.demanda; if(saldo<0) out.push({ txt:d.material+' '+d.espesor, det:'faltan '+Math.round(-saldo)+' chapas', color:'#E0694A' }); else if(saldo<=Math.max(2,d.demanda*0.1)) out.push({ txt:d.material+' '+d.espesor, det:'quedan '+Math.round(saldo)+' chapas', color:'#E5A52B' }); });
     out.sort((a,b)=> (a.color==='#E0694A'?0:1)-(b.color==='#E0694A'?0:1));
-    var maq=[]; try{ var r=localStorage.getItem('velum_maquinas_estado'); if(r){ var d=JSON.parse(r); if(d&&typeof d==='object') Object.keys(d).forEach(function(k){ maq.push({ txt:(d[k].maquina||k)+' fuera de servicio', det:(d[k].motivo||'Sin especificar'), color:'#E0694A' }); }); } }catch(e){}
+    var maq=[]; var mqe=this.state.maqEstado||{}; Object.keys(mqe).forEach(function(k){ maq.push({ txt:(mqe[k].maquina||k)+' fuera de servicio', det:(mqe[k].motivo||'Sin especificar'), color:'#E0694A' }); });
     return maq.concat(out);
   }
 
@@ -636,7 +662,7 @@ class Component extends DCLogic {
     for(const key in T){ if(k.indexOf(key)>=0 || key.indexOf(k)>=0){ return T[key]; } }
     return null;
   }
-  _cyclePago(id){ this.setState(s=>{ const order=['IMPAGO','SEÑA','PAGADO']; const custom=(s.custom||[]).map(p=>{ if(p.id!==id) return p; const i=order.indexOf(p.pago||'IMPAGO'); return Object.assign({},p,{pago:order[(i+1)%order.length]}); }); try{ localStorage.setItem('velum_proyectos_custom', JSON.stringify(custom)); }catch(e){} return {custom}; }); }
+  _cyclePago(id){ this.setState(s=>{ const order=['IMPAGO','SEÑA','PAGADO']; var changed=null; const custom=(s.custom||[]).map(p=>{ if(p.id!==id) return p; const i=order.indexOf(p.pago||'IMPAGO'); changed=Object.assign({},p,{pago:order[(i+1)%order.length]}); return changed; }); if(changed && window.VelumAPI) VelumAPI.save('proyectos', changed).catch(()=>{}); return {custom}; }); }
   _exportPdf(){
     const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const C = 289.03;
@@ -710,8 +736,8 @@ class Component extends DCLogic {
 
   _procDefs(){ return [ {id:'laser',label:'Corte láser',color:'#21C7D6'},{id:'punzon',label:'Punzonado',color:'#9B82DC'},{id:'fresa',label:'Fresado',color:'#3E7CE0'},{id:'plegadora',label:'Plegado',color:'#E5A52B'},{id:'expansora',label:'Expandido',color:'#F0814F'},{id:'pintura',label:'Pintura',color:'#E76A95'},{id:'embalado',label:'Embalado',color:'#C9B79A'} ]; }
 
-  _readEstacion() { try { const r = localStorage.getItem('velum_estacion_full'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch (e) { return []; } }
-  _saveEstacion(arr){ try { localStorage.setItem('velum_estacion_full', JSON.stringify(arr)); } catch(e){} }
+  _readEstacion() { return this.state.estacion||[]; }
+  _saveEstacion(arr){ /* persistencia vía VelumAPI en _mutate */ }
   _piezasOf(pid){ const p = (this.state.estacion||[]).find(x=>x.id===pid); return p && p.files ? p.files : []; }
   _exportEstado(pid){
     var self=this; var proj=(this.state.estacion||[]).find(x=>x.id===pid)||{}; var custom=(this.state.custom||[]).find(x=>x.id===pid)||{};
@@ -763,7 +789,8 @@ class Component extends DCLogic {
       let proj = est.find(p=>p.id===pid);
       if (!proj) { const od = this._allData().find(x=>x.id===pid); proj = { id:pid, name: od?od.name:pid.toUpperCase(), files:[] }; est = est.concat([proj]); }
       est = est.map(p => p.id!==pid ? p : { ...p, files: fn(p.files||[]) });
-      this._saveEstacion(est);
+      const _proj = est.find(p=>p.id===pid);
+      if (_proj && window.VelumAPI) VelumAPI.save('estacion', { id:_proj.id, name:_proj.name, files:_proj.files }).catch(()=>{});
       return { estacion: est };
     });
   }
@@ -776,9 +803,9 @@ class Component extends DCLogic {
   _togglePintado(zid){ this._mutate(files => files.map(f=>f.id===zid?{...f, pintado:!f.pintado}:f)); }
   _setNum(zid, field, delta, min){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const base = (f[field]!=null?f[field]:0); return {...f, [field]: Math.max(min, Math.round((base+delta)*10)/10)}; })); }
   _setAbs(zid, field, val, min){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=min; v=Math.max(min, Math.round(v*10)/10); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; if(field==='ppc' && v>0 && f.objUni!=null){ return {...f, ppc:v, objChapas: Math.max(0, Math.ceil(f.objUni/v)) }; } return {...f, [field]: v}; })); }
-  _capEnChapa(name){ try{ var r=localStorage.getItem('velum_capacidades'); if(!r) return 0; var d=JSON.parse(r); if(!Array.isArray(d)) return 0; var nm=(name||'').toLowerCase(); var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && (p.enChapa||0)>0){ best=p.enChapa; } }); return best; }catch(e){ return 0; } }
-  _capEsp(name){ try{ var r=localStorage.getItem('velum_capacidades'); if(!r) return ''; var d=JSON.parse(r); if(!Array.isArray(d)) return ''; var nm=(name||'').toLowerCase(); var best=''; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && p.esp!=null && (''+p.esp).trim()!=='') best=(''+p.esp).trim(); }); return best; }catch(e){ return ''; } }
-  _pesoUnit(name){ try{ var r=localStorage.getItem('velum_capacidades'); if(!r) return 0; var d=JSON.parse(r); if(!Array.isArray(d)) return 0; var nm=(name||'').toLowerCase(); var pf=function(v){ return parseFloat(String(v==null?'':v).replace(',','.'))||0; }; var D={Acero:7850,Galvanizado:7850,Inoxidable:8000,Aluminio:2700,MDF:750}; var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var a=pf(p.ancho),h=pf(p.alto),e=pf(p.esp); if(a>0&&h>0&&e>0) best=(a/1000)*(h/1000)*(e/1000)*(D[p.material||'Acero']||7850); } }); return best; }catch(e){ return 0; } }
+  _capEnChapa(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && (p.enChapa||0)>0){ best=p.enChapa; } }); return best; }catch(e){ return 0; } }
+  _capEsp(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=''; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && p.esp!=null && (''+p.esp).trim()!=='') best=(''+p.esp).trim(); }); return best; }catch(e){ return ''; } }
+  _pesoUnit(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var pf=function(v){ return parseFloat(String(v==null?'':v).replace(',','.'))||0; }; var D={Acero:7850,Galvanizado:7850,Inoxidable:8000,Aluminio:2700,MDF:750}; var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var a=pf(p.ancho),h=pf(p.alto),e=pf(p.esp); if(a>0&&h>0&&e>0) best=(a/1000)*(h/1000)*(e/1000)*(D[p.material||'Acero']||7850); } }); return best; }catch(e){ return 0; } }
   _pesoProj(pid){ var t=0; var self=this; this._piezasOf(pid).forEach(function(z){ var nec=(z.objUni!=null)?z.objUni:((z.objChapas||0)*(z.ppc||1)); t+=self._pesoUnit(z.pieza||z.archivo||'')*nec; }); return t; }
   _pesoFmt(t){ return t<=0?'':(t>=1000?(t/1000).toFixed(2).replace('.',',')+' t':Math.round(t).toLocaleString('es-AR')+' kg'); }
   _setNecUnits(zid, val){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; v=Math.max(0,v); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; var ench=this._capEnChapa(f.pieza||f.archivo||''); if(ench>0){ var ppc=ench; return {...f, objUni:v, ppc:ppc, objChapas: Math.max(0, Math.ceil(v/ppc)) }; } return {...f, objUni:v}; })); }
@@ -823,7 +850,7 @@ class Component extends DCLogic {
     this.setState(s => {
       var ex=(s.custom||[]).find(p=>p.id===nuevo.id);
       var custom = ex ? s.custom.map(p=>p.id===nuevo.id?Object.assign({},p,nuevo):p) : [...s.custom, nuevo];
-      try { localStorage.setItem('velum_proyectos_custom', JSON.stringify(custom)); } catch(e){}
+      if(window.VelumAPI) VelumAPI.save('proyectos', nuevo).catch(()=>{});
       return { custom, loadOpen:false, editId:null, form:{ nombre:'', lugar:'', persona:'', tel:'', producto:'', material:'', montaje:false, pintado:false, codigoPintura:'', fecha:'', prioridad:'NORMAL' } };
     });
   }
