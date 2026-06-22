@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    @keyframes velPulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(140% 120% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;display:flex;flex-direction:column;--acc:{{ accVars.acc }};--accSoft:{{ accVars.soft }};--accLine:{{ accVars.line }};--accSel:{{ accVars.sel }};--on:{{ accVars.on }};--accLight:{{ accVars.light }};">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:14px 26px;background:rgba(16,21,20,0.88);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:14px;position:relative;">
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <svg width="24" height="31" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+        <span style="font-size:12px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:44px;left:0;z-index:60;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:244px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="4">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div onClick="{{ onToggleMachine }}" style="display:flex;align-items:center;gap:11px;cursor:pointer;background:var(--accSoft);border:0.5px solid var(--accLine);border-radius:10px;padding:7px 13px;">
+        <span style="width:13px;height:13px;border-radius:50%;background:var(--acc);flex:0 0 auto;"></span>
+        <div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;line-height:1;">ESTACIÓN</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:18px;letter-spacing:0.02em;color:#fff;line-height:1.15;white-space:nowrap;">{{ machineName }}</div>
+        </div>
+        <span style="font-size:13px;color:var(--acc);margin-left:2px;">▾</span>
+      </div>
+      <sc-if value="{{ hasUnits }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;background:rgba(0,0,0,0.3);border:0.5px solid var(--accLine);border-radius:9px;padding:3px;gap:3px;">
+          <sc-for list="{{ units }}" as="u" hint-placeholder-count="2">
+            <div onClick="{{ u.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.02em;padding:8px 13px;border-radius:6px;cursor:pointer;color:{{ u.color }};background:{{ u.bg }};white-space:nowrap;">{{ u.label }}</div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="display:none;">
+      <sc-for list="{{ switcher }}" as="s" hint-placeholder-count="5">
+        <div onClick="{{ s.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:{{ s.color }};background:{{ s.bg }};padding:8px 15px;border-radius:6px;cursor:pointer;">{{ s.label }}</div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div onClick="{{ onToggleProj }}" style="display:flex;align-items:center;gap:11px;cursor:pointer;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.28);border-radius:10px;padding:8px 14px;">
+        <div style="text-align:left;">
+          <div style="font-family:'DM Sans';font-weight:400;font-size:10px;letter-spacing:0.16em;color:#7E8C89;">PROYECTO</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:18px;letter-spacing:0.04em;color:#fff;line-height:1;">{{ project }}</div>
+        </div>
+        <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:var(--acc,#21C7D6);font-variant-numeric:tabular-nums;">{{ overall.pctStr }}</span>
+        <span style="font-size:12px;color:#8E9A96;">▾</span>
+      </div>
+      <div onClick="{{ onToggleLog }}" style="position:relative;display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 14px;border-radius:9px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+        Registros
+        <sc-if value="{{ hasLog }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:700;font-size:12px;color:var(--on,#0C2226);background:var(--acc,#21C7D6);border-radius:10px;padding:1px 7px;">{{ logCount }}</span></sc-if>
+      </div>
+      <div onClick="{{ onToggleFaltante }}" style="position:relative;display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:#E0894A;background:rgba(224,137,74,0.14);border:0.5px solid rgba(224,137,74,0.4);padding:10px 13px;border-radius:9px;">
+        🔧 Falta algo
+        <sc-if value="{{ hasFaltantes }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:700;font-size:12px;color:#23190A;background:#E0894A;border-radius:10px;padding:1px 7px;">{{ faltantesCount }}</span></sc-if>
+      </div>
+      <div onClick="{{ onToggleFuera }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:{{ fueraColor }};background:{{ fueraBg }};border:0.5px solid {{ fueraLine }};padding:10px 13px;border-radius:9px;">
+        {{ fueraLabel }}
+      </div>
+      <div onClick="{{ onToggleEditor }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 13px;border-radius:9px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+        Editar
+      </div>
+      <a href="TV Bloques con Embalado.dc.html" target="_blank" style="display:flex;align-items:center;gap:6px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.03em;color:#8E9A96;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.25);padding:10px 13px;border-radius:9px;">TV ↗</a>
+    </div>
+  </div>
+
+  <!-- ░░ BODY ░░ -->
+  <div style="flex:1;padding:22px 26px 34px;">
+
+    <sc-if value="{{ showPaint }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:1540px;margin:0 auto 20px;display:flex;align-items:center;gap:18px;background:linear-gradient(90deg,rgba(231,106,149,0.18),rgba(231,106,149,0.04));border:0.5px solid rgba(231,106,149,0.5);border-left:7px solid #E76A95;border-radius:14px;padding:18px 24px;">
+        <div style="width:56px;height:56px;flex:0 0 auto;border-radius:13px;background:rgba(231,106,149,0.18);border:0.5px solid rgba(231,106,149,0.5);display:flex;align-items:center;justify-content:center;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F4BBD0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11V8a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"></path><path d="M3 11h18v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 17v3"></path><path d="M9 22h6"></path></svg>
+        </div>
+        <div style="min-width:0;">
+          <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.18em;color:#F4BBD0;line-height:1;margin-bottom:8px;">COLOR DE PINTURA</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:34px;letter-spacing:0.02em;color:#fff;line-height:0.95;text-transform:uppercase;">{{ paintCode }}</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V1 · LISTA ═══ -->
+    <sc-if value="{{ isLista }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:13px;max-width:1540px;margin:0 auto;">
+        <sc-for list="{{ files }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:22px;background:{{ f.cardBg }};border:0.5px solid {{ f.cardBd }};border-left:6px solid {{ f.edge }};border-radius:12px;padding:16px 22px;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:11px;margin-bottom:7px;flex-wrap:wrap;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:23px;text-transform:uppercase;color:#fff;">{{ f.pieza }}</span>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--acc,#21C7D6);background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,var(--accLine,rgba(33,199,214,0.4)));padding:5px 11px;border-radius:6px;">{{ f.codigo }}</span>
+                <sc-if value="{{ f.done }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.08em;color:#4FB870;background:rgba(79,184,112,0.15);padding:4px 10px;border-radius:20px;">✓ COMPLETO</span></sc-if>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#C2C8C4;">{{ f.material }}</span>
+                <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#7E8C89;">· {{ f.ppc }} piezas/chapa</span>
+                <div onClick="{{ f.onFalla }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ f.fallaColor }};background:{{ f.fallaBg }};border:0.5px solid {{ f.fallaBd }};padding:4px 10px;border-radius:6px;">⚠ {{ f.fallaLabel }}</div>
+                <sc-if value="{{ f.hasRetazo }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C9B79A;">+{{ f.retazoStr }} de retazo</span></sc-if>
+              </div>
+            </div>
+
+            <div style="width:250px;flex:0 0 auto;">
+              <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:6px;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:28px;color:#fff;font-variant-numeric:tabular-nums;">{{ f.chapasStr }}</span>
+                <span style="font-family:'DM Sans';font-weight:500;font-size:16px;color:#8E9A96;">/ {{ f.objChapasStr }} chapas</span>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--acc,#21C7D6);margin-left:auto;">{{ f.pctStr }}</span>
+              </div>
+              <div style="height:10px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:6px;">
+                <div style="height:100%;width:{{ f.barW }};background:{{ f.barColor }};border-radius:6px;"></div>
+              </div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--accLight,#A9D9DE);font-variant-numeric:tabular-nums;">{{ f.unidadesStr }} <span style="font-weight:500;color:#7E8C89;">/ {{ f.objUnidadesStr }} piezas</span><sc-if value="{{ f.hasPorPaq }}" hint-placeholder-val="{{ false }}"><span style="font-weight:500;color:#C9B79A;"> · ▦ {{ f.piezasPorPaqStr }}</span></sc-if></div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:9px;flex:0 0 auto;">
+              <div onClick="{{ f.onSub1 }}" style="width:58px;height:58px;border-radius:13px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:600;color:#C2C8C4;cursor:pointer;">−</div>
+              <div onClick="{{ f.onAdd1 }}" style="width:58px;height:58px;border-radius:13px;background:var(--acc,#21C7D6);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:var(--on,#0C2226);cursor:pointer;">+</div>
+              <div onClick="{{ f.onAddHalf }}" style="height:58px;padding:0 14px;border-radius:13px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:var(--acc,#21C7D6);cursor:pointer;">+½</div>
+              <div onClick="{{ f.onCalc }}" style="width:58px;height:58px;border-radius:13px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2C8C4" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3"></path></svg>
+              </div>
+              <div onClick="{{ f.onDone }}" style="width:58px;height:58px;border-radius:13px;background:{{ f.doneBg }};border:0.5px solid {{ f.doneBd }};display:flex;align-items:center;justify-content:center;font-size:28px;color:{{ f.doneColor }};cursor:pointer;">✓</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V2 · TARJETAS ═══ -->
+    <sc-if value="{{ isTarjetas }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:18px;max-width:1540px;margin:0 auto;">
+        <sc-for list="{{ files }}" as="f" hint-placeholder-count="5">
+          <div style="background:{{ f.cardBg }};border:0.5px solid {{ f.cardBd }};border-top:6px solid {{ f.edge }};border-radius:14px;padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:700;font-size:25px;text-transform:uppercase;color:#fff;line-height:1.05;margin-bottom:7px;">{{ f.pieza }}</div>
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:var(--acc,#21C7D6);background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,var(--accLine,rgba(33,199,214,0.4)));padding:4px 10px;border-radius:6px;">{{ f.codigo }}</span>
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#C2C8C4;">{{ f.material }}</span>
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#7E8C89;">· {{ f.headerChip }}</span>
+                </div>
+              </div>
+              <div onClick="{{ f.onDone }}" style="width:50px;height:50px;flex:0 0 auto;border-radius:13px;background:{{ f.doneBg }};border:0.5px solid {{ f.doneBd }};display:flex;align-items:center;justify-content:center;font-size:26px;color:{{ f.doneColor }};cursor:pointer;">✓</div>
+            </div>
+
+            <div style="display:flex;align-items:baseline;gap:9px;">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:48px;color:#fff;line-height:0.9;font-variant-numeric:tabular-nums;">{{ f.bigStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:20px;color:#8E9A96;">/ {{ f.bigObjStr }} {{ f.bigUnit }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:17px;color:var(--acc,#21C7D6);margin-left:auto;">{{ f.pctStr }}</span>
+            </div>
+            <div style="height:11px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;">
+              <div style="height:100%;width:{{ f.barW }};background:{{ f.barColor }};border-radius:6px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:16px;color:var(--accLight,#A9D9DE);font-variant-numeric:tabular-nums;">{{ f.unidadesStr }} <span style="font-weight:500;color:#7E8C89;">/ {{ f.objUnidadesStr }} piezas</span></span>
+                <sc-if value="{{ f.hasPorPaq }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C9B79A;margin-top:3px;">▦ {{ f.piezasPorPaqStr }}</div></sc-if>
+              </div>
+              <div onClick="{{ f.onFalla }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ f.fallaColor }};background:{{ f.fallaBg }};border:0.5px solid {{ f.fallaBd }};padding:5px 11px;border-radius:6px;">⚠ {{ f.fallaLabel }}</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div style="display:flex;align-items:center;gap:5px;">
+                <sc-for list="{{ f.lotePips }}" as="lp" hint-placeholder-count="4">
+                  <span style="flex:1;height:9px;border-radius:3px;background:{{ lp.bg }};max-width:48px;"></span>
+                </sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;">⬚ {{ f.loteStr }}</span>
+                <sc-if value="{{ f.isDownstream }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:var(--acc,#21C7D6);">↓ {{ f.lotesDispStr }} recibidos del proceso anterior</span>
+                </sc-if>
+                <sc-if value="{{ f.hasPaq }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C9B79A;">▦ {{ f.paqStr }}</span>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;">
+              <div onClick="{{ f.onSub1 }}" style="width:60px;height:60px;flex:0 0 auto;border-radius:14px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#C2C8C4;cursor:pointer;">−</div>
+              <div onClick="{{ f.onAdd1 }}" style="flex:1;height:60px;border-radius:14px;background:var(--acc,#21C7D6);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-size:22px;font-weight:700;color:var(--on,#0C2226);cursor:pointer;">{{ f.addBtnLabel }}</div>
+              <sc-if value="{{ f.hasHalf }}" hint-placeholder-val="{{ true }}"><div onClick="{{ f.onAddHalf }}" style="height:60px;padding:0 16px;flex:0 0 auto;border-radius:14px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600;color:var(--acc,#21C7D6);cursor:pointer;">+½</div></sc-if>
+              <div onClick="{{ f.onCalc }}" style="width:60px;height:60px;flex:0 0 auto;border-radius:14px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#C2C8C4" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3"></path></svg>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V3 · GRILLA ═══ -->
+    <sc-if value="{{ isGrilla }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:13px;max-width:1540px;margin:0 auto;">
+        <p style="font-family:'DM Sans';font-weight:500;font-size:14px;letter-spacing:0.02em;color:#8E9A96;margin:0;">Tocá cada chapa a medida que la cortás. <span style="color:var(--acc,#21C7D6);">+½</span> media chapa · <span style="color:#C9B79A;">calculadora</span> piezas de retazo · <span style="color:#E0894A;">⚠</span> chapa fallada.</p>
+        <sc-for list="{{ files }}" as="f" hint-placeholder-count="5">
+          <div style="background:{{ f.cardBg }};border:0.5px solid {{ f.cardBd }};border-left:6px solid {{ f.edge }};border-radius:12px;padding:16px 22px;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:22px;text-transform:uppercase;color:#fff;">{{ f.pieza }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:var(--acc,#21C7D6);background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,var(--accLine,rgba(33,199,214,0.4)));padding:4px 10px;border-radius:6px;">{{ f.codigo }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#C2C8C4;">{{ f.material }} · {{ f.ppc }} piezas/chapa</span>
+              <div onClick="{{ f.onFalla }}" style="display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ f.fallaColor }};background:{{ f.fallaBg }};border:0.5px solid {{ f.fallaBd }};padding:4px 10px;border-radius:6px;">⚠ {{ f.fallaLabel }}</div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:24px;color:#fff;font-variant-numeric:tabular-nums;">{{ f.chapasStr }} <span style="font-weight:500;font-size:16px;color:#8E9A96;">/ {{ f.objChapasStr }}</span></span>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--accLight,#A9D9DE);">{{ f.unidadesStr }}/{{ f.objUnidadesStr }} piezas<sc-if value="{{ f.hasPorPaq }}" hint-placeholder-val="{{ false }}"><span style="color:#C9B79A;"> · ▦ {{ f.piezasPorPaqStr }}</span></sc-if></span>
+                <div onClick="{{ f.onAddHalf }}" style="height:50px;padding:0 16px;border-radius:11px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:var(--acc,#21C7D6);cursor:pointer;">+½</div>
+                <div onClick="{{ f.onCalc }}" style="width:50px;height:50px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2C8C4" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3"></path></svg>
+                </div>
+                <div onClick="{{ f.onDone }}" style="width:50px;height:50px;border-radius:11px;background:{{ f.doneBg }};border:0.5px solid {{ f.doneBd }};display:flex;align-items:center;justify-content:center;font-size:24px;color:{{ f.doneColor }};cursor:pointer;">✓</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:9px;">
+              <sc-for list="{{ f.cells }}" as="c" hint-placeholder-count="12">
+                <div onClick="{{ c.onTap }}" style="width:52px;height:52px;border-radius:11px;background:{{ c.bg }};border:1px solid {{ c.bd }};display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:16px;color:{{ c.color }};cursor:pointer;font-variant-numeric:tabular-nums;">{{ c.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V4 · KIOSCO ═══ -->
+    <sc-if value="{{ isKiosco }}" hint-placeholder-val="{{ true }}">
+      <div style="max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:18px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;">
+          <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5">
+            <div onClick="{{ d.onClick }}" style="display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:20px;background:{{ d.bg }};border:0.5px solid {{ d.bd }};cursor:pointer;">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ d.dot }};"></span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ d.color }};">{{ d.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:{{ focus.cardBg }};border:0.5px solid {{ focus.cardBd }};border-top:7px solid {{ focus.edge }};border-radius:18px;padding:30px 38px;text-align:center;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:36px;text-transform:uppercase;color:#fff;line-height:1.05;margin-bottom:8px;">{{ focus.pieza }}</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:22px;">
+            <span style="font-family:'DM Sans';font-weight:600;font-size:18px;color:var(--acc,#21C7D6);background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,var(--accLine,rgba(33,199,214,0.4)));padding:6px 13px;border-radius:7px;">{{ focus.codigo }}</span>
+            <span style="font-family:'DM Sans';font-weight:500;font-size:18px;color:#C2C8C4;">{{ focus.material }}</span>
+            <span style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#7E8C89;">{{ focus.ppc }} piezas/chapa</span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:26px;margin-bottom:18px;">
+            <div onClick="{{ focus.onSub1 }}" style="width:92px;height:92px;border-radius:24px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:600;color:#C2C8C4;cursor:pointer;">−</div>
+            <div style="min-width:220px;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:88px;color:#fff;line-height:0.9;font-variant-numeric:tabular-nums;">{{ focus.chapasStr }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:20px;color:#8E9A96;margin-top:5px;">de {{ focus.objChapasStr }} chapas · {{ focus.pctStr }}</div>
+            </div>
+            <div onClick="{{ focus.onAdd1 }}" style="width:92px;height:92px;border-radius:24px;background:var(--acc,#21C7D6);display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:700;color:var(--on,#0C2226);cursor:pointer;">+</div>
+          </div>
+
+          <div style="height:13px;border-radius:7px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:10px;">
+            <div style="height:100%;width:{{ focus.barW }};background:{{ focus.barColor }};border-radius:7px;"></div>
+          </div>
+          <div style="font-family:'DM Sans';font-weight:600;font-size:20px;color:var(--accLight,#A9D9DE);margin-bottom:22px;font-variant-numeric:tabular-nums;">{{ focus.unidadesStr }} <span style="font-weight:500;color:#7E8C89;">/ {{ focus.objUnidadesStr }} piezas</span><sc-if value="{{ focus.hasPorPaq }}" hint-placeholder-val="{{ false }}"><span style="font-weight:500;color:#C9B79A;"> · ▦ {{ focus.piezasPorPaqStr }}</span></sc-if></div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+            <div onClick="{{ focus.onAddHalf }}" style="height:58px;padding:0 22px;border-radius:14px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600;color:var(--acc,#21C7D6);cursor:pointer;">+½ chapa</div>
+            <div onClick="{{ focus.onCalc }}" style="height:58px;padding:0 22px;border-radius:14px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;gap:9px;font-size:17px;font-weight:600;color:#C2C8C4;cursor:pointer;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C2C8C4" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3"></path></svg>
+              Retazo
+            </div>
+            <div onClick="{{ focus.onFalla }}" style="height:58px;padding:0 22px;border-radius:14px;background:{{ focus.fallaBg }};border:0.5px solid {{ focus.fallaBd }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;color:{{ focus.fallaColor }};cursor:pointer;">⚠ {{ focus.fallaLabel }}</div>
+            <div onClick="{{ focus.onDone }}" style="height:58px;padding:0 24px;border-radius:14px;background:{{ focus.doneBg }};border:0.5px solid {{ focus.doneBd }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;color:{{ focus.doneColor }};cursor:pointer;">✓ Listo</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;gap:13px;">
+          <div onClick="{{ onPrev }}" style="flex:1;height:58px;border-radius:14px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#C2C8C4;cursor:pointer;">← Anterior</div>
+          <div onClick="{{ onNext }}" style="flex:1;height:58px;border-radius:14px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#C2C8C4;cursor:pointer;">Siguiente →</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V5 · PROYECTO ═══ -->
+    <sc-if value="{{ isProyecto }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;max-width:1540px;margin:0 auto;align-items:start;">
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:22px 26px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:0.5px solid rgba(139,115,85,0.18);margin-bottom:16px;">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:400;font-size:12px;letter-spacing:0.18em;color:#7E8C89;">PROYECTO ACTIVO</div>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:32px;letter-spacing:0.04em;color:#fff;line-height:1;">{{ project }}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:32px;color:var(--acc,#21C7D6);line-height:1;font-variant-numeric:tabular-nums;">{{ overall.pctStr }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;">{{ overall.unidadesStr }} / {{ overall.objUnidadesStr }} piezas</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ files }}" as="f" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:16px;background:{{ f.rowBg }};border:0.5px solid {{ f.cardBd }};border-left:5px solid {{ f.edge }};border-radius:10px;padding:13px 18px;">
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;flex-wrap:wrap;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:18px;text-transform:uppercase;color:#fff;">{{ f.pieza }}</span>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:12px;color:var(--acc,#21C7D6);background:var(--accSoft,rgba(33,199,214,0.12));padding:3px 8px;border-radius:5px;">{{ f.codigo }}</span>
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;">{{ f.ppc }} piezas/chapa</span>
+                    <div onClick="{{ f.onFalla }}" style="display:flex;align-items:center;gap:4px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:12px;color:{{ f.fallaColor }};background:{{ f.fallaBg }};border:0.5px solid {{ f.fallaBd }};padding:3px 8px;border-radius:5px;">⚠ {{ f.fallaLabel }}</div>
+                  </div>
+                  <div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;width:100%;">
+                    <div style="height:100%;width:{{ f.barW }};background:{{ f.barColor }};border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div style="flex:0 0 auto;width:120px;text-align:right;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;font-variant-numeric:tabular-nums;line-height:1;">{{ f.chapasStr }}<span style="font-weight:500;font-size:13px;color:#8E9A96;">/{{ f.objChapasStr }} ch</span></div>
+                  <div style="font-family:'DM Sans';font-weight:600;font-size:13px;color:var(--accLight,#A9D9DE);margin-top:3px;">{{ f.unidadesStr }}/{{ f.objUnidadesStr }} piezas<sc-if value="{{ f.hasPorPaq }}" hint-placeholder-val="{{ false }}"><span style="color:#C9B79A;"> · ▦ {{ f.piezasPorPaqStr }}</span></sc-if></div>
+                </div>
+                <div style="display:flex;gap:7px;flex:0 0 auto;">
+                  <div onClick="{{ f.onSub1 }}" style="width:48px;height:48px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#C2C8C4;cursor:pointer;">−</div>
+                  <div onClick="{{ f.onAdd1 }}" style="height:48px;padding:0 16px;border-radius:11px;background:var(--acc,#21C7D6);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--on,#0C2226);cursor:pointer;">+1</div>
+                  <div onClick="{{ f.onAddHalf }}" style="width:48px;height:48px;border-radius:11px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--acc,#21C7D6);cursor:pointer;">+½</div>
+                  <div onClick="{{ f.onCalc }}" style="width:48px;height:48px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2C8C4" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3"></path></svg>
+                  </div>
+                  <div onClick="{{ f.onDone }}" style="width:48px;height:48px;border-radius:11px;background:{{ f.doneBg }};border:0.5px solid {{ f.doneBd }};display:flex;align-items:center;justify-content:center;font-size:22px;color:{{ f.doneColor }};cursor:pointer;">✓</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:20px 20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <span style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.16em;color:#7E8C89;">ÚLTIMOS REGISTROS</span>
+            <sc-if value="{{ hasLog }}" hint-placeholder-val="{{ false }}"><span onClick="{{ onUndoLast }}" style="font-family:'DM Sans';font-weight:600;font-size:12px;color:#C9B79A;background:rgba(139,115,85,0.16);padding:5px 10px;border-radius:6px;cursor:pointer;">↩ Deshacer</span></sc-if>
+          </div>
+          <sc-if value="{{ hasLog }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <sc-for list="{{ log }}" as="e" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:11px;padding-bottom:9px;border-bottom:0.5px solid rgba(139,115,85,0.12);">
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:{{ e.color }};font-variant-numeric:tabular-nums;width:46px;flex:0 0 auto;">{{ e.deltaStr }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ e.archivo }} <span style="font-weight:400;font-size:12px;color:{{ e.kindColor }};">{{ e.kindLabel }}</span></div>
+                    <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ e.laser }} · {{ e.time }}</div>
+                  </div>
+                  <div onClick="{{ e.onUndo }}" style="width:30px;height:30px;flex:0 0 auto;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:15px;color:#8E9A96;cursor:pointer;">✕</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noLog }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'DM Sans';font-weight:400;font-size:14px;color:#6E7E85;line-height:1.6;">Todavía no registraste nada. Usá <span style="color:var(--acc,#21C7D6);">+1</span>, <span style="color:var(--acc,#21C7D6);">+½</span> o la calculadora de retazos.</div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ░░ CALCULADORA DE RETAZO ░░ -->
+  <sc-if value="{{ keypad.open }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ keypad.onClose }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ keypad.stop }}" style="width:390px;max-width:100%;background:#1A2625;border:0.5px solid rgba(201,183,154,0.35);border-radius:18px;padding:24px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#C9B79A;margin-bottom:4px;">PIEZAS DE RETAZO · {{ keypad.archivo }}</div>
+        <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;margin-bottom:6px;">{{ keypad.pieza }}</div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#8E9A96;margin-bottom:14px;line-height:1.4;">Piezas aprovechadas de recortes. Se suman a las piezas buenas sin contar una chapa entera.</div>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);border:0.5px solid rgba(201,183,154,0.3);border-radius:12px;padding:10px 16px;margin-bottom:16px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:36px;color:#C9B79A;">+</span>
+          <input value="{{ keypad.display }}" onInput="{{ keypad.onInput }}" onKeyDown="{{ keypad.onKey }}" inputmode="decimal" placeholder="0" style="flex:1;min-width:0;font-family:'DM Sans';font-weight:700;font-size:40px;color:#C9B79A;background:transparent;border:none;outline:none;text-align:center;font-variant-numeric:tabular-nums;" />
+          <span style="font-family:'DM Sans';font-weight:500;font-size:18px;color:#8E9A96;">piezas</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;">
+          <sc-for list="{{ keypad.keys }}" as="k" hint-placeholder-count="12">
+            <div onClick="{{ k.onClick }}" style="height:60px;border-radius:12px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:25px;color:#EAE6DF;cursor:pointer;">{{ k.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div onClick="{{ keypad.onClose }}" style="flex:1;height:56px;border-radius:12px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#C2C8C4;cursor:pointer;">Cancelar</div>
+          <div onClick="{{ keypad.onApply }}" style="flex:2;height:56px;border-radius:12px;background:#C9B79A;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#221B0F;cursor:pointer;">Sumar piezas</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ SELECTOR DE MÁQUINA ░░ -->
+  <sc-if value="{{ machineMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseMachine }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.72);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:flex-start;padding:74px 0 0 26px;">
+      <div onClick="{{ stop }}" style="width:360px;max-width:92%;background:#1A2625;border:0.5px solid rgba(139,115,85,0.3);border-radius:14px;padding:14px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;margin:6px 8px 12px;">ELEGIR MÁQUINA</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <sc-for list="{{ machineList }}" as="m" hint-placeholder-count="6">
+            <div onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:13px;background:{{ m.bg }};border:0.5px solid {{ m.bd }};border-radius:10px;padding:13px 15px;cursor:pointer;">
+              <span style="width:14px;height:14px;border-radius:50%;background:{{ m.color }};flex:0 0 auto;"></span>
+              <span style="flex:1;font-family:'DM Sans';font-weight:700;font-size:17px;letter-spacing:0.02em;color:#fff;">{{ m.name }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#8E9A96;">{{ m.unitsLabel }}</span>
+              <sc-if value="{{ m.active }}" hint-placeholder-val="{{ false }}"><span style="font-size:15px;color:{{ m.color }};">●</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ SELECTOR DE PROYECTO ░░ -->
+  <sc-if value="{{ projOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseProj }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:90px 24px 24px;">
+      <div onClick="{{ stop }}" style="width:520px;max-width:100%;background:#1A2625;border:0.5px solid var(--accLine,rgba(33,199,214,0.4));border-radius:16px;padding:22px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:16px;">ELEGIR PROYECTO</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ projectList }}" as="p" hint-placeholder-count="3">
+            <div onClick="{{ p.onClick }}" style="display:flex;align-items:center;gap:16px;background:{{ p.bg }};border:0.5px solid {{ p.bd }};border-radius:12px;padding:16px 18px;cursor:pointer;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:700;font-size:20px;letter-spacing:0.03em;color:#fff;">{{ p.name }}</div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#8E9A96;">{{ p.fileCount }} archivos · {{ p.unidadesStr }} / {{ p.objStr }} piezas</div>
+              </div>
+              <div style="width:120px;flex:0 0 auto;">
+                <div style="height:8px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ p.barW }};background:var(--acc,#21C7D6);border-radius:4px;"></div></div>
+              </div>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:20px;color:var(--acc,#21C7D6);font-variant-numeric:tabular-nums;flex:0 0 auto;">{{ p.pctStr }}</span>
+              <sc-if value="{{ p.active }}" hint-placeholder-val="{{ false }}"><span style="font-size:20px;color:var(--acc,#21C7D6);flex:0 0 auto;">●</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ MODAL FUERA DE SERVICIO ░░ -->
+  <sc-if value="{{ fueraModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onFueraCancel }}" style="position:fixed;inset:0;z-index:60;background:rgba(8,12,11,0.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:480px;max-width:100%;background:#16201F;border:0.5px solid rgba(224,105,74,0.45);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:21px;color:#fff;">Marcar fuera de servicio</span>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-bottom:18px;">{{ fueraMaqNombre }} · indicá el motivo de la parada.</div>
+        <input value="{{ fueraModalMotivo }}" onInput="{{ onFueraMotivo }}" onKeyDown="{{ onFueraKey }}" placeholder="Ej. matriz rota, mantenimiento, sin material…" autofocus="true" style="width:100%;height:48px;font-family:'DM Sans';font-weight:500;font-size:15px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(224,105,74,0.4);border-radius:10px;outline:none;padding:0 14px;margin-bottom:20px;" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <div onClick="{{ onFueraCancel }}" style="cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C2C8C4;background:rgba(255,255,255,0.05);border:0.5px solid rgba(139,115,85,0.3);padding:12px 22px;border-radius:10px;">Cancelar</div>
+          <div onClick="{{ onFueraConfirm }}" style="cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;color:#fff;background:#E0694A;border-radius:10px;padding:12px 26px;">Confirmar parada</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ MODAL FALTANTES DEL TALLER ░░ -->
+  <sc-if value="{{ faltanteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseFaltante }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.6);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:560px;max-width:100%;max-height:88vh;overflow-y:auto;background:#16201F;border:0.5px solid rgba(224,137,74,0.45);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:22px;color:#fff;">🔧 Falta algo en el taller</span>
+          <div onClick="{{ onCloseFaltante }}" style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:20px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:14px;color:#9AA6A2;margin-bottom:18px;">Anotá lo que falta (discos, brocas, gas, etc.). Queda registrado para la oficina.</div>
+        <div style="display:flex;gap:9px;margin-bottom:18px;">
+          <input value="{{ draftFaltante }}" onInput="{{ onDraftFaltante }}" onKeyDown="{{ onDraftFaltanteKey }}" placeholder="Ej. Faltan discos de corte 115mm" style="flex:1;height:48px;font-family:'DM Sans';font-weight:500;font-size:16px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(224,137,74,0.4);border-radius:10px;outline:none;padding:0 14px;" />
+          <div onClick="{{ onAddFaltante }}" style="cursor:pointer;height:48px;padding:0 22px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:16px;color:#23190A;background:#E0894A;border-radius:10px;">Agregar</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ faltantes }}" as="f" hint-placeholder-count="2">
+            <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(224,137,74,0.08);border:0.5px solid rgba(224,137,74,0.28);border-radius:10px;padding:13px 15px;">
+              <span style="width:9px;height:9px;border-radius:50%;background:#E0894A;flex:0 0 auto;margin-top:7px;"></span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:17px;color:#fff;line-height:1.3;">{{ f.text }}</div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#9A8E7A;margin-top:3px;">{{ f.meta }}</div>
+              </div>
+              <div onClick="{{ f.onDel }}" style="cursor:pointer;color:#9A8E7A;font-size:18px;flex:0 0 auto;line-height:1;">✕</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noFaltantes }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;">Sin pedidos cargados.</div></sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ PANEL DE REGISTROS ░░ -->
+  <sc-if value="{{ logOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseLog }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.6);backdrop-filter:blur(3px);display:flex;justify-content:flex-end;">
+      <div onClick="{{ stop }}" style="width:420px;max-width:90%;height:100%;background:#16201F;border-left:0.5px solid rgba(139,115,85,0.3);padding:24px;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:22px;color:#fff;">Registros</span>
+          <div onClick="{{ onCloseLog }}" style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:20px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#7E8C89;margin-bottom:18px;line-height:1.5;">Cada movimiento que registrás. Tocá <span style="color:#E0894A;">✕</span> en una fila para deshacerla si te equivocaste.</div>
+        <sc-if value="{{ hasLog }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ onUndoLast }}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;background:rgba(201,183,154,0.14);border:0.5px solid rgba(201,183,154,0.4);font-family:'DM Sans';font-weight:600;font-size:15px;color:#C9B79A;cursor:pointer;margin-bottom:16px;">↩ Deshacer último</div>
+          <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ log }}" as="e" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.14);border-radius:10px;padding:12px 14px;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:18px;color:{{ e.color }};font-variant-numeric:tabular-nums;width:50px;flex:0 0 auto;">{{ e.deltaStr }}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;">{{ e.archivo }} <span style="font-weight:400;font-size:12px;color:{{ e.kindColor }};">{{ e.kindLabel }}</span></div>
+                  <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#7E8C89;">{{ e.project }} · {{ e.laser }} · {{ e.time }}</div>
+                </div>
+                <div onClick="{{ e.onUndo }}" style="width:34px;height:34px;flex:0 0 auto;border-radius:9px;background:rgba(224,137,74,0.12);border:0.5px solid rgba(224,137,74,0.4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#E0894A;cursor:pointer;">✕</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noLog }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:'DM Sans';font-weight:400;font-size:15px;color:#6E7E85;line-height:1.6;">Todavía no hay registros. Cuando marques chapas, retazos o fallas van a aparecer acá y vas a poder deshacerlos.</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ EDITOR DE PROYECTOS ░░ -->
+  <sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseEditor }}" style="position:fixed;inset:0;z-index:55;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:50px 24px;overflow:auto;">
+      <div onClick="{{ stop }}" style="width:880px;max-width:100%;background:#16201F;border:0.5px solid var(--accLine,rgba(33,199,214,0.4));border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:22px;color:#fff;">Editar proyecto · {{ editorProject }}</span>
+          <div onClick="{{ onCloseEditor }}" style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:20px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#7E8C89;margin-bottom:18px;">Editá las piezas, las piezas por chapa, el objetivo de chapas y el tamaño de lote. Se guarda solo.</div>
+        <div style="display:grid;grid-template-columns:1fr 92px 100px 92px 44px;gap:12px;align-items:center;padding:0 4px 8px;font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">
+          <span>PIEZA</span><span style="text-align:center;">PIEZAS/CHAPA</span><span style="text-align:center;">CHAPAS</span><span style="text-align:center;">PIEZAS/LOTE</span><span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ editorFiles }}" as="e" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1fr 92px 100px 92px 44px;gap:12px;align-items:center;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.14);border-radius:10px;padding:10px 12px;">
+              <input value="{{ e.nombre }}" onInput="{{ e.onName }}" style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.25);border-radius:8px;padding:9px 11px;outline:none;width:100%;" />
+              <div style="display:flex;align-items:center;gap:3px;justify-content:center;">
+                <div onClick="{{ e.ppcDec }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                <span onClick="{{ e.onPpcTap }}" style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;min-width:22px;text-align:center;font-variant-numeric:tabular-nums;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.3);padding:0 3px;">{{ e.ppc }}</span>
+                <div onClick="{{ e.ppcInc }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:3px;justify-content:center;">
+                <div onClick="{{ e.objDec }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                <span onClick="{{ e.onObjTap }}" style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;min-width:28px;text-align:center;font-variant-numeric:tabular-nums;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.3);padding:0 3px;">{{ e.objChapas }}</span>
+                <div onClick="{{ e.objInc }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:3px;justify-content:center;">
+                <div onClick="{{ e.loteDec }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                <span onClick="{{ e.onLoteTap }}" style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;min-width:22px;text-align:center;font-variant-numeric:tabular-nums;cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.3);padding:0 3px;">{{ e.lote }}</span>
+                <div onClick="{{ e.loteInc }}" style="width:28px;height:34px;border-radius:7px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+              </div>
+              <div onClick="{{ e.onDel }}" style="width:38px;height:38px;border-radius:9px;background:rgba(224,105,74,0.12);border:0.5px solid rgba(224,105,74,0.4);display:flex;align-items:center;justify-content:center;font-size:17px;color:#E0694A;cursor:pointer;">✕</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;">
+          <div onClick="{{ onAddPieza }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--accSoft,rgba(33,199,214,0.12));border:0.5px solid var(--accLine,rgba(33,199,214,0.4));font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--acc,#21C7D6);cursor:pointer;">+ Agregar pieza</div>
+          <div onClick="{{ onCloseEditor }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--acc,#21C7D6);font-family:'DM Sans';font-weight:700;font-size:15px;color:var(--on,#0C2226);cursor:pointer;">✓ Confirmar edición</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ CALCULADORA EDITOR ░░ -->
+  <sc-if value="{{ editKp.open }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ editKp.onClose }}" style="position:fixed;inset:0;z-index:60;background:rgba(8,12,11,0.8);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ editKp.stop }}" style="width:360px;max-width:100%;background:#1A2625;border:0.5px solid var(--accLine,rgba(33,199,214,0.4));border-radius:18px;padding:22px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.12em;color:#7E8C89;margin-bottom:12px;">{{ editKp.label }}</div>
+        <input value="{{ editKp.display }}" onInput="{{ editKp.onInput }}" onKeyDown="{{ editKp.onKey }}" inputmode="decimal" placeholder="0" style="width:100%;font-family:'DM Sans';font-weight:700;font-size:40px;color:var(--acc,#21C7D6);background:rgba(0,0,0,0.3);border:0.5px solid var(--accLine,rgba(33,199,214,0.4));border-radius:12px;padding:12px 16px;text-align:center;outline:none;margin-bottom:16px;font-variant-numeric:tabular-nums;" />
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;">
+          <sc-for list="{{ editKp.keys }}" as="k" hint-placeholder-count="12">
+            <div onClick="{{ k.onClick }}" style="height:58px;border-radius:12px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:24px;color:#EAE6DF;cursor:pointer;">{{ k.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div onClick="{{ editKp.onClose }}" style="flex:1;height:54px;border-radius:12px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#C2C8C4;cursor:pointer;">Cancelar</div>
+          <div onClick="{{ editKp.onApply }}" style="flex:2;height:54px;border-radius:12px;background:var(--acc,#21C7D6);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--on,#0C2226);cursor:pointer;">Aceptar (Enter)</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;lista&quot;,&quot;tarjetas&quot;,&quot;grilla&quot;,&quot;kiosco&quot;,&quot;proyecto&quot;],&quot;default&quot;:&quot;lista&quot;},&quot;planta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Planta&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      variant: null,
+      laser: 1,
+      machineId: 'laser',
+      machineMenuOpen: false,
+      navOpen: false,
+      focusIdx: 0,
+      projectId: 'casino',
+      keypad: { open: false, fileId: null, buffer: '' },
+      projOpen: false,
+      logOpen: false,
+      log: [],
+      logSeq: 1,
+      editorOpen: false,
+      newProjName: '',
+      editKp: { open:false, fileId:null, field:null, buffer:'' },
+      faltanteOpen:false, faltantes:[], draftFaltante:'',
+      maqEstado:{},
+      fueraModal:{ open:false, motivo:'' },
+      proyectosCustom: [],
+      projects: []
+    };
+  }
+
+  _data() {
+    return [];
+  }
+
+  _machines() {
+    return [
+      { id:'laser',     name:'Láser CNC',   short:'LÁSER',     color:'#21C7D6', on:'#0C2226', light:'#A9D9DE', pre:'L', pad:false, units:2, unitNames:['LEAPION','BODOR'] },
+      { id:'plegadora', name:'Plegadora',   short:'PLEGADORA', color:'#E5A52B', on:'#23190A', light:'#F0D49A', pre:'PL', pad:false, units:2, unitNames:['DERATECH','HUAXIA'] },
+      { id:'punzon',    name:'Punzonadora', short:'PUNZON',    color:'#9B82DC', on:'#FFFFFF', light:'#D6C9F2', pre:'P', pad:true, units:1 },
+      { id:'fresa',     name:'Fresa CNC',   short:'FRESA',     color:'#3E7CE0', on:'#FFFFFF', light:'#BFD3F5', pre:'F', pad:false, units:1 },
+      { id:'expansora', name:'Expansora',   short:'EXPANSORA', color:'#F0814F', on:'#2A1107', light:'#F6C3A8', pre:'E', pad:false, units:1 },
+      { id:'pintura',   name:'Pintura',     short:'PINTURA',   color:'#E76A95', on:'#FFFFFF', light:'#F4BBD0', pre:'PT', pad:false, units:1 },
+      { id:'embalado',  name:'Embalado',    short:'EMBALADO',  color:'#C9B79A', on:'#23190A', light:'#E8DCC4', pre:'EM', pad:false, units:1 }
+    ];
+  }
+
+  componentDidMount() {
+    this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
+    this._cargar();
+  }
+  _dateKey() { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  async _cargar() {
+    if (!window.VelumAPI) return;
+    try {
+      const res = await Promise.all([
+        VelumAPI.get('estacion').catch(()=>[]),
+        VelumAPI.get('faltantes').catch(()=>[]),
+        VelumAPI.get('maquinas-estado').catch(()=>[]),
+        VelumAPI.get('proyectos').catch(()=>[]),
+        VelumAPI.get('prod-diaria').catch(()=>[])
+      ]);
+      const projects = Array.isArray(res[0]) ? res[0] : [];
+      const faltantes = Array.isArray(res[1]) ? res[1] : [];
+      const maqArr = Array.isArray(res[2]) ? res[2] : [];
+      const proyectosCustom = Array.isArray(res[3]) ? res[3] : [];
+      const prodArr = Array.isArray(res[4]) ? res[4] : [];
+      const maqEstado = {};
+      maqArr.forEach(r => { maqEstado[r.key] = { motivo:r.motivo, maquina:r.maquina, ts:r.ts }; });
+      const ds = this._dateKey();
+      const hoy = prodArr.find(x => x.dateKey === ds);
+      this._prodDia = hoy ? { dateKey:ds, byProj:(hoy.byProj||{}), fallas:(hoy.fallas||0) } : { dateKey:ds, byProj:{}, fallas:0 };
+      this.setState({ projects, faltantes, maqEstado, proyectosCustom });
+    } catch (e) {}
+  }
+  componentWillUnmount() { clearInterval(this._clock); }
+
+  _save(projectId, projects) {
+    const p = projects.find(x => x.id === projectId);
+    if (!p || !window.VelumAPI) return;
+    VelumAPI.save('estacion', { id:p.id, name:p.name, files:p.files }).catch(()=>{});
+    VelumAPI.save('obras', { projectId:p.id, pct:this._projStats(p).pct }).catch(()=>{});
+  }
+
+  _publishObras(projects) {
+    if (!window.VelumAPI) return;
+    projects.forEach(p => { VelumAPI.save('obras', { projectId:p.id, pct:this._projStats(p).pct }).catch(()=>{}); });
+  }
+
+  _fmt(n) { const r = Math.round(n * 10) / 10; return (r % 1 === 0) ? String(r) : r.toFixed(1).replace('.', ','); }
+  _logProd(projectId, chapas, fallas){
+    const ds=this._dateKey();
+    if(!this._prodDia || this._prodDia.dateKey!==ds) this._prodDia={ dateKey:ds, byProj:{}, fallas:0 };
+    const day=this._prodDia;
+    if(chapas) day.byProj[projectId]=Math.round(((day.byProj[projectId]||0)+chapas)*10)/10;
+    if(fallas) day.fallas=(day.fallas||0)+fallas;
+    if(window.VelumAPI) VelumAPI.save('prod-diaria', { dateKey:day.dateKey, byProj:day.byProj, fallas:day.fallas }).catch(()=>{});
+  }
+  _hhmm() { const n = new Date(); const p = x => x < 10 ? '0' + x : '' + x; return p(n.getHours()) + ':' + p(n.getMinutes()); }
+  _pushHist(rec) { if(!window.VelumAPI) return; var ts = Date.now(); var d = new Date(ts); var pad = x => x < 10 ? '0' + x : '' + x; var full = Object.assign({ ts: ts, dateKey: d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()), hour: d.getHours(), dow: d.getDay() }, rec); VelumAPI.save('historial', full).catch(()=>{}); }
+
+  _procOrder(f){ return (f.procesos && f.procesos.length) ? f.procesos : ['laser']; }
+  _procDefLabel(pid){ const m = { laser:'Corte láser', punzon:'Punzonado', fresa:'Fresado', plegadora:'Plegado', expansora:'Expandido', pintura:'Pintura', embalado:'Embalado' }; return m[pid] || pid; }
+  _progOf(f, pid){ if (f.prog && f.prog[pid] != null) return f.prog[pid]; const ord = this._procOrder(f); return (pid === ord[0]) ? (f.chapas || 0) : 0; }
+  _capOf(f, pid){ const ord = this._procOrder(f); const idx = ord.indexOf(pid); if (idx <= 0) return f.objChapas || 0; const prev = ord[idx-1]; return Math.min(f.objChapas || 0, this._progOf(f, prev)); }
+
+  _apply(projectId, fileId, field, delta, kind, doLog) {
+    if (field === 'chapas' && delta > 0) {
+      const pr = this.state.projects.find(p => p.id === projectId);
+      const ff = pr && pr.files.find(x => x.id === fileId);
+      if (ff) { const proc = this.state.machineId; const cur = this._progOf(ff, proc); const cap = this._capOf(ff, proc); const nv = Math.max(0, Math.min(cap, Math.round((cur + delta) * 10) / 10)); const ap = nv - cur; if (ap > 0) this._logProd(projectId, ap, 0); }
+    }
+    this.setState(s => {
+      const pidProc = s.machineId;
+      let applied = delta;
+      const projects = s.projects.map(p => {
+        if (p.id !== projectId) return p;
+        return { ...p, files: p.files.map(f => {
+          if (f.id !== fileId) return f;
+          if (field === 'chapas') {
+            const cur = this._progOf(f, pidProc); const cap = this._capOf(f, pidProc);
+            const nv = Math.max(0, Math.min(cap, Math.round((cur + delta) * 10) / 10));
+            applied = nv - cur;
+            const ord = this._procOrder(f);
+            const prog = Object.assign({}, f.prog || {}, { [pidProc]: nv });
+            const extra = (pidProc === ord[0]) ? { chapas: nv } : {};
+            return Object.assign({}, f, { prog }, extra);
+          }
+          return Object.assign({}, f, { [field]: Math.max(0, Math.round((f[field] + delta) * 10) / 10) });
+        }) };
+      });
+      this._save(projectId, projects);
+      let log = s.log, logSeq = s.logSeq;
+      if (doLog && applied !== 0) {
+        const proj = projects.find(p => p.id === projectId);
+        const f = proj.files.find(x => x.id === fileId);
+        const kinds = { chapa: { label: 'chapas', color: '#A9A2B0' }, retazo: { label: 'de retazo', color: '#C9B79A' }, falla: { label: 'falla', color: '#E0894A' } };
+        const k = kinds[kind] || kinds.chapa;
+        const mm = this._machines().find(x => x.id === s.machineId) || this._machines()[0];
+        const ulabel = mm.units > 1 ? ((mm.unitNames && mm.unitNames[s.laser-1]) ? mm.unitNames[s.laser-1] : (mm.short + ' ' + s.laser)) : mm.short;
+        const e = { id: logSeq, projectId, fileId, field, proc: (field==='chapas'?pidProc:null), delta: applied, kind,
+          deltaStr: (applied > 0 ? '+' : '') + this._fmt(applied),
+          color: applied > 0 ? (kind === 'falla' ? '#E0894A' : '#4FB870') : '#E0694A',
+          kindLabel: k.label, kindColor: k.color,
+          archivo: f.archivo, project: proj.name, laser: ulabel, time: this._hhmm() };
+        if (kind !== 'falla' && applied > 0) { var ppc = (f.ppc || 1); var pieces = (field === 'chapas') ? applied * ppc : applied; this._pushHist({ projectId: projectId, project: proj.name, machineId: s.machineId, unit: ulabel, fileId: fileId, pieza: (f.pieza || f.archivo), field: field, kind: kind, delta: applied, pieces: pieces }); }
+        log = [e, ...s.log].slice(0, 30);
+        logSeq = logSeq + 1;
+      }
+      return { projects, log, logSeq };
+    });
+  }
+
+  _curFile(id) { return this.state.projects.find(p => p.id === this.state.projectId).files.find(f => f.id === id); }
+  _addChapa(id, d) { this._apply(this.state.projectId, id, 'chapas', d, 'chapa', true); }
+  _addPaquete(id, d) { const f = this._curFile(id); const paq = (f.paquete && f.paquete>0)?f.paquete:(f.lote||20); const dCh = (d * paq) / (f.ppc||1); this._apply(this.state.projectId, id, 'chapas', dCh, 'chapa', true); }
+  _addFalla(id) {
+    const proc = this.state.machineId;
+    this._logProd(this.state.projectId, 0, 1);
+    this.setState(s => {
+      const projects = s.projects.map(p => {
+        if (p.id !== s.projectId) return p;
+        return { ...p, files: p.files.map(f => {
+          if (f.id !== id) return f;
+          const fp = Object.assign({}, f.fallasProc || {}); fp[proc] = (fp[proc] || 0) + 1;
+          return Object.assign({}, f, { fallas: (f.fallas || 0) + 1, fallasProc: fp });
+        }) };
+      });
+      this._save(s.projectId, projects);
+      const proj = projects.find(p => p.id === s.projectId);
+      const f = proj.files.find(x => x.id === id);
+      const mm = this._machines().find(x => x.id === proc) || this._machines()[0];
+      const ulabel = mm.units > 1 ? ((mm.unitNames && mm.unitNames[s.laser-1]) ? mm.unitNames[s.laser-1] : (mm.short + ' ' + s.laser)) : mm.short;
+      const e = { id: s.logSeq, projectId: s.projectId, fileId: id, field: 'fallas', proc, kind: 'falla', delta: 1, deltaStr: '+1', color: '#E0894A', kindLabel: 'falla', kindColor: '#E0894A', archivo: f.archivo, project: proj.name, laser: ulabel, time: this._hhmm() };
+      return { projects, log: [e, ...s.log].slice(0, 30), logSeq: s.logSeq + 1 };
+    });
+  }
+  _markDone(id) { const f = this._curFile(id); const cur = this._progOf(f, this.state.machineId); const cap = this._capOf(f, this.state.machineId); if (cur < cap) this._apply(this.state.projectId, id, 'chapas', cap - cur, 'chapa', true); }
+  _setExact(id, n) { const f = this._curFile(id); const cur = this._progOf(f, this.state.machineId); this._apply(this.state.projectId, id, 'chapas', n - cur, 'chapa', true); }
+
+  _undo(entry) {
+    this.setState(s => {
+      const projects = s.projects.map(p => {
+        if (p.id !== entry.projectId) return p;
+        return { ...p, files: p.files.map(f => {
+          if (f.id !== entry.fileId) return f;
+          if (entry.field === 'chapas' && entry.proc) {
+            const ord = this._procOrder(f);
+            const cur = this._progOf(f, entry.proc);
+            const nv = Math.max(0, Math.round((cur - entry.delta) * 10) / 10);
+            const prog = Object.assign({}, f.prog || {}, { [entry.proc]: nv });
+            const extra = (entry.proc === ord[0]) ? { chapas: nv } : {};
+            return Object.assign({}, f, { prog }, extra);
+          }
+          return Object.assign({}, f, { [entry.field]: Math.max(0, Math.round((f[entry.field] - entry.delta) * 10) / 10) });
+        }) };
+      });
+      this._save(entry.projectId, projects);
+      return { projects, log: s.log.filter(e => e.id !== entry.id) };
+    });
+  }
+
+  _openKeypad(id) { this.setState({ keypad: { open: true, fileId: id, buffer: '' } }, () => { try { const els = document.querySelectorAll('input[inputmode="decimal"]'); const el = els[els.length-1]; if (el) el.focus(); } catch(e){} }); }
+  _closeKeypad() { this.setState({ keypad: { open: false, fileId: null, buffer: '' } }); }
+  _key(k) {
+    this.setState(s => {
+      let b = s.keypad.buffer;
+      if (k === '⌫') b = b.slice(0, -1);
+      else if (k === ',') { if (!b.includes(',') && b.length) b += ','; }
+      else { if (b === '0') b = k; else b += k; }
+      return { keypad: { ...s.keypad, buffer: b } };
+    });
+  }
+  _applyKeypad() {
+    const kp = this.state.keypad;
+    const v = parseFloat((kp.buffer || '0').replace(',', '.'));
+    if (v > 0) this._apply(this.state.projectId, kp.fileId, 'retazo', v, 'retazo', true);
+    this._closeKeypad();
+  }
+
+  _enrich(f, i) {
+    const pidProc = this._curProc;
+    const ord = this._procOrder(f);
+    const idx = ord.indexOf(pidProc);
+    this._curIdx = idx;
+    const curCh = this._progOf(f, pidProc);
+    const cap = this._capOf(f, pidProc);
+    const enEspera = idx > 0 && cap <= 0.0001;
+    const objU = f.objChapas * f.ppc;
+    const unid = (idx > 0) ? Math.round(curCh * f.ppc) : curCh * f.ppc;
+    const pct = objU > 0 ? Math.min(100, Math.round(unid / objU * 100)) : 0;
+    const done = f.objChapas > 0 && curCh >= f.objChapas;
+    const cells = [];
+    const whole = Math.ceil(f.objChapas);
+    for (let k = 1; k <= whole; k++) {
+      const filled = curCh >= k, partial = !filled && curCh > k - 1, locked = k > cap + 0.0001;
+      cells.push({ label: k, bg: filled ? this._A : (partial ? this._cellPartial : 'rgba(255,255,255,0.04)'), bd: filled || partial ? this._A : (locked ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.16)'), color: filled ? this._ON : (locked ? '#4A5350' : '#8E9A96'), onTap: locked ? (()=>{}) : (() => this._setExact(f.id, curCh >= k ? k - 1 : k)) });
+    }
+    const hasFalla = f.fallas > 0;
+    const lote = Math.max(1, f.lote || 20);
+    const loteCh = lote / (f.ppc || 1);
+    const fullLotes = Math.floor(objU / lote);
+    const resto = Math.round((objU - fullLotes * lote) * 10) / 10;
+    const lotesTot = (fullLotes + (resto > 0 ? 1 : 0)) || 1;
+    const lotesHechos = Math.floor((curCh*f.ppc) / lote);
+    const isFirst = idx <= 0;
+    const paq = (f.paquete && f.paquete > 0) ? f.paquete : 0;
+    const paqTot = paq > 0 ? Math.ceil(objU / paq) : 0;
+    const paqHechos = paq > 0 ? Math.floor((curCh*f.ppc) / paq) : 0;
+    // pips: lotes para el primer proceso, paquetes para downstream
+    const lotePips = [];
+    if (!isFirst && paq > 0) { for (let k = 0; k < paqTot; k++) lotePips.push({ bg: k < paqHechos ? this._A : 'rgba(255,255,255,0.12)' }); }
+    else { for (let k = 0; k < lotesTot; k++) lotePips.push({ bg: k < lotesHechos ? this._A : 'rgba(255,255,255,0.12)' }); }
+    const bigStr = isFirst ? this._fmt(curCh) : (lotesHechos + '');
+    const bigObjStr = isFirst ? this._fmt(f.objChapas) : (lotesTot + '');
+    const bigUnit = isFirst ? 'chapas' : 'lotes';
+    const headerChip = isFirst ? (f.ppc + ' piezas/chapa') : (this._fmt(lote) + ' piezas/lote');
+    const addBtnLabel = isFirst ? '+1 chapa' : '+1 paquete';
+    var recibidosStr = lotesHechos + ' / ' + lotesTot + ' lotes';
+    if (idx >= 2 && paq > 0) {
+      const prevProg = this._progOf(f, ord[idx-1]);
+      const recPaq = Math.floor((prevProg * (f.ppc||1)) / paq);
+      recibidosStr = recPaq + ' / ' + paqTot + ' paquetes';
+    } else if (idx === 1) {
+      const prevProg = this._progOf(f, ord[0]);
+      const recLot = Math.floor((prevProg * (f.ppc||1)) / lote);
+      recibidosStr = recLot + ' / ' + lotesTot + ' lotes';
+    }
+    return {
+      id:f.id, pieza:f.pieza, archivo:f.archivo, codigo: this._pre + (this._pad ? String(i + 1).padStart(2, '0') : (i + 1)), material:f.material, ppc:f.ppc,
+      chapasStr:this._fmt(curCh), objChapasStr:this._fmt(f.objChapas),
+      bigStr, bigObjStr, bigUnit, headerChip, addBtnLabel, isFirst,
+      unidadesStr:this._fmt(unid), objUnidadesStr:this._fmt(objU),
+      enEspera, capStr: this._fmt(cap), procLabel: (this._procDefLabel ? this._procDefLabel(pidProc) : pidProc),
+      retazoStr:this._fmt(f.retazo), hasRetazo:f.retazo > 0,
+      lotePips, loteStr: (fullLotes > 0 ? (fullLotes + ' lotes × ' + this._fmt(lote) + ' piezas' + (resto > 0 ? ' + ' + this._fmt(resto) + ' sueltas' : '')) : (this._fmt(resto) + ' piezas sueltas')),
+      paqStr: (f.paquete && f.paquete > 0) ? (paqHechos + ' / ' + paqTot + ' paquetes × ' + this._fmt(f.paquete) + ' piezas') : '', hasPaq: !isFirst && !!(f.paquete && f.paquete > 0),
+      lotesDispStr: recibidosStr, isDownstream: this._curIdx > 0, piezasLoteStr: '',
+      piezasPorPaqStr: (!isFirst) ? (this._fmt(paq>0?paq:lote) + ' piezas por paquete') : '', hasPorPaq: !isFirst,
+      pct, pctStr:pct + '%', barW:pct + '%', barColor: done ? '#4FB870' : this._A, done,
+      edge: done ? '#4FB870' : this._A,
+      cardBg: enEspera ? 'rgba(255,255,255,0.012)' : (done ? 'rgba(79,184,112,0.06)' : '#1C2928'),
+      rowBg: done ? 'rgba(79,184,112,0.05)' : 'rgba(255,255,255,0.02)',
+      cardBd: enEspera ? 'rgba(139,115,85,0.1)' : (done ? 'rgba(79,184,112,0.35)' : 'rgba(139,115,85,0.16)'),
+      cardOpacity: enEspera ? '0.5' : '1',
+      doneBg: done ? '#4FB870' : 'rgba(255,255,255,0.05)', doneBd: done ? '#4FB870' : 'rgba(255,255,255,0.16)', doneColor: done ? '#0C2226' : '#6E7E85',
+      fallaLabel: hasFalla ? f.fallas + ' falla' + (f.fallas > 1 ? 's' : '') : 'Falla',
+      fallaColor: hasFalla ? '#E0894A' : '#9A8E7A',
+      fallaBg: hasFalla ? 'rgba(224,137,74,0.16)' : 'rgba(255,255,255,0.04)',
+      fallaBd: hasFalla ? 'rgba(224,137,74,0.45)' : 'rgba(139,115,85,0.25)',
+      cells,
+      hasHalf: isFirst,
+      onAdd1: () => isFirst ? this._addChapa(f.id, 1) : this._addPaquete(f.id, 1), onSub1: () => isFirst ? this._addChapa(f.id, -1) : this._addPaquete(f.id, -1), onAddHalf: () => isFirst ? this._addChapa(f.id, 0.5) : null, _ignoredHalf: () => this._addChapa(f.id, 0.5),
+      onCalc: () => this._openKeypad(f.id), onFalla: () => this._addFalla(f.id), onDone: () => this._markDone(f.id)
+    };
+  }
+
+  _paintInfo(pid){ const d=this.state.proyectosCustom||[]; const p=d.find(x=>x.id===pid); if(p&&p.pintado) return { pintado:true, code:((p.colorName||'').trim()||'A definir') }; return { pintado:false, code:'' }; }
+
+  _projStats(p) {
+    let objU = 0, totWork = 0, doneWork = 0;
+    p.files.forEach(f => {
+      const ord = this._procOrder(f); const ppc = f.ppc || 1; const nec = f.objChapas * ppc;
+      objU += nec;
+      ord.forEach((pid, i) => {
+        const prev = i > 0 ? this._progOf(f, ord[i-1]) : null;
+        let dCh = this._progOf(f, pid);
+        if (i > 0 && prev != null) dCh = Math.min(dCh, prev);
+        doneWork += Math.min(nec, dCh * ppc);
+        totWork += nec;
+      });
+    });
+    const pct = totWork > 0 ? Math.min(100, Math.round(doneWork / totWork * 100)) : 0;
+    const unid = Math.round(objU * pct / 100);
+    return { objU, unid, pct };
+  }
+
+  _loadFull() { return this._data(); }
+
+  _editField(fileId, field, delta, isText, textVal) {
+    this.setState(s => {
+      const projects = s.projects.map(p => p.id !== s.projectId ? p : { ...p, files: p.files.map(f => {
+        if (f.id !== fileId) return f;
+        if (isText) return { ...f, pieza: textVal, archivo: textVal };
+        let base = f[field];
+        if (field === 'lote' && base == null) base = Math.max(1, Math.round(f.objChapas / 4));
+        let v = (base || 0) + delta;
+        v = (field === 'ppc' || field === 'lote') ? Math.max(1, v) : Math.max(0, v);
+        return { ...f, [field]: v };
+      }) });
+      this._save(s.projectId, projects);
+      return { projects };
+    });
+  }
+
+  _addPieza() {
+    this.setState(s => {
+      const projects = s.projects.map(p => p.id !== s.projectId ? p : { ...p, files: [...p.files, { id: 'n' + Date.now(), archivo: 'NUEVA PIEZA', pieza: 'NUEVA PIEZA', material: 'Acero 2,0 mm', ppc: 1, objChapas: 1, lote: 1, chapas: 0, retazo: 0, fallas: 0 }] });
+      this._save(s.projectId, projects);
+      return { projects };
+    });
+  }
+
+  _delPieza(fileId) {
+    this.setState(s => {
+      const projects = s.projects.map(p => p.id !== s.projectId ? p : { ...p, files: p.files.filter(f => f.id !== fileId) });
+      this._save(s.projectId, projects);
+      return { projects };
+    });
+  }
+
+  _newProject() {
+    const name = (this.state.newProjName || '').trim();
+    if (!name) return;
+    const pid = 'p' + Date.now();
+    this.setState(s => {
+      const projects = [...s.projects, { id: pid, name: name.toUpperCase(), files: [{ id: 'n' + Date.now(), archivo: 'PIEZA 1', pieza: 'PIEZA 1', material: 'Acero 2,0 mm', ppc: 1, objChapas: 1, lote: 1, chapas: 0, retazo: 0, fallas: 0 }] }];
+      this._save(pid, projects);
+      return { projects, projectId: pid, newProjName: '', focusIdx: 0 };
+    });
+  }
+
+  _setFieldAbs(fileId, field, val) {
+    this.setState(s => {
+      const projects = s.projects.map(p => p.id !== s.projectId ? p : { ...p, files: p.files.map(f => {
+        if (f.id !== fileId) return f;
+        let v = (field === 'ppc' || field === 'lote') ? Math.max(1, Math.round(val)) : Math.max(0, val);
+        return { ...f, [field]: v };
+      }) });
+      this._save(s.projectId, projects);
+      return { projects };
+    });
+  }
+  _openEditKp(fileId, field) { this.setState({ editKp: { open:true, fileId, field, buffer:'' } }, () => { try { const el = document.querySelector('input[inputmode="decimal"]'); if (el) { el.focus(); } } catch(e){} }); }
+  _closeEditKp() { this.setState({ editKp: { open:false, fileId:null, field:null, buffer:'' } }); }
+  _readFaltantes(){ return (this.state&&this.state.faltantes)||[]; }
+  _readMaqEstado(){ return (this.state&&this.state.maqEstado)||{}; }
+  _maqKey(){ const M=this._machines().find(x=>x.id===this.state.machineId)||this._machines()[0]; const unit=(M.units>1 && M.unitNames)?(M.unitNames[this.state.laser-1]||''):''; return unit?(M.id+'|'+unit):M.id; }
+  _maqNombre(){ const M=this._machines().find(x=>x.id===this.state.machineId)||this._machines()[0]; const unit=(M.units>1 && M.unitNames)?(M.unitNames[this.state.laser-1]||''):''; return unit?(M.name+' · '+unit):M.name; }
+  _toggleFueraServicio(){ const key=this._maqKey(); const est=Object.assign({}, this.state.maqEstado); if(est[key]){ delete est[key]; this.setState({ maqEstado:est }); if(window.VelumAPI) VelumAPI.del('maquinas-estado', key).catch(()=>{}); return; } this.setState({ fueraModal:{ open:true, motivo:'' } }); }
+  _confirmFuera(){ const key=this._maqKey(); const est=Object.assign({}, this.state.maqEstado); const motivo=(this.state.fueraModal.motivo||'').trim()||'Sin especificar'; const ts=Date.now(); const maquina=this._maqNombre(); est[key]={ motivo:motivo, maquina:maquina, ts:ts }; this.setState({ maqEstado:est, fueraModal:{ open:false, motivo:'' } }); if(window.VelumAPI) VelumAPI.save('maquinas-estado', { key:key, motivo:motivo, maquina:maquina, ts:ts }).catch(()=>{}); }
+  _cancelFuera(){ this.setState({ fueraModal:{ open:false, motivo:'' } }); }
+  _addFaltante(){ const t=(this.state.draftFaltante||'').trim(); if(!t) return; const mm=this._machines().find(x=>x.id===this.state.machineId); const maq=mm?mm.name:''; const item={id:'ft'+Date.now(), text:t, maquina:maq, ts:Date.now()}; this.setState(s=>({ faltantes:[item, ...(s.faltantes||[])], draftFaltante:'' })); if(window.VelumAPI) VelumAPI.save('faltantes', item).catch(()=>{}); }
+  _delFaltante(id){ this.setState(s=>({ faltantes:(s.faltantes||[]).filter(x=>x.id!==id) })); if(window.VelumAPI) VelumAPI.del('faltantes', id).catch(()=>{}); }
+  _editKpKey(k) {
+    this.setState(s => {
+      let b = s.editKp.buffer;
+      if (k === '⌫') b = b.slice(0,-1);
+      else if (k === ',') { if (!b.includes(',') && b.length) b += ','; }
+      else { b += k; }
+      return { editKp: { ...s.editKp, buffer: b } };
+    });
+  }
+  _editKpApply() {
+    const kp = this.state.editKp;
+    const v = parseFloat((kp.buffer || '0').replace(',', '.'));
+    if (kp.fileId && kp.field && !isNaN(v)) this._setFieldAbs(kp.fileId, kp.field, v);
+    this._closeEditKp();
+  }
+
+  renderVals() {
+    const active = this.state.variant || 'tarjetas';
+    const cur = this.state.projects.find(p => p.id === this.state.projectId) || (this.state.projects||[])[0] || { id:null, name:'—', files:[] };
+    const MACHS = this._machines();
+    const M = MACHS.find(m => m.id === this.state.machineId) || MACHS[0];
+    this._A = M.color; this._ON = M.on; this._light = M.light;
+    this._soft = M.color + '24'; this._line = M.color + '66'; this._sel = M.color + '38'; this._cellPartial = M.color + '80';
+    this._projName = cur.name;
+    this._pre = M.pre; this._pad = M.pad;
+    const labels = [['lista','Lista'],['tarjetas','Tarjetas'],['grilla','Grilla'],['kiosco','Kiosco'],['proyecto','Proyecto']];
+    const switcher = labels.map(([id, label]) => { const on = id === active; return { id, label, color: on ? '#EAE6DF' : '#7E8C89', bg: on ? this._sel : 'transparent', onClick: () => this.setState({ variant: id }) }; });
+    const units = M.units > 1 ? Array.from({ length: M.units }, (_, i) => i + 1).map(n => { const on = n === this.state.laser; return { label: (M.unitNames && M.unitNames[n-1]) ? M.unitNames[n-1] : (M.short + ' ' + n), color: on ? this._ON : '#8E9A96', bg: on ? this._A : 'transparent', onClick: () => this.setState({ laser: n }) }; }) : [];
+    const machineList = MACHS.map(m => { const on = m.id === this.state.machineId; return { name: m.name, color: m.color, unitsLabel: m.units > 1 ? m.units + ' unidades' : '1 unidad', active: on, bg: on ? m.color + '1F' : 'rgba(255,255,255,0.03)', bd: on ? m.color + '66' : 'rgba(139,115,85,0.18)', onClick: () => this.setState({ machineId: m.id, laser: 1, machineMenuOpen: false }) }; });
+
+    this._curProc = this.state.machineId;
+    const applicable = cur.files.filter(f => { const ord=this._procOrder(f); const idx=ord.indexOf(this.state.machineId); if (idx<0) return false; if (idx===0) return true; return this._capOf(f, this.state.machineId) > 0.0001; });
+    const files = applicable.map((f, i) => this._enrich(f, i));
+    const editorFiles = cur.files.map(f => ({ id:f.id, nombre:f.pieza, ppc:f.ppc, objChapas:this._fmt(f.objChapas), lote:(f.lote!=null?f.lote:20), onName:(e)=>this._editField(f.id,'pieza',0,true,e.target.value), onPpcTap:()=>this._openEditKp(f.id,'ppc'), onObjTap:()=>this._openEditKp(f.id,'objChapas'), onLoteTap:()=>this._openEditKp(f.id,'lote'), ppcDec:()=>this._editField(f.id,'ppc',-1), ppcInc:()=>this._editField(f.id,'ppc',1), objDec:()=>this._editField(f.id,'objChapas',-0.5), objInc:()=>this._editField(f.id,'objChapas',0.5), loteDec:()=>this._editField(f.id,'lote',-1), loteInc:()=>this._editField(f.id,'lote',1), onDel:()=>this._delPieza(f.id) }));
+    const st = this._projStats(cur);
+    const pinfo = this._paintInfo(cur.id);
+    const overall = { pctStr: st.pct + '%', unidadesStr: this._fmt(st.unid), objUnidadesStr: this._fmt(st.objU) };
+
+    const dots = files.map((f, i) => { const on = i === this.state.focusIdx; return { label: f.archivo, dot: f.done ? '#4FB870' : this._A, color: on ? '#fff' : '#8E9A96', bg: on ? this._soft : 'rgba(255,255,255,0.03)', bd: on ? this._line : 'rgba(139,115,85,0.18)', onClick: () => this.setState({ focusIdx: i }) }; });
+
+    const projectList = this.state.projects.map(p => { const s = this._projStats(p); const on = p.id === this.state.projectId; return { name: p.name, fileCount: p.files.length, unidadesStr: this._fmt(s.unid), objStr: this._fmt(s.objU), pctStr: s.pct + '%', barW: s.pct + '%', active: on, bg: on ? this._soft : 'rgba(255,255,255,0.03)', bd: on ? this._line : 'rgba(139,115,85,0.18)', onClick: () => this.setState({ projectId: p.id, projOpen: false, focusIdx: 0 }) }; });
+
+    const kp = this.state.keypad;
+    const kpFile = kp.fileId ? cur.files.find(f => f.id === kp.fileId) : null;
+    const keys = ['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k => ({ label: k, onClick: () => this._key(k) }));
+    const log = this.state.log.map(e => ({ ...e, onUndo: () => this._undo(e) }));
+
+    return {
+      machineName: M.name,
+      hasUnits: M.units > 1,
+      units, machineList, machineMenuOpen: this.state.machineMenuOpen,
+      onToggleMachine: () => this.setState(s => ({ machineMenuOpen: !s.machineMenuOpen })),
+      navOpen: this.state.navOpen,
+      onToggleNav: () => this.setState(s => ({ navOpen: !s.navOpen })),
+      navLinks: [
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso + cargar', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Materia prima', desc:'Stock de chapas', dot:'#8B7355', bg:'transparent' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'rgba(201,183,154,0.12)' }
+      ],
+      onCloseMachine: () => this.setState({ machineMenuOpen: false }),
+      accVars: { acc: M.color, soft: M.color + '24', line: M.color + '66', sel: M.color + '38', on: M.on, light: M.light },
+      project: cur.name,
+      showPaint: (this.state.machineId === 'pintura') && pinfo.pintado,
+      paintCode: pinfo.code || 'A definir',
+      switcher, files, overall, dots, projectList,
+      focus: files[Math.min(this.state.focusIdx, files.length - 1)] || files[0],
+      onPrev: () => this.setState(s => ({ focusIdx: (s.focusIdx - 1 + cur.files.length) % cur.files.length })),
+      onNext: () => this.setState(s => ({ focusIdx: (s.focusIdx + 1) % cur.files.length })),
+      log, hasLog: log.length > 0, noLog: log.length === 0, logCount: log.length,
+      onUndoLast: () => { if (this.state.log.length) this._undo(this.state.log[0]); },
+      onToggleProj: () => this.setState(s => ({ projOpen: !s.projOpen })), onCloseProj: () => this.setState({ projOpen: false }), projOpen: this.state.projOpen,
+      onToggleLog: () => this.setState(s => ({ logOpen: !s.logOpen })), onCloseLog: () => this.setState({ logOpen: false }), logOpen: this.state.logOpen,
+      onToggleFaltante: () => this.setState(s=>({ faltanteOpen: !s.faltanteOpen })), onCloseFaltante: () => this.setState({ faltanteOpen:false }), faltanteOpen: this.state.faltanteOpen,
+      onToggleFuera: () => this._toggleFueraServicio(),
+      fueraModalOpen: this.state.fueraModal.open, fueraModalMotivo: this.state.fueraModal.motivo, fueraMaqNombre: this._maqNombre(),
+      onFueraMotivo: (e)=>this.setState(s=>({ fueraModal:{ ...s.fueraModal, motivo:e.target.value } })),
+      onFueraConfirm: ()=>this._confirmFuera(), onFueraCancel: ()=>this._cancelFuera(),
+      onFueraKey: (e)=>{ if(e.key==='Enter') this._confirmFuera(); if(e.key==='Escape') this._cancelFuera(); },
+      ...(function(self){ var fuera=!!self._readMaqEstado()[self._maqKey()]; return { fueraLabel: fuera?'⛔ En servicio de nuevo':'⛔ Fuera de servicio', fueraColor: fuera?'#E0694A':'#9AA6A2', fueraBg: fuera?'rgba(224,105,74,0.16)':'rgba(255,255,255,0.04)', fueraLine: fuera?'rgba(224,105,74,0.45)':'rgba(139,115,85,0.3)' }; })(this),
+      faltantes: (this.state.faltantes||[]).map(f=>{ var d=new Date(f.ts); var p=x=>x<10?'0'+x:''+x; return { text:f.text, meta:(f.maquina?f.maquina+' · ':'')+p(d.getDate())+'/'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes()), onDel:()=>this._delFaltante(f.id) }; }),
+      hasFaltantes:(this.state.faltantes||[]).length>0, faltantesCount:(this.state.faltantes||[]).length, noFaltantes:(this.state.faltantes||[]).length===0,
+      draftFaltante: this.state.draftFaltante, onDraftFaltante:(e)=>this.setState({draftFaltante:e.target.value}), onDraftFaltanteKey:(e)=>{ if(e.key==='Enter') this._addFaltante(); }, onAddFaltante:()=>this._addFaltante(),
+      editorOpen: this.state.editorOpen, onToggleEditor: () => this.setState(s=>({editorOpen:!s.editorOpen})), onCloseEditor: () => this.setState({editorOpen:false}),
+      editorFiles, editorProject: cur.name, onAddPieza: () => this._addPieza(),
+      newProjName: this.state.newProjName, onNewProjName: (e)=>this.setState({newProjName:e.target.value}), onNewProject: () => this._newProject(),
+      editKp: { open: this.state.editKp.open, display: this.state.editKp.buffer, label: ({ppc:'Piezas por chapa', objChapas:'Objetivo de chapas (acepta media chapa)', lote:'Piezas por lote'})[this.state.editKp.field] || '', keys: ['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k=>({label:k,onClick:()=>this._editKpKey(k)})), onInput:(e)=>this.setState(s=>({editKp:{...s.editKp, buffer:String(e.target.value).replace('.',',')}})), onKey:(e)=>{ if(e.key==='Enter'){ this._editKpApply(); } }, onApply:()=>this._editKpApply(), onClose:()=>this._closeEditKp(), stop:(e)=>e.stopPropagation() },
+      stop: (e) => e.stopPropagation(),
+      keypad: { open: kp.open, archivo: kpFile ? kpFile.archivo : '', pieza: kpFile ? kpFile.pieza : '', display: kp.buffer, keys, onInput:(e)=>this.setState(s=>({keypad:{...s.keypad, buffer:String(e.target.value).replace('.',',')}})), onKey:(e)=>{ if(e.key==='Enter'){ this._applyKeypad(); } }, onClose: () => this._closeKeypad(), onApply: () => this._applyKeypad(), stop: (e) => e.stopPropagation() },
+      isLista: active === 'lista', isTarjetas: active === 'tarjetas', isGrilla: active === 'grilla', isKiosco: active === 'kiosco', isProyecto: active === 'proyecto'
+    };
+  }
+}
+</script>
+</body>
+</html>

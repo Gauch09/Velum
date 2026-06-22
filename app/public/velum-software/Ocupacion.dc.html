@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+    @keyframes ocuPulse{0%,100%{box-shadow:0 0 0 rgba(224,105,74,0);}50%{box-shadow:0 0 16px rgba(224,105,74,0.6);}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- HEADER -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 30px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <a href="Gestion Resumen.dc.html" title="Volver a Gestión" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">OCUPACIÓN DE MÁQUINAS</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">RENDIMIENTO Y EFICIENCIA</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:50px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:262px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="7">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <!-- view segmented -->
+      <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.24);border:0.5px solid rgba(139,115,85,0.18);border-radius:9px;padding:4px;">
+        <sc-for list="{{ viewTabs }}" as="t" hint-placeholder-count="3">
+          <div onClick="{{ t.onClick }}" style="font-family:'DM Sans';font-weight:700;font-size:14px;letter-spacing:0.02em;color:{{ t.color }};background:{{ t.bg }};padding:9px 20px;border-radius:6px;cursor:pointer;">{{ t.label }}</div>
+        </sc-for>
+      </div>
+      <!-- period nav -->
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div onClick="{{ onPrev }}" style="width:40px;height:40px;border-radius:9px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#C9B79A;">‹</div>
+        <div style="min-width:200px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:15px;color:#EAE6DF;text-transform:capitalize;">{{ periodLabel }}</div>
+        <div onClick="{{ onNext }}" style="width:40px;height:40px;border-radius:9px;background:{{ nextBg }};border:0.5px solid rgba(139,115,85,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:{{ nextColor }};">›</div>
+        <div onClick="{{ onToday }}" style="margin-left:4px;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(201,183,154,0.1);border:0.5px solid rgba(201,183,154,0.3);padding:9px 14px;border-radius:9px;cursor:pointer;">Hoy</div>
+        <div onClick="{{ onExportPdf }}" style="margin-left:4px;display:flex;align-items:center;gap:7px;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:9px 14px;border-radius:9px;cursor:pointer;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 15h6"></path><path d="M9 18h6"></path></svg>
+          Exportar PDF
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:24px 30px 50px;max-width:1320px;margin:0 auto;">
+
+    <!-- SUMMARY -->
+    <div style="display:flex;align-items:stretch;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
+      <div style="flex:1;min-width:200px;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:13px;padding:18px 22px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.12em;color:#7E8C89;margin-bottom:8px;">OCUPACIÓN GENERAL</div>
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'DM Sans';font-weight:700;font-size:38px;color:{{ globalColor }};line-height:1;font-variant-numeric:tabular-nums;">{{ globalPct }}%</span><span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;">de capacidad</span></div>
+      </div>
+      <div style="flex:1;min-width:200px;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:13px;padding:18px 22px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.12em;color:#7E8C89;margin-bottom:8px;">PIEZAS PROCESADAS</div>
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'DM Sans';font-weight:700;font-size:38px;color:#EAE6DF;line-height:1;font-variant-numeric:tabular-nums;">{{ totalPiezas }}</span><span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;">en el período</span></div>
+      </div>
+      <div style="flex:1;min-width:200px;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:13px;padding:18px 22px;">
+        <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.12em;color:#7E8C89;margin-bottom:8px;">MÁQUINA MÁS CARGADA</div>
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'DM Sans';font-weight:700;font-size:24px;color:{{ topColor }};line-height:1.1;">{{ topMaq }}</span><span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#8E9A96;">{{ topPct }}</span></div>
+      </div>
+    </div>
+
+    <!-- PER MACHINE -->
+    <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:22px 24px;margin-bottom:22px;">
+      <div style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:18px;">OCUPACIÓN POR MÁQUINA</div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:150px 1fr 150px;gap:16px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+              <span style="width:11px;height:11px;border-radius:3px;background:{{ m.color }};flex:0 0 auto;"></span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#EAE6DF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.name }}</span>
+            </div>
+            <div style="height:30px;background:rgba(0,0,0,0.28);border-radius:7px;overflow:hidden;position:relative;">
+              <div style="height:100%;width:{{ m.barW }};background:{{ m.barColor }};border-radius:7px;{{ m.anim }}transition:width 0.4s;"></div>
+              <sc-if value="{{ m.hasRate }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-family:'DM Sans';font-weight:700;font-size:13px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);">{{ m.pctStr }}</span></sc-if>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#EAE6DF;font-variant-numeric:tabular-nums;">{{ m.piezas }} pzs</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#8E9A96;">{{ m.detail }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#6E7E85;margin-top:18px;line-height:1.5;">El % es horas de trabajo reales (calculadas con el ritmo de Capacidad) sobre la capacidad disponible. Fresa y Expansora no tienen ritmo cargado: muestran solo piezas.</div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:22px 24px;">
+      <div style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:6px;">{{ breakdownTitle }}</div>
+      <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#6E7E85;margin-bottom:20px;">{{ breakdownHint }}</div>
+      <sc-if value="{{ hasData }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:flex-end;gap:{{ barGap }};height:210px;">
+          <sc-for list="{{ breakdown }}" as="b" hint-placeholder-count="7">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;height:100%;min-width:0;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:13px;color:#C2C8C4;font-variant-numeric:tabular-nums;">{{ b.val }}</div>
+              <div style="width:{{ barW }};max-width:46px;background:{{ b.color }};border-radius:5px 5px 0 0;height:{{ b.h }};transition:height 0.4s;"></div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:12px;color:{{ b.labelColor }};white-space:nowrap;">{{ b.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noData }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:46px 20px;text-align:center;font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;">No hay marcas registradas en este período. A medida que los chicos vayan completando en las estaciones, los datos aparecen acá automáticamente.</div>
+      </sc-if>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;flex-wrap:wrap;">
+      <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;line-height:1.5;max-width:760px;">Los tiempos se calculan automáticamente desde las marcas de los operarios (sin que ellos hagan nada extra). Más adelante esto sirve para afinar los tiempos reales de fabricación.</div>
+      <div onClick="{{ onClearDemo }}" style="font-family:'DM Sans';font-weight:600;font-size:12px;color:#9A8E7A;background:rgba(139,115,85,0.1);border:0.5px solid rgba(139,115,85,0.3);padding:9px 14px;border-radius:9px;cursor:pointer;white-space:nowrap;">{{ clearLabel }}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){ super(props); this.state = { navOpen:false, view:'dia', offset:0, hist:[], caps:[], showClear:false }; this._cargar=this._cargar.bind(this); }
+  componentDidMount(){
+    this._seedIfEmpty();
+    this._cargar();
+    this._timer=setInterval(this._cargar, 2000);
+  }
+  componentWillUnmount(){ if(this._timer) clearInterval(this._timer); }
+  async _cargar(){
+    try{
+      const hist=await VelumAPI.get('historial');
+      const caps=await VelumAPI.get('capacidades');
+      this.setState({ hist:Array.isArray(hist)?hist:[], caps:Array.isArray(caps)?caps:[] });
+    }catch(e){ /* silencioso */ }
+  }
+  _exportPdf(){
+    const r=this._ocuReport; if(!r) return;
+    const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const maqRows=r.machines.map(m=>'<tr><td><b>'+esc(m.name)+'</b></td><td class="c">'+(m.hasRate?esc(m.pctStr):'—')+'</td><td class="c">'+esc(m.piezas)+'</td><td>'+esc(m.detail)+'</td></tr>').join('');
+    const maxB=Math.max(1,...r.breakdown.map(b=>b.val||0));
+    const bars=r.breakdown.map(b=>'<div class="bcol"><div class="bval">'+(b.val||'')+'</div><div class="bar" style="height:'+Math.round((b.val||0)/maxB*130)+'px"></div><div class="blbl">'+esc(b.label)+'</div></div>').join('');
+    const doc='<!doctype html><html><head><meta charset="utf-8"><title>Ocupación — Velum</title><style>'
+      +"*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      +'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}'
+      +'h1{font-size:22px;margin:0 0 4px;}.date{font-size:13px;color:#777;margin-bottom:8px;}'
+      +'.kpis{display:flex;gap:24px;margin:14px 0 26px;}.kpi b{font-size:30px;display:block;}.kpi span{font-size:12px;color:#888;}'
+      +'.sec{font-size:11px;letter-spacing:0.08em;color:#888;text-transform:uppercase;margin:22px 0 10px;}'
+      +'table{width:100%;border-collapse:collapse;font-size:13px;}th{text-align:left;font-size:10px;letter-spacing:0.06em;color:#888;text-transform:uppercase;border-bottom:1.5px solid #e4e2dc;padding:8px 9px;}td{padding:9px;border-bottom:0.5px solid #efeee9;}.c{text-align:center;}'
+      +'.daily{display:flex;align-items:flex-end;gap:14px;height:170px;margin-top:6px;}.bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}.bval{font-size:12px;font-weight:700;}.bar{width:60%;max-width:48px;background:#C9A86A;border-radius:5px 5px 0 0;}.blbl{font-size:11px;color:#888;}'
+      +'</style></head><body>'
+      +'<h1>Ocupación de máquinas · VELUM</h1>'
+      +'<div class="date">'+esc(r.viewLabel)+' · '+esc(r.periodLabel)+'</div>'
+      +'<div class="kpis"><div class="kpi"><b>'+r.globalPct+'%</b><span>Ocupación general</span></div><div class="kpi"><b>'+esc(r.totalPiezas)+'</b><span>Piezas procesadas</span></div></div>'
+      +'<div class="sec">Ocupación por máquina</div>'
+      +'<table><thead><tr><th>Máquina</th><th class="c">Ocupación</th><th class="c">Piezas</th><th>Horas</th></tr></thead><tbody>'+maqRows+'</tbody></table>'
+      +'<div class="sec">'+esc(r.breakdownTitle)+'</div><div class="daily">'+bars+'</div>'
+      +'</body></html>';
+    const win=window.open('','_blank'); if(!win) return; win.document.open(); win.document.write(doc); win.document.close();
+    setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 400);
+  }
+  _machineDefs(){ return [
+    { id:'laser', unit:'LEAPION', name:'Láser Leapion', color:'#21C7D6', field:'laser', units:1 },
+    { id:'laser', unit:'BODOR', name:'Láser Bodor', color:'#3FA9B5', field:'laser', units:1 },
+    { id:'punzon', unit:null, name:'Punzonadora', color:'#9B82DC', field:'fresado', units:1 },
+    { id:'fresa', unit:null, name:'Fresa CNC', color:'#3E7CE0', field:null, units:1 },
+    { id:'expansora', unit:null, name:'Expansora', color:'#F0814F', field:null, units:1 },
+    { id:'plegadora', unit:'DERATECH', name:'Plegadora Deratech', color:'#E5A52B', field:'plegado', units:1 },
+    { id:'plegadora', unit:'HUAXIA', name:'Plegadora Huaxia', color:'#D08A1C', field:'plegado', units:1 },
+    { id:'pintura', unit:null, name:'Pintura', color:'#E76A95', field:'pintura', units:1 },
+    { id:'embalado', unit:null, name:'Embalado', color:'#C9B79A', field:'embalado', units:1 }
+  ]; }
+  _caps(){ const d=this.state.caps; return Array.isArray(d)?d:[]; }
+  _rate(machine, pieza){
+    const def=this._machineDefs().find(m=>m.id===machine); if(!def||!def.field) return 0;
+    const caps=this._caps(); const nm=(pieza||'').toLowerCase(); let r=0;
+    caps.forEach(p=>{ const pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ const v=p[def.field]||0; if(v>0) r=v; } });
+    if(r<=0) return 0;
+    if(machine==='pintura') return r*10/3; // rate = u/percha, 10 perchas en 3h
+    return r;
+  }
+  _seedIfEmpty(){
+    return; // datos reales: el historial se llena solo con las marcas de los operarios — sin sembrado
+  }
+  _periodRange(){
+    const base=new Date(); base.setHours(0,0,0,0);
+    const v=this.state.view, off=this.state.offset;
+    if(v==='dia'){ const d=new Date(base.getTime()+off*86400000); const start=d.getTime(); const end=start+86400000; return {start,end,ref:d}; }
+    if(v==='semana'){ const d=new Date(base); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow+off*7); d.setHours(0,0,0,0); const start=d.getTime(); const end=start+7*86400000; return {start,end,ref:d}; }
+    const d=new Date(base.getFullYear(), base.getMonth()+off, 1); const start=d.getTime(); const end=new Date(base.getFullYear(), base.getMonth()+off+1, 1).getTime(); return {start,end,ref:d};
+  }
+  _workdays(start,end){ let n=0; let d=new Date(start); while(d.getTime()<end){ const dw=d.getDay(); if(dw>=1 && dw<=5) n++; d=new Date(d.getTime()+86400000); } return n; }
+  _fmtNum(n){ return Math.round(n).toLocaleString('es-AR'); }
+  renderVals(){
+    const defs=this._machineDefs();
+    const {start,end,ref}=this._periodRange();
+    const v=this.state.view;
+    const recs=this.state.hist.filter(r=>r.ts>=start && r.ts<end);
+    // per machine
+    const workdays = v==='dia'?1 : this._workdays(start,end);
+    let totalUsedH=0, totalCapH=0, totalPiezas=0;
+    const machines=defs.map(def=>{
+      const capH = workdays*8*(def.units||1);
+      const mr=recs.filter(r=>r.machineId===def.id && (def.unit? (r.unit===def.unit) : true));
+      let piezas=0, usedH=0; mr.forEach(r=>{ const p=r.pieces||r.delta||0; piezas+=p; const rate=this._rate(def.id, r.pieza); if(rate>0) usedH+=p/rate; });
+      totalPiezas+=piezas;
+      const hasRate=!!def.field;
+      let pct=0; if(hasRate && capH>0){ pct=Math.round(usedH/capH*100); totalUsedH+=usedH; totalCapH+=capH; }
+      const over=pct>=90; const barColor = !hasRate? 'rgba(139,115,85,0.35)' : (over? '#E0694A' : (pct>=60? def.color : def.color+'CC'));
+      const barW = hasRate? Math.min(100,pct)+'%' : '0%';
+      return { id:def.id, name:def.name, color:def.color, hasRate, pctStr:pct+'%', pctNum:pct,
+        barW, barColor, anim: over?'animation:ocuPulse 1.6s ease-in-out infinite;':'',
+        piezas:this._fmtNum(piezas), detail: hasRate? (Math.round(usedH*10)/10+' h / '+capH+' h') : 'sin ritmo cargado' };
+    });
+    const globalPct = totalCapH>0? Math.round(totalUsedH/totalCapH*100):0;
+    const ranked = machines.filter(m=>m.hasRate).slice().sort((a,b)=>b.pctNum-a.pctNum);
+    const top = ranked[0]||{name:'—',pctStr:'',color:'#8E9A96'};
+    // breakdown
+    let breakdown=[], breakdownTitle='', breakdownHint='', barGap='12px', barW='62%';
+    const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const diasS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    function pieces(rs){ let t=0; rs.forEach(r=>t+=(r.pieces||r.delta||0)); return t; }
+    if(v==='dia'){
+      breakdownTitle='PRODUCCIÓN POR HORA';
+      breakdownHint='Piezas marcadas en cada franja horaria — para ver los momentos más productivos.';
+      const hrs=[]; for(let h=7;h<=16;h++){ const rs=recs.filter(r=>r.hour===h); hrs.push({h, val:pieces(rs)}); }
+      const max=Math.max(1,...hrs.map(x=>x.val));
+      breakdown=hrs.map(x=>({ label:x.h+'h', labelColor:'#8E9A96', val:x.val||'', color:'#34A8B2', h:Math.round(x.val/max*170)+'px' }));
+    } else if(v==='semana'){
+      breakdownTitle='PRODUCCIÓN POR DÍA';
+      breakdownHint='Total de piezas por día de la semana.';
+      const days=[]; for(let i=0;i<7;i++){ const ds=start+i*86400000; const de=ds+86400000; const rs=recs.filter(r=>r.ts>=ds&&r.ts<de); const dd=new Date(ds); days.push({lbl:diasS[dd.getDay()], val:pieces(rs)}); }
+      const max=Math.max(1,...days.map(x=>x.val));
+      breakdown=days.map(x=>({ label:x.lbl, labelColor:'#8E9A96', val:x.val||'', color:'#C9B79A', h:Math.round(x.val/max*170)+'px' }));
+    } else {
+      breakdownTitle='PRODUCCIÓN POR SEMANA';
+      breakdownHint='Total de piezas por semana del mes.';
+      const weeks=[]; let ws=start; let wi=1;
+      while(ws<end){ const we=Math.min(ws+7*86400000,end); const rs=recs.filter(r=>r.ts>=ws&&r.ts<we); weeks.push({lbl:'Sem '+wi, val:pieces(rs)}); ws=we; wi++; }
+      const max=Math.max(1,...weeks.map(x=>x.val));
+      barGap='18px'; barW='70%';
+      breakdown=weeks.map(x=>({ label:x.lbl, labelColor:'#8E9A96', val:x.val||'', color:'#7BA8D6', h:Math.round(x.val/max*170)+'px' }));
+    }
+    const hasData = recs.length>0;
+    // period label
+    let periodLabel='';
+    if(v==='dia'){ const t=new Date(start); const today=new Date(); today.setHours(0,0,0,0); const isToday=t.getTime()===today.getTime(); periodLabel=(isToday?'Hoy · ':'')+diasS[t.getDay()]+' '+t.getDate()+' '+meses[t.getMonth()]; }
+    else if(v==='semana'){ const a=new Date(start); const b=new Date(end-86400000); periodLabel=a.getDate()+' '+meses[a.getMonth()]+' – '+b.getDate()+' '+meses[b.getMonth()]; }
+    else { const a=new Date(start); periodLabel=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][a.getMonth()]+' '+a.getFullYear(); }
+    const tabs=[['dia','Día'],['semana','Semana'],['mes','Mes']];
+    this._ocuReport = { periodLabel, viewLabel:(v==='dia'?'Día':(v==='semana'?'Semana':'Mes')), globalPct, totalPiezas, machines: machines.map(m=>({ name:m.name, hasRate:m.hasRate, pctStr:m.pctStr, piezas:m.piezas, detail:m.detail })), breakdownTitle, breakdown: breakdown.map(b=>({ label:b.label, val:b.val })) };
+    const viewTabs=tabs.map(([id,label])=>({ label, onClick:()=>this.setState({view:id, offset:0}), color: v===id?'#0C2226':'#9AA6A2', bg: v===id?'#C9B79A':'transparent' }));
+    const isDemo = false;
+    return {
+      navOpen:this.state.navOpen, onToggleNav:()=>this.setState(s=>({navOpen:!s.navOpen})),
+      viewTabs, periodLabel, onExportPdf:()=>this._exportPdf(),
+      onPrev:()=>this.setState(s=>({offset:s.offset-1})), onNext:()=>{ if(this.state.offset<0) this.setState(s=>({offset:s.offset+1})); }, onToday:()=>this.setState({offset:0}),
+      nextBg: this.state.offset<0?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.02)', nextColor: this.state.offset<0?'#C9B79A':'#3a4644',
+      globalPct, globalColor: globalPct>=90?'#E0694A':(globalPct>=60?'#4FB870':'#C9B79A'),
+      totalPiezas:this._fmtNum(totalPiezas),
+      topMaq:top.name, topPct:top.pctStr, topColor:top.color,
+      machines, breakdown, breakdownTitle, breakdownHint, barGap, barW, hasData, noData:!hasData,
+      clearLabel: isDemo?'Borrar datos de ejemplo':'Borrar historial',
+      onClearDemo:()=>{ if(confirm('¿Borrar todo el historial de marcas? Esto no afecta los proyectos, solo las métricas de ocupación.')){ fetch('/api/velum/historial?all=true',{method:'DELETE'}).then(()=>this._cargar()).catch(()=>{}); } },
+      navLinks:[
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Capacidad.dc.html', label:'Capacidad y tiempos', desc:'Unidades/hora por máquina', dot:'#21C7D6', bg:'transparent' },
+        { href:'Ocupacion.dc.html', label:'Ocupación de máquinas', desc:'Rendimiento y eficiencia', dot:'#E5A52B', bg:'rgba(229,165,43,0.12)' },
+        { href:'Materia Prima.dc.html', label:'Insumos', desc:'Materia prima y consumibles', dot:'#8B7355', bg:'transparent' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

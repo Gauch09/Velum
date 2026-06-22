@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+    select{appearance:none;-webkit-appearance:none;}
+    textarea{resize:none;}
+    @keyframes urgePulse{0%,100%{box-shadow:0 0 0 rgba(224,105,74,0);}50%{box-shadow:0 0 15px rgba(224,105,74,0.7);}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- HEADER -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 30px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <a href="Dashboard Oficina.dc.html" title="Volver" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">TAREAS DE OFICINA</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">SEGUIMIENTO DE PROYECTOS</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:50px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:262px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="6">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <sc-for list="{{ equipo }}" as="e" hint-placeholder-count="3">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans';font-weight:600;font-size:13px;color:#EAE6DF;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);padding:6px 11px;border-radius:20px;"><span style="width:9px;height:9px;border-radius:50%;background:{{ e.color }};"></span>{{ e.name }} </span>
+        </sc-for>
+      </div>
+      <div onClick="{{ onAdd }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;color:#0C2226;background:#C9B79A;padding:11px 18px;border-radius:10px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0C2226" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Agregar tarea
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div style="padding:22px 30px 40px;">
+    <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;min-width:1050px;">
+      <!-- header -->
+      <div style="display:grid;grid-template-columns:36px minmax(120px,1fr) minmax(180px,1.5fr) minmax(150px,1.2fr) 120px 124px minmax(200px,1.7fr) 38px;gap:12px;align-items:center;padding:13px 22px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;text-align:center;">#</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">PROYECTO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">TAREA</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">RESPONSABLE</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">PRIORIDAD</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">ESTADO</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#7E8C89;">OBSERVACIONES</span>
+        <span></span>
+      </div>
+      <!-- filas -->
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:36px minmax(120px,1fr) minmax(180px,1.5fr) minmax(150px,1.2fr) 120px 124px minmax(200px,1.7fr) 38px;gap:12px;align-items:start;padding:12px 22px;border-bottom:0.5px solid rgba(139,115,85,0.1);opacity:{{ r.rowOpacity }};background:{{ r.rowBg }};">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#6E7E85;text-align:center;padding-top:9px;font-variant-numeric:tabular-nums;">{{ r.n }}</span>
+          <input value="{{ r.proyecto }}" onInput="{{ r.onProyecto }}" list="velum-proj-list" placeholder="Proyecto" style="width:100%;min-height:38px;font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;background:rgba(0,0,0,0.22);border:0.5px solid rgba(139,115,85,0.22);border-radius:7px;outline:none;padding:8px 10px;" />
+          <textarea value="{{ r.tarea }}" onInput="{{ r.onTarea }}" placeholder="Descripción de la tarea" rows="2" style="width:100%;min-height:38px;font-family:'DM Sans';font-weight:600;font-size:14px;color:#fff;background:rgba(0,0,0,0.22);border:0.5px solid rgba(139,115,85,0.22);border-radius:7px;outline:none;padding:8px 10px;line-height:1.3;"></textarea>
+          <div style="position:relative;">
+            <div onClick="{{ r.onRespMenu }}" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:38px;background:rgba(0,0,0,0.22);border:0.5px solid rgba(139,115,85,0.22);border-radius:7px;padding:6px 8px;cursor:pointer;">
+              <sc-for list="{{ r.resp }}" as="p" hint-placeholder-count="2">
+                <span style="display:inline-flex;font-family:'DM Sans';font-weight:600;font-size:13px;color:#15201d;background:{{ p.color }};padding:3px 9px;border-radius:5px;">{{ p.name }}</span>
+              </sc-for>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:#7E8C89;padding:2px 5px;">+</span>
+            </div>
+            <sc-if value="{{ r.respMenuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;{{ r.menuVPos }}left:0;z-index:30;width:190px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);">
+                <sc-for list="{{ r.respOpts }}" as="o" hint-placeholder-count="5">
+                  <div onClick="{{ o.onToggle }}" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;background:{{ o.bg }};">
+                    <span style="width:18px;font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ o.color }};">{{ o.mark }}</span>
+                    <span style="width:11px;height:11px;border-radius:3px;background:{{ o.color }};"></span>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ o.name }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="position:relative;">
+            <div onClick="{{ r.onPrioMenu }}" style="width:100%;height:38px;display:flex;align-items:center;justify-content:space-between;gap:4px;font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ r.prioColor }};background:{{ r.prioSoft }};border:0.5px solid {{ r.prioLine }};border-radius:7px;padding:0 10px;cursor:pointer;animation:{{ r.prioAnim }};">{{ r.prioridad }} <span style="font-size:11px;opacity:0.7;">▾</span></div>
+            <sc-if value="{{ r.prioMenuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;{{ r.menuVPos }}left:0;z-index:30;width:140px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);">
+                <sc-for list="{{ r.prioOpts }}" as="o" hint-placeholder-count="4">
+                  <div onClick="{{ o.onPick }}" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;background:{{ o.bg }};">
+                    <span style="width:11px;height:11px;border-radius:3px;background:{{ o.color }};"></span>
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ o.color }};">{{ o.id }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="position:relative;">
+            <div onClick="{{ r.onEstadoMenu }}" style="width:100%;height:38px;display:flex;align-items:center;justify-content:space-between;gap:4px;font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ r.estadoColor }};background:{{ r.estadoSoft }};border:0.5px solid {{ r.estadoLine }};border-radius:7px;padding:0 10px;cursor:pointer;">{{ r.estado }} <span style="font-size:11px;opacity:0.7;">▾</span></div>
+            <sc-if value="{{ r.estadoMenuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;{{ r.menuVPos }}left:0;z-index:30;width:150px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);">
+                <sc-for list="{{ r.estadoOpts }}" as="o" hint-placeholder-count="3">
+                  <div onClick="{{ o.onPick }}" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;background:{{ o.bg }};">
+                    <span style="width:11px;height:11px;border-radius:3px;background:{{ o.color }};"></span>
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ o.color }};">{{ o.id }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <textarea value="{{ r.obs }}" onInput="{{ r.onObs }}" placeholder="Observaciones, contexto, a quién contactar…" rows="2" style="width:100%;min-height:38px;font-family:'DM Sans';font-weight:500;font-size:14px;color:#C2C8C4;background:rgba(0,0,0,0.22);border:0.5px solid rgba(139,115,85,0.22);border-radius:7px;outline:none;padding:8px 10px;line-height:1.35;"></textarea>
+          <div onClick="{{ r.onDel }}" title="Eliminar" style="width:34px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:7px;color:#6E7E85;" style-hover="color:#E0694A;background:rgba(224,105,74,0.12);"><span style="font-family:'DM Sans';font-weight:600;font-size:18px;line-height:1;">×</span></div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:50px 24px;text-align:center;font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;">No hay tareas. Tocá "Agregar tarea" para empezar.</div>
+      </sc-if>
+      <div onClick="{{ onAdd }}" style="display:flex;align-items:center;gap:9px;padding:14px 22px;cursor:pointer;color:#8E9A96;" style-hover="background:rgba(255,255,255,0.02);color:#C9B79A;">
+        <span style="font-family:'DM Sans';font-weight:700;font-size:16px;">+</span>
+        <span style="font-family:'DM Sans';font-weight:600;font-size:14px;">Agregar tarea</span>
+      </div>
+    </div>
+    <datalist id="velum-proj-list"><sc-for list="{{ projOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o }}"></option></sc-for></datalist>
+    <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;margin-top:16px;line-height:1.5;">Tocá una celda para editar. En Responsable elegís quién está a cargo (queda registrado quién hizo qué). Más adelante se suman usuarios con su propio acceso.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){ super(props); this.state = { tareas:[], proyectosCustom:[], respMenu:null, prioMenu:null, estadoMenu:null, navOpen:false }; }
+  componentDidMount(){
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('tareas').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        this.setState({
+          tareas: Array.isArray(res[0]) ? res[0] : [],
+          proyectosCustom: Array.isArray(res[1]) ? res[1] : []
+        });
+      } catch (e) {}
+    };
+    this._cargar = this._sync;
+    this._cargar();
+  }
+  _people(){ return [ {id:'lucho',name:'Lucho',color:'#8CB7E8'}, {id:'juani',name:'Juani',color:'#5FB87E'}, {id:'joa',name:'Joa',color:'#E0A56A'}, {id:'german',name:'Germán',color:'#D9C24E'}, {id:'mariu',name:'Mariu',color:'#E86A8E'}, {id:'claudio',name:'Claudio',color:'#9BC8E8'}, {id:'produccion',name:'Producción',color:'#A78BDC'} ]; }
+  _equipo(){ return [ {name:'Lucho',rol:'Jefe de planta',color:'#8CB7E8'}, {name:'Juani',rol:'Diseño',color:'#5FB87E'}, {name:'Joa',rol:'Ingeniería',color:'#E0A56A'} ]; }
+  _prios(){ return [ {id:'Urgente',color:'#E0694A'}, {id:'Alta',color:'#E5A52B'}, {id:'Media',color:'#D9C24E'}, {id:'Baja',color:'#4FB870'} ]; }
+  _estados(){ return [ {id:'Sin iniciar',color:'#8E9A96'}, {id:'En curso',color:'#4FB870'}, {id:'Hecho',color:'#34C2CE'} ]; }
+  _seed(){ return []; }
+  _seedOld(){ return [
+    {id:'t1',proyecto:'CASINO TORRES',tarea:'Memoria de cálculo',resp:['lucho'],prioridad:'Urgente',estado:'En curso',fecha:'',obs:'Generando diseño y cálculo de estructura.'},
+    {id:'t2',proyecto:'CASINO TORRES',tarea:'Protocolo higiene y seguridad',resp:['juani','mariu'],prioridad:'Alta',estado:'En curso',fecha:'',obs:'Coordinar protocolos con casino para comenzar montaje.'},
+    {id:'t3',proyecto:'HOSPITAL SUR',tarea:'Continuar con muestras',resp:['joa','juani'],prioridad:'Alta',estado:'En curso',fecha:'',obs:'Pruebas de lingotes en aluco.'},
+    {id:'t4',proyecto:'LOCAL CENTRO',tarea:'Generar propuestas',resp:['joa','juani'],prioridad:'Baja',estado:'En curso',fecha:'',obs:'Generar propuestas a partir de malla.'},
+    {id:'t5',proyecto:'EDIFICIO NORTE',tarea:'Diseño terminado — avanzar con ingeniería',resp:['juani'],prioridad:'Media',estado:'Sin iniciar',fecha:'',obs:'Diseño listo, pasa a ingeniería para cálculo.'}
+  ]; }
+  _load(){ return (this.state && Array.isArray(this.state.tareas)) ? this.state.tareas : this._seed(); }
+  _cols(t){ return { id:t.id, proyecto:t.proyecto||'', tarea:t.tarea||'', resp:t.resp||[], prioridad:t.prioridad, estado:t.estado, fecha:t.fecha||'', obs:t.obs||'' }; }
+  _persist(id){ this.setState(s=>{ const reg=(s.tareas||[]).find(x=>x.id===id); if(reg && window.VelumAPI) VelumAPI.save('tareas', this._cols(reg)).catch(()=>{}); return {}; }); }
+  _mut(fn){ this.setState(s=>({ tareas: fn((s.tareas||[]).slice()) })); }
+  _add(){ const reg={id:'t'+Date.now(), proyecto:'', tarea:'', resp:[], prioridad:'Media', estado:'Sin iniciar', fecha:'', obs:''}; this._mut(t=>[...t, reg]); if(window.VelumAPI) VelumAPI.save('tareas', this._cols(reg)).catch(()=>{}); }
+  _del(id){ this._mut(t=>t.filter(x=>x.id!==id)); if(window.VelumAPI) VelumAPI.del('tareas', id).catch(()=>{}); }
+  _set(id,f,v){ this._mut(t=>t.map(x=>x.id===id?Object.assign({},x,{[f]:v}):x)); this._persist(id); }
+  _toggleResp(id,pid){ this._mut(t=>t.map(x=>{ if(x.id!==id) return x; var r=(x.resp||[]).slice(); var i=r.indexOf(pid); if(i>=0) r.splice(i,1); else r.push(pid); return Object.assign({},x,{resp:r}); })); this._persist(id); }
+  renderVals(){
+    const people=this._people(); const pmap={}; people.forEach(p=>{pmap[p.id]=p;});
+    const prios=this._prios(); const pcol={}; prios.forEach(p=>{pcol[p.id]=p.color;});
+    const estados=this._estados(); const ecol={}; estados.forEach(e=>{ecol[e.id]=e.color;});
+    var projNames=(this.state.proyectosCustom||[]).map(p=>p.name).filter(Boolean);
+    const total=this.state.tareas.length;
+    const ordered=this.state.tareas.map((t,idx)=>({t,idx})).sort((a,b)=>{ var ah=a.t.estado==='Hecho'?1:0, bh=b.t.estado==='Hecho'?1:0; return ah!==bh?ah-bh:a.idx-b.idx; }).map(o=>o.t);
+    const rows=ordered.map((t,i)=>{
+      const pc=pcol[t.prioridad]||'#8E9A96'; const ec=ecol[t.estado]||'#8E9A96';
+      const up=(total>2 && i>=total-2);
+      return {
+        id:t.id, n:i+1, proyecto:t.proyecto||'', tarea:t.tarea||'', obs:t.obs||'', fecha:t.fecha||'',
+        menuVPos: up?'bottom:42px;':'top:42px;',
+        rowOpacity: (t.estado==='Hecho')?'0.5':'1', rowBg: (t.estado==='Hecho')?'rgba(52,194,206,0.05)':'transparent',
+        prioAnim: (t.prioridad==='Urgente')?'urgePulse 1.5s ease-in-out infinite':'none',
+        prioridad:t.prioridad, prioColor:pc, prioSoft:pc+'1E', prioLine:pc+'55',
+        prioMenuOpen: this.state.prioMenu===t.id, onPrioMenu:()=>this.setState(s=>({ prioMenu: s.prioMenu===t.id?null:t.id, estadoMenu:null, respMenu:null })),
+        prioOpts: prios.map(o=>({ id:o.id, color:o.color, soft:o.color+'1E', bg:(o.id===t.prioridad?o.color+'22':'transparent'), onPick:()=>{ this._set(t.id,'prioridad',o.id); this.setState({prioMenu:null}); } })),
+        estado:t.estado, estadoColor:ec, estadoSoft:ec+'1E', estadoLine:ec+'55',
+        estadoMenuOpen: this.state.estadoMenu===t.id, onEstadoMenu:()=>this.setState(s=>({ estadoMenu: s.estadoMenu===t.id?null:t.id, prioMenu:null, respMenu:null })),
+        estadoOpts: estados.map(o=>({ id:o.id, color:o.color, bg:(o.id===t.estado?o.color+'22':'transparent'), onPick:()=>{ this._set(t.id,'estado',o.id); this.setState({estadoMenu:null}); } })),
+        resp:(t.resp||[]).map(pid=>({ name:(pmap[pid]||{}).name||pid, color:(pmap[pid]||{}).color||'#8E9A96' })),
+        respMenuOpen: this.state.respMenu===t.id,
+        respOpts: people.map(p=>{ const on=(t.resp||[]).indexOf(p.id)>=0; return { name:p.name, color:p.color, mark:(on?'✓':''), bg:(on?p.color+'22':'transparent'), onToggle:()=>this._toggleResp(t.id,p.id) }; }),
+        onRespMenu:()=>this.setState(s=>({ respMenu: s.respMenu===t.id?null:t.id })),
+        onProyecto:(e)=>this._set(t.id,'proyecto',e.target.value),
+        onTarea:(e)=>this._set(t.id,'tarea',e.target.value),
+        onObs:(e)=>this._set(t.id,'obs',e.target.value),
+        onFecha:(e)=>this._set(t.id,'fecha',e.target.value),
+        onPrioridad:(e)=>this._set(t.id,'prioridad',e.target.value),
+        onEstado:(e)=>this._set(t.id,'estado',e.target.value),
+        onDel:()=>this._del(t.id)
+      };
+    });
+    return {
+      rows, hasRows:rows.length>0, noRows:rows.length===0,
+      prios, estados, projOptions:projNames, equipo:this._equipo(),
+      onAdd:()=>this._add(),
+      navOpen:this.state.navOpen, onToggleNav:()=>this.setState(s=>({navOpen:!s.navOpen})),
+      navLinks:[
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'rgba(167,139,220,0.12)' },
+        { href:'Materia Prima.dc.html', label:'Insumos', desc:'Materia prima y consumibles', dot:'#8B7355', bg:'transparent' },
+        { href:'Capacidad.dc.html', label:'Capacidad y tiempos', desc:'Unidades/hora por máquina', dot:'#21C7D6', bg:'transparent' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

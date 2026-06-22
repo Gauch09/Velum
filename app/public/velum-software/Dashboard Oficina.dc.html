@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    @keyframes velPulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+    @keyframes alertBlink{0%,100%{box-shadow:0 0 0 rgba(224,60,60,0);background:#C0392B;}50%{box-shadow:0 0 24px rgba(232,69,69,0.75);background:#E8453E;}}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+  </style>
+</helmet>
+<div style="height:100vh;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="position:sticky;top:0;z-index:20;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 34px;background:rgba(16,21,20,0.9);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;position:relative;">
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">PROYECTOS EN CURSO</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">PANEL DE OFICINA</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:50px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:248px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="4">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div onClick="{{ onToggleArchivados }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;letter-spacing:0.02em;color:#9AA6A2;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);padding:11px 16px;border-radius:10px;">{{ archToggleLabel }}</div>
+      <a href="Materia Prima.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:14px;letter-spacing:0.02em;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:11px 16px;border-radius:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+        Insumos
+      </a>
+      <sc-if value="{{ hayStockAlertas }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ onOpenAlertas }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;font-family:'DM Sans';font-weight:800;font-size:15px;letter-spacing:0.06em;color:#fff;border:0.5px solid rgba(255,130,120,0.6);padding:11px 20px;border-radius:10px;animation:alertBlink 1.1s ease-in-out infinite;">⚠ ALERTAS <span style="font-weight:800;font-size:13px;background:rgba(0,0,0,0.3);border-radius:10px;padding:1px 9px;">{{ alertaCount }}</span></div>
+      </sc-if>
+      <sc-if value="{{ sinStockAlertas }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ onOpenAlertas }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#6E7E85;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.25);padding:11px 16px;border-radius:10px;">✓ Sin alertas</div>
+      </sc-if>
+      <div onClick="{{ onOpenAvisos }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;letter-spacing:0.02em;color:#E0894A;background:rgba(224,137,74,0.14);border:0.5px solid rgba(224,137,74,0.4);padding:11px 16px;border-radius:10px;">
+        📌 Avisos TV
+        <sc-if value="{{ hasAvisos }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:700;font-size:12px;color:#23190A;background:#E0894A;border-radius:10px;padding:1px 7px;">{{ avisosCount }}</span></sc-if>
+      </div>
+      <div onClick="{{ onOpenLoad }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;letter-spacing:0.02em;color:#0C2226;background:#C9B79A;padding:11px 18px;border-radius:10px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0C2226" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        Cargar proyecto
+      </div>
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+        <div style="text-align:center;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:26px;color:{{ s.color }};line-height:1;font-variant-numeric:tabular-nums;">{{ s.value }}</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:11px;letter-spacing:0.1em;color:#7E8C89;margin-top:4px;">{{ s.label }}</div>
+        </div>
+      </sc-for>
+      <div style="width:0.5px;height:40px;background:rgba(139,115,85,0.3);"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:9px;height:9px;border-radius:50%;background:#4FB870;animation:velPulse 2s ease-in-out infinite;"></span>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Sans';font-weight:600;font-size:24px;color:#EAE6DF;line-height:1;font-variant-numeric:tabular-nums;">{{ timeStr }}</div>
+          <div style="font-family:'DM Sans';font-weight:400;font-size:12px;letter-spacing:0.1em;color:#6E7E85;margin-top:2px;">{{ dateStr }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ GRID ░░ -->
+  <sc-if value="{{ gridOpen }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;min-height:0;padding:18px 26px 22px;display:flex;flex-direction:column;">
+    <div ref="{{ gridRef }}" style="flex:1;min-height:0;display:grid;grid-template-columns:{{ gridCols }};grid-auto-rows:max-content;align-content:start;gap:16px;width:100%;overflow-y:auto;overflow-x:hidden;padding-bottom:8px;">
+      <sc-for list="{{ projects }}" as="p" hint-placeholder-count="6">
+        <div onClick="{{ p.onOpen }}" style="min-width:0;display:flex;flex-direction:column;background:#1C2928;border:0.5px solid {{ p.cardBd }};border-top:5px solid {{ p.riskColor }};border-radius:13px;padding:calc(22px*var(--cs)) calc(26px*var(--cs));gap:calc(14px*var(--cs));cursor:pointer;--cs:{{ p.scale }};">
+
+          <!-- title row -->
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;">
+            <div style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:calc(9px*var(--cs));">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:calc(14px*var(--cs));color:{{ p.urgColor }};font-variant-numeric:tabular-nums;flex:0 0 auto;">{{ p.rank }}</span>
+                <span style="width:calc(11px*var(--cs));height:calc(11px*var(--cs));border-radius:50%;background:{{ p.urgColor }};flex:0 0 auto;"></span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:calc(21px*var(--cs));letter-spacing:0.01em;text-transform:uppercase;color:#fff;line-height:1.12;">{{ p.name }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:calc(8px*var(--cs));">
+                <span style="font-family:'DM Sans';font-weight:600;font-size:calc(12px*var(--cs));letter-spacing:0.04em;color:#0C2226;background:#C9B79A;padding:3px 9px;border-radius:5px;">{{ p.tipo }}</span>
+                <span style="font-family:'DM Sans';font-weight:500;font-size:calc(14px*var(--cs));color:#9AA6A2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.producto }}</span>
+              </div>
+            </div>
+            <div style="position:relative;width:calc(92px*var(--cs));height:calc(92px*var(--cs));flex:0 0 auto;">
+              <svg width="100%" height="100%" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ p.riskColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ p.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:calc(24px*var(--cs));color:#fff;">{{ p.pctStr }}</div>
+            </div>
+          </div>
+
+          <!-- chips: pago + montaje + urgencia -->
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="display:inline-flex;align-items:center;font-family:'DM Sans';font-weight:700;font-size:calc(12px*var(--cs));letter-spacing:0.03em;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:calc(5px*var(--cs)) calc(11px*var(--cs));border-radius:20px;">{{ p.pagoLabel }}</span>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans';font-weight:600;font-size:calc(12px*var(--cs));letter-spacing:0.03em;color:{{ p.montColor }};background:{{ p.montSoft }};padding:calc(5px*var(--cs)) calc(11px*var(--cs));border-radius:20px;">{{ p.montLabel }}</span>
+            <span style="display:inline-flex;align-items:center;font-family:'DM Sans';font-weight:600;font-size:calc(12px*var(--cs));letter-spacing:0.06em;color:{{ p.urgColor }};background:{{ p.urgSoft }};padding:calc(5px*var(--cs)) calc(11px*var(--cs));border-radius:20px;">{{ p.urgencia }}</span>
+          </div>
+
+          <!-- pintura + lugar -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:calc(10px*var(--cs));letter-spacing:0.14em;color:#7E8C89;margin-bottom:calc(6px*var(--cs));">ACABADO</div>
+              <sc-if value="{{ p.pintado }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="width:calc(20px*var(--cs));height:calc(20px*var(--cs));border-radius:5px;background:{{ p.colorHex }};border:1px solid rgba(255,255,255,0.25);flex:0 0 auto;"></span>
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:calc(15px*var(--cs));color:#EAE6DF;">{{ p.colorName }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ p.crudo }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'DM Sans';font-weight:600;font-size:calc(15px*var(--cs));color:#9AA6A2;">Crudo · sin pintura</span>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:calc(10px*var(--cs));letter-spacing:0.14em;color:#7E8C89;margin-bottom:calc(6px*var(--cs));">LUGAR</div>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8E9A96" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:calc(15px*var(--cs));color:#D2CEC4;">{{ p.lugar }}</span>
+              </div>
+              <sc-if value="{{ p.hasKm }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:500;font-size:calc(12px*var(--cs));color:#8E9A96;margin-top:calc(4px*var(--cs));">{{ p.kmTxt }} de Santa Fe</div></sc-if>
+              <sc-if value="{{ p.hasPeso }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:calc(12px*var(--cs));color:#9AA6A2;margin-top:calc(3px*var(--cs));">⚖ {{ p.pesoTxt }} de material</div></sc-if>
+            </div>
+          </div>
+
+          <!-- contacto -->
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8E9A96" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
+            <span style="font-family:'DM Sans';font-weight:500;font-size:calc(10px*var(--cs));letter-spacing:0.14em;color:#7E8C89;">CONTACTO</span>
+            <span style="font-family:'DM Sans';font-weight:600;font-size:calc(14px*var(--cs));color:#D2CEC4;">{{ p.contacto }}</span>
+          </div>
+
+          <!-- entrega row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:calc(14px*var(--cs));border-top:0.5px solid rgba(139,115,85,0.14);">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:calc(10px*var(--cs));letter-spacing:0.14em;color:#7E8C89;margin-bottom:4px;">ENTREGA</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:calc(16px*var(--cs));color:#D2CEC4;">{{ p.entregaFecha }}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:calc(18px*var(--cs));color:{{ p.riskColor }};line-height:1.1;">{{ p.entregaTxt }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:calc(12px*var(--cs));color:#8E9A96;margin-top:2px;">{{ p.restanteTxt }}</div>
+              <sc-if value="{{ p.hasFab }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:calc(12px*var(--cs));color:{{ p.fabColor }};margin-top:3px;">≈ {{ p.fabDaysTxt }}</div></sc-if>
+            </div>
+          </div>
+
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ░░ MODAL ALERTAS ░░ -->
+  <sc-if value="{{ alertasOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseAlertas }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:580px;max-width:100%;max-height:88vh;overflow-y:auto;background:#16201F;border:0.5px solid rgba(224,60,60,0.45);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:21px;color:#fff;">⚠ Alertas</span>
+          <div onClick="{{ onCloseAlertas }}" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:19px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <sc-for list="{{ alertas }}" as="a" hint-placeholder-count="3">
+            <div style="display:flex;align-items:flex-start;gap:13px;background:{{ a.soft }};border:0.5px solid {{ a.line }};border-left:5px solid {{ a.color }};border-radius:11px;padding:14px 16px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ a.color }};flex:0 0 auto;margin-top:6px;"></span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:700;font-size:17px;color:#fff;line-height:1.25;">{{ a.txt }}</div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-top:3px;">{{ a.det }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ sinStockAlertas }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;padding:14px 0;">No hay alertas activas. Todo en orden.</div></sc-if>
+        </div>
+        <a href="Materia Prima.dc.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:20px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:14px;color:#0C2226;background:#C9B79A;padding:11px 18px;border-radius:10px;">Ir a Insumos / Materia prima →</a>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ MODAL CERRAR PROYECTO ░░ -->
+  <sc-if value="{{ archModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onArchCancel }}" style="position:fixed;inset:0;z-index:60;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:480px;max-width:100%;background:#16201F;border:0.5px solid rgba(201,183,154,0.4);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <span style="font-family:'DM Sans';font-weight:700;font-size:21px;color:#fff;">Cerrar proyecto como terminado</span>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#9AA6A2;line-height:1.5;margin-bottom:22px;">El proyecto va a salir del tablero activo y de las pantallas de planta. Podés reabrirlo cuando quieras desde "Ver archivados".</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <div onClick="{{ onArchCancel }}" style="cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C2C8C4;background:rgba(255,255,255,0.05);border:0.5px solid rgba(139,115,85,0.3);padding:12px 22px;border-radius:10px;">Cancelar</div>
+          <div onClick="{{ onArchConfirm }}" style="cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;color:#15201d;background:#C9B79A;border-radius:10px;padding:12px 26px;">Cerrar proyecto</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ MODAL AVISOS TV ░░ -->
+  <sc-if value="{{ avisosOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseAvisos }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:560px;max-width:100%;max-height:88vh;overflow-y:auto;background:#16201F;border:0.5px solid rgba(224,137,74,0.45);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;">📌 Avisos para el TV de planta</span>
+          <div onClick="{{ onCloseAvisos }}" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:19px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#9AA6A2;margin-bottom:18px;">Lo que escribas acá aparece en grande en el monitor de los operarios.</div>
+        <div style="display:flex;gap:9px;margin-bottom:18px;">
+          <input value="{{ draftAviso }}" onInput="{{ onDraftAviso }}" onKeyDown="{{ onDraftAvisoKey }}" placeholder="Ej. Llega chapa 1,5 — 19/6 12 hs" style="flex:1;height:46px;font-family:'DM Sans';font-weight:500;font-size:15px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(224,137,74,0.4);border-radius:10px;outline:none;padding:0 14px;" />
+          <div onClick="{{ onAddAviso }}" style="cursor:pointer;height:46px;padding:0 20px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:15px;color:#23190A;background:#E0894A;border-radius:10px;">Agregar</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ avisos }}" as="a" hint-placeholder-count="2">
+            <div style="display:flex;align-items:flex-start;gap:12px;background:rgba(224,137,74,0.08);border:0.5px solid rgba(224,137,74,0.28);border-radius:10px;padding:13px 15px;">
+              <span style="width:9px;height:9px;border-radius:50%;background:#E0894A;flex:0 0 auto;margin-top:6px;"></span>
+              <span style="flex:1;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;line-height:1.3;">{{ a.text }}</span>
+              <div onClick="{{ a.onDel }}" style="cursor:pointer;color:#9A8E7A;font-size:18px;flex:0 0 auto;line-height:1;">✕</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noAvisos }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#6E7E85;">Sin avisos cargados.</div></sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ MODAL CARGAR PROYECTO ░░ -->
+  <sc-if value="{{ loadOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseLoad }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:620px;max-width:100%;max-height:92vh;overflow-y:auto;background:#16201F;border:0.5px solid rgba(201,183,154,0.4);border-radius:16px;padding:26px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <span style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#fff;">Cargar proyecto</span>
+          <div onClick="{{ onCloseLoad }}" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:19px;color:#C2C8C4;cursor:pointer;">✕</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">NOMBRE DEL PROYECTO</div>
+            <input value="{{ form.nombre }}" onInput="{{ form.onNombre }}" placeholder="Ej. Edificio Costanera" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">LUGAR DE DESTINO</div>
+            <input value="{{ form.lugar }}" onInput="{{ form.onLugar }}" placeholder="Ej. Mar del Plata (400 km)" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">PERSONA DEL PROYECTO</div>
+            <input value="{{ form.persona }}" onInput="{{ form.onPersona }}" placeholder="Ej. Arq. Medina" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">TELÉFONO / CORREO</div>
+            <input value="{{ form.tel }}" onInput="{{ form.onTel }}" placeholder="Ej. +54 9 11 5544-9080 · correo@cliente.com" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">PRODUCTO VENDIDO</div>
+            <input value="{{ form.producto }}" onInput="{{ form.onProducto }}" placeholder="Ej. Fachada ventilada MultiSlim" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">MATERIAL PRINCIPAL</div>
+            <input value="{{ form.material }}" onInput="{{ form.onMaterial }}" placeholder="Ej. Chapa galvanizada 1,6 mm" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:12px 14px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">MONTAJE</div>
+            <div style="display:flex;gap:8px;">
+              <div onClick="{{ form.montajeSi }}" style="flex:1;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;padding:11px;border-radius:9px;cursor:pointer;color:{{ form.montajeSiColor }};background:{{ form.montajeSiBg }};border:0.5px solid {{ form.montajeSiBd }};">Con montaje</div>
+              <div onClick="{{ form.montajeNo }}" style="flex:1;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;padding:11px;border-radius:9px;cursor:pointer;color:{{ form.montajeNoColor }};background:{{ form.montajeNoBg }};border:0.5px solid {{ form.montajeNoBd }};">Sin montaje</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">ACABADO</div>
+            <div style="display:flex;gap:8px;">
+              <div onClick="{{ form.crudoSet }}" style="flex:1;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;padding:11px;border-radius:9px;cursor:pointer;color:{{ form.crudoColor }};background:{{ form.crudoBg }};border:0.5px solid {{ form.crudoBd }};">Crudo</div>
+              <div onClick="{{ form.pintadoSet }}" style="flex:1;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;padding:11px;border-radius:9px;cursor:pointer;color:{{ form.pintadoColor }};background:{{ form.pintadoBg }};border:0.5px solid {{ form.pintadoBd }};">Pintado</div>
+            </div>
+            <sc-if value="{{ form.pintado }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ form.codigoPintura }}" onInput="{{ form.onCodigoPintura }}" placeholder="Código de pintura — ej. RAL 7016" style="width:100%;margin-top:9px;font-family:'DM Sans';font-weight:600;font-size:15px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(231,106,149,0.4);border-radius:9px;padding:11px 14px;outline:none;" />
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">FECHA LÍMITE</div>
+            <input type="date" value="{{ form.fecha }}" onInput="{{ form.onFecha }}" style="width:100%;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:9px;padding:11px 14px;outline:none;color-scheme:dark;" />
+          </div>
+          <div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:7px;">PRIORIDAD</div>
+            <div style="display:flex;gap:8px;">
+              <sc-for list="{{ form.prioOpts }}" as="o" hint-placeholder-count="3">
+                <div onClick="{{ o.onClick }}" style="flex:1;text-align:center;font-family:'DM Sans';font-weight:600;font-size:14px;padding:11px;border-radius:9px;cursor:pointer;color:{{ o.color }};background:{{ o.bg }};border:0.5px solid {{ o.bd }};">{{ o.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:11px;margin-top:22px;">
+          <div onClick="{{ onCloseLoad }}" style="flex:1;height:50px;border-radius:10px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:600;font-size:15px;color:#C2C8C4;cursor:pointer;">Cancelar</div>
+          <div onClick="{{ onSaveProject }}" style="flex:2;height:50px;border-radius:10px;background:#C9B79A;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:15px;color:#221B0F;cursor:pointer;">Cargar proyecto</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ░░ DETALLE DE PROYECTO (pantalla completa) ░░ -->
+  <sc-if value="{{ detailOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;padding:22px 34px 40px;">
+      <div style="max-width:1180px;margin:0 auto;">
+
+        <div onClick="{{ onCloseDetail }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 16px;border-radius:9px;margin-bottom:22px;">← Volver al panel</div>
+        <div onClick="{{ detail.onEditar }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 16px;border-radius:9px;margin:0 0 22px 10px;">✎ Editar datos</div>
+        <div onClick="{{ detail.onArchivar }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:{{ detail.archColor }};background:{{ detail.archBg }};border:0.5px solid {{ detail.archBd }};padding:10px 16px;border-radius:9px;margin:0 0 22px 10px;">{{ detail.archLabel }}</div>
+
+        <!-- cabecera del proyecto -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;background:#1C2928;border:0.5px solid rgba(139,115,85,0.18);border-top:5px solid {{ detail.riskColor }};border-radius:16px;padding:26px 30px;">
+          <div style="min-width:0;">
+            <div style="display:flex;align-items:center;gap:11px;">
+              <span style="width:13px;height:13px;border-radius:50%;background:{{ detail.urgColor }};flex:0 0 auto;"></span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:34px;letter-spacing:0.01em;text-transform:uppercase;color:#fff;line-height:1;">{{ detail.name }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+              <span style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.04em;color:#0C2226;background:#C9B79A;padding:4px 11px;border-radius:5px;">{{ detail.tipo }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:16px;color:#C9C3B8;">{{ detail.producto }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:16px;">
+              <span onClick="{{ detail.onPago }}" title="Tocar para cambiar: Impago → Seña → Pagado" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ detail.pagoColor }};background:{{ detail.pagoSoft }};padding:6px 13px;border-radius:20px;">{{ detail.pagoLabel }} <span style="font-size:11px;opacity:0.7;">↻</span></span>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ detail.montColor }};background:{{ detail.montSoft }};padding:6px 13px;border-radius:20px;">{{ detail.montLabel }}</span>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ detail.urgColor }};background:{{ detail.urgSoft }};padding:6px 13px;border-radius:20px;">{{ detail.urgencia }}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex:0 0 auto;">
+            <div onClick="{{ detail.onExportEstado }}" style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:9px 14px;border-radius:9px;white-space:nowrap;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>Exportar estado</div>
+            <div style="position:relative;width:120px;height:120px;">
+              <svg width="100%" height="100%" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ detail.riskColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ detail.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:32px;color:#fff;">{{ detail.pctStr }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- datos -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px;">
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:18px 20px;">
+            <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:8px;">ENTREGA</div>
+            <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:{{ detail.riskColor }};">{{ detail.entregaTxt }}</div>
+            <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-top:3px;">{{ detail.entregaFecha }} · {{ detail.restanteTxt }}</div>
+            <sc-if value="{{ detail.fabHasData }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ detail.fabColor }};margin-top:7px;">≈ {{ detail.fabDaysTxt }} de fabricación</div></sc-if>
+          </div>
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:18px 20px;">
+            <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:8px;">ACABADO</div>
+            <sc-if value="{{ detail.pintado }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="width:22px;height:22px;border-radius:6px;background:{{ detail.colorHex }};border:1px solid rgba(255,255,255,0.25);flex:0 0 auto;"></span>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:18px;color:#EAE6DF;">{{ detail.colorName }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ detail.crudo }}" hint-placeholder-val="{{ false }}">
+              <span style="font-family:'DM Sans';font-weight:600;font-size:18px;color:#9AA6A2;">Crudo</span>
+            </sc-if>
+          </div>
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:18px 20px;">
+            <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:8px;">LUGAR</div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:18px;color:#D2CEC4;">{{ detail.lugar }}</div>
+            <sc-if value="{{ detail.hasPeso }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#9AA6A2;margin-top:7px;">⚖ {{ detail.pesoTotalStr }} de material</div></sc-if>
+          </div>
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:18px 20px;">
+            <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:8px;">CONTACTO</div>
+            <div style="font-family:'DM Sans';font-weight:600;font-size:18px;color:#D2CEC4;">{{ detail.contacto }}</div>
+            <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-top:3px;">{{ detail.tel }}</div>
+          </div>
+        </div>
+
+        <!-- desglose por proceso + archivos -->
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;margin-top:16px;align-items:start;">
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:20px 22px;height:186px;">
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:16px;">AVANCE POR PROCESO</div>
+            <sc-if value="{{ detail.hasBreakdown }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-wrap:wrap;gap:20px;">
+                <sc-for list="{{ detail.breakdown }}" as="b" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:9px;">
+                    <div style="position:relative;width:78px;height:78px;">
+                      <svg width="100%" height="100%" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ b.color }}" stroke-width="12" stroke-linecap="round" stroke-dasharray="{{ b.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+                      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:18px;color:#fff;">{{ b.pctStr }}</div>
+                    </div>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#D2CEC4;">{{ b.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ detail.hasBreakdown }}" hint-placeholder-val="{{ false }}"></sc-if>
+            <sc-if value="{{ detail.sinBreakdown }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#6E7E85;">Asigná procesos a las piezas para ver el desglose.</div>
+            </sc-if>
+          </div>
+          <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;padding:20px 22px;height:186px;display:flex;flex-direction:column;">
+            <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:14px;flex:0 0 auto;">ARCHIVOS DE CORTE · LÁSER · {{ detail.archivoCount }}</div>
+            <sc-if value="{{ detail.hasArchivos }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:6px;">
+                <sc-for list="{{ detail.archivos }}" as="a" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.14);border-radius:8px;padding:10px 13px;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#21C7D6;font-variant-numeric:tabular-nums;flex:0 0 auto;">{{ a.archivo }}</span>
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#D2CEC4;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.nombre }}</span>
+                    <span style="width:9px;height:9px;border-radius:2px;background:{{ a.pintColor }};flex:0 0 auto;"></span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ detail.sinArchivos }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#6E7E85;">Sin archivos de láser cargados todavía.</div>
+            </sc-if>
+          </div>
+        </div>
+
+        <!-- piezas -->
+        <datalist id="velum-row-mat"><option value="Acero"></option><option value="Inox"></option><option value="Galvaniz."></option><option value="Chapa galv."></option><option value="Luxidier"></option><option value="Aluminio"></option></datalist>
+        <datalist id="velum-row-esp"><option value="0,6 mm"></option><option value="0,8 mm"></option><option value="1,0 mm"></option><option value="1,2 mm"></option><option value="1,5 mm"></option><option value="1,6 mm"></option><option value="2,0 mm"></option><option value="3,0 mm"></option></datalist>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:26px 0 14px;">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.16em;color:#7E8C89;">PIEZAS DEL PROYECTO · {{ detail.piezaCount }}</span>
+          <div onClick="{{ onToggleProcMode }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:{{ procModeColor }};background:{{ procModeBg }};border:0.5px solid {{ procModeBd }};padding:10px 16px;border-radius:9px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
+            {{ procModeLabel }}
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:44px 1.15fr 122px 58px 82px 60px 86px 1fr 92px 32px;gap:11px;align-items:center;padding:0 18px 8px;">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">COD.</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">PIEZA</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">MATERIAL</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">ESP.</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">DIMENSIÓN</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">TERM.</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;text-align:right;">NECESARIO</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;">RESUMEN DE PRODUCCIÓN</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.12em;color:#7E8C89;text-align:center;">ESTADO</span>
+          <span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <sc-for list="{{ detail.piezas }}" as="z" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:44px 1.15fr 122px 58px 82px 60px 86px 1fr 92px 32px;gap:11px;align-items:center;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid {{ z.grupo.color }};border-radius:10px;padding:13px 18px;position:relative;">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:{{ z.grupo.color }};font-variant-numeric:tabular-nums;">{{ z.archivo }}</span>
+              <div style="min-width:0;display:flex;flex-direction:column;gap:3px;">
+                <input value="{{ z.nombre }}" onInput="{{ z.onName }}" placeholder="Pieza" style="min-width:0;font-family:'DM Sans';font-weight:600;font-size:16px;color:#fff;background:transparent;border:none;outline:none;padding:0;" />
+                <span style="font-family:'DM Sans';font-weight:700;font-size:9px;letter-spacing:0.1em;color:{{ z.grupo.color }};">{{ z.grupo.label }}</span>
+              </div>
+              <div style="position:relative;min-width:0;">
+                <div onClick="{{ z.onMatMenu }}" style="display:flex;align-items:center;justify-content:space-between;gap:4px;height:32px;font-family:'DM Sans';font-weight:500;font-size:13px;color:#C2C8C4;background:rgba(95,168,224,0.08);border:0.5px solid rgba(139,115,85,0.3);border-radius:7px;cursor:pointer;padding:0 8px;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ z.material }}</span><span style="color:#8E9A96;flex:0 0 auto;">▾</span></div>
+                <sc-if value="{{ z.matMenuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:36px;left:0;z-index:30;min-width:200px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);max-height:240px;overflow:auto;">
+                    <sc-if value="{{ z.hasMatOpts }}" hint-placeholder-val="{{ true }}">
+                      <sc-for list="{{ z.matOpts }}" as="o" hint-placeholder-count="3">
+                        <div onClick="{{ o.onPick }}" style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#EAE6DF;padding:9px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;">{{ o.label }}</div>
+                      </sc-for>
+                    </sc-if>
+                    <sc-if value="{{ z.hasMatOpts }}" hint-placeholder-val="{{ true }}"></sc-if>
+                    <sc-if value="{{ z.sinMatOpts }}" hint-placeholder-val="{{ false }}">
+                      <a href="Materia Prima.dc.html" style="display:block;font-family:'DM Sans';font-weight:500;font-size:12px;color:#C9B79A;padding:9px 11px;text-decoration:none;">Cargá materia prima en Insumos →</a>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="position:relative;min-width:0;">
+                <div onClick="{{ z.onEspMenu }}" style="display:flex;align-items:center;justify-content:space-between;gap:4px;height:32px;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C2C8C4;background:rgba(95,168,224,0.08);border:0.5px solid rgba(139,115,85,0.3);border-radius:7px;cursor:pointer;padding:0 8px;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ z.espLabel }}</span><span style="color:#8E9A96;flex:0 0 auto;">▾</span></div>
+                <sc-if value="{{ z.espMenuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:36px;left:0;z-index:30;min-width:110px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);max-height:220px;overflow:auto;">
+                    <sc-if value="{{ z.hasEspOpts }}" hint-placeholder-val="{{ true }}">
+                      <sc-for list="{{ z.espOpts }}" as="o" hint-placeholder-count="3">
+                        <div onClick="{{ o.onPick }}" style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#EAE6DF;padding:9px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;">{{ o.label }}</div>
+                      </sc-for>
+                    </sc-if>
+                    <sc-if value="{{ z.sinEspOpts }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:block;font-family:'DM Sans';font-weight:500;font-size:12px;color:#7E8C89;padding:9px 11px;">Sin espesores para ese material</span>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="position:relative;min-width:0;">
+                <div onClick="{{ z.onDimMenu }}" style="display:flex;align-items:center;justify-content:space-between;gap:4px;height:32px;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C2C8C4;background:rgba(95,168,224,0.08);border:0.5px solid rgba(139,115,85,0.3);border-radius:7px;cursor:pointer;padding:0 8px;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ z.dimLabel }}</span><span style="color:#8E9A96;flex:0 0 auto;">▾</span></div>
+                <sc-if value="{{ z.dimMenuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:36px;left:0;z-index:30;min-width:130px;background:#16201F;border:0.5px solid rgba(139,115,85,0.4);border-radius:9px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,0.5);max-height:220px;overflow:auto;">
+                    <sc-if value="{{ z.hasDimOpts }}" hint-placeholder-val="{{ true }}">
+                      <sc-for list="{{ z.dimOpts }}" as="o" hint-placeholder-count="3">
+                        <div onClick="{{ o.onPick }}" style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#EAE6DF;padding:9px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;">{{ o.label }}</div>
+                      </sc-for>
+                    </sc-if>
+                    <sc-if value="{{ z.sinDimOpts }}" hint-placeholder-val="{{ false }}">
+                      <a href="Materia Prima.dc.html" style="display:block;font-family:'DM Sans';font-weight:500;font-size:12px;color:#C9B79A;padding:9px 11px;text-decoration:none;">Cargá dimensiones en Insumos →</a>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+              <div onClick="{{ z.onTogglePintado }}" style="font-family:'DM Sans';font-weight:600;font-size:10px;color:{{ z.pintadoColor }};background:{{ z.pintadoBg }};border:0.5px solid {{ z.pintadoBd }};padding:5px 6px;border-radius:6px;cursor:pointer;text-align:center;">{{ z.pintadoLabel }}</div>
+              <input value="{{ z.necNum }}" onInput="{{ z.onNecSet }}" inputmode="decimal" title="Unidades necesarias" style="width:64px;justify-self:end;height:34px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:17px;color:#5FA8E0;background:rgba(95,168,224,0.1);border:0.5px solid rgba(95,168,224,0.4);border-radius:8px;outline:none;font-variant-numeric:tabular-nums;" />
+              <div style="display:flex;flex-wrap:wrap;gap:6px 16px;">
+                <sc-if value="{{ z.hasResumen }}" hint-placeholder-val="{{ true }}">
+                  <sc-for list="{{ z.resumen }}" as="r" hint-placeholder-count="2">
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C2C8C4;">{{ r.label }} <b style="font-weight:700;color:{{ r.color }};">{{ r.pctStr }}</b></span>
+                  </sc-for>
+                </sc-if>
+                <sc-if value="{{ z.sinResumen }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#6E7E85;">Sin procesos asignados</span>
+                </sc-if>
+              </div>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:11px;letter-spacing:0.06em;color:{{ z.estadoColor }};background:{{ z.estadoBg }};padding:6px 10px;border-radius:6px;text-align:center;">{{ z.estado }}</span>
+              <div onClick="{{ z.onDel }}" style="width:34px;height:34px;border-radius:9px;background:rgba(224,105,74,0.12);border:0.5px solid rgba(224,105,74,0.4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#E0694A;cursor:pointer;">✕</div>
+            </div>
+            <sc-if value="{{ z.editOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:9px;background:#202E2C;border:1.5px solid {{ z.grupo.color }};border-top:none;border-radius:0 0 10px 10px;margin-top:-8px;padding:14px 18px 16px;box-shadow:inset 3px 0 0 {{ z.grupo.color }};">
+                <sc-if value="{{ z.isInsumo }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:10px;width:100%;background:rgba(139,115,85,0.12);border:0.5px solid rgba(139,115,85,0.35);border-radius:9px;padding:12px 16px;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.1em;color:#C9B79A;">PAÑOL · INSUMO CONSUMIBLE</span>
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;">No pasa por máquinas — se entrega de stock</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ z.notInsumo }}" hint-placeholder-val="{{ true }}">
+                <sc-for list="{{ z.procs }}" as="m" hint-placeholder-count="6">
+                  <div onClick="{{ m.onToggle }}" style="display:flex;align-items:center;gap:9px;padding:9px 15px;border-radius:9px;cursor:pointer;background:{{ m.bg }};border:0.5px solid {{ m.bd }};">
+                    <div style="width:24px;height:24px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="24px,24px"></dc-import></div>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:14px;letter-spacing:0.02em;color:{{ m.color }};">{{ m.label }}</span>
+                  </div>
+                </sc-for>
+                </sc-if>
+                <div style="flex-basis:100%;height:0;"></div>
+                <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.2);border-radius:10px;padding:8px 12px;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#9AA6A2;">PIEZAS/CHAPA</span>
+                  <div onClick="{{ z.onPpcDec }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                  <input value="{{ z.ppcNum }}" onInput="{{ z.onPpcSet }}" inputmode="decimal" style="width:48px;height:36px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:8px;outline:none;font-variant-numeric:tabular-nums;" />
+                  <div onClick="{{ z.onPpcInc }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.2);border-radius:10px;padding:8px 12px;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#9AA6A2;">CHAPAS</span>
+                  <div onClick="{{ z.onObjDec }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                  <input value="{{ z.objNum }}" onInput="{{ z.onObjSet }}" inputmode="decimal" style="width:48px;height:36px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(139,115,85,0.3);border-radius:8px;outline:none;font-variant-numeric:tabular-nums;" />
+                  <div onClick="{{ z.onObjInc }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;background:rgba(33,199,214,0.07);border:0.5px solid rgba(33,199,214,0.28);border-radius:10px;padding:8px 12px;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#A9D9DE;">PIEZAS/LOTE</span>
+                  <div onClick="{{ z.onLoteDec }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                  <input value="{{ z.loteNum }}" onInput="{{ z.onLoteSet }}" inputmode="decimal" style="width:48px;height:36px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(33,199,214,0.35);border-radius:8px;outline:none;font-variant-numeric:tabular-nums;" />
+                  <div onClick="{{ z.onLoteInc }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;background:rgba(201,183,154,0.07);border:0.5px solid rgba(201,183,154,0.3);border-radius:10px;padding:8px 12px;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:#C9B79A;">PIEZAS/PAQUETE</span>
+                  <div onClick="{{ z.onPaqDec }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">−</div>
+                  <input value="{{ z.paqNum }}" onInput="{{ z.onPaqSet }}" inputmode="decimal" style="width:48px;height:36px;text-align:center;font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;background:rgba(0,0,0,0.25);border:0.5px solid rgba(201,183,154,0.4);border-radius:8px;outline:none;font-variant-numeric:tabular-nums;" />
+                  <div onClick="{{ z.onPaqInc }}" style="width:32px;height:36px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:18px;color:#C2C8C4;cursor:pointer;">+</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#A9D9DE;background:rgba(33,199,214,0.12);border:0.5px solid rgba(33,199,214,0.3);padding:5px 11px;border-radius:7px;">⬚ {{ z.loteCalcTxt }}</span>
+                  <sc-if value="{{ z.hasPaqCalc }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(201,183,154,0.12);border:0.5px solid rgba(201,183,154,0.35);padding:5px 11px;border-radius:7px;">▦ {{ z.paqCalcTxt }}</span>
+                  </sc-if>
+                </div>
+                <div onClick="{{ z.onListoZ }}" style="margin-left:auto;display:flex;align-items:center;gap:7px;font-family:'DM Sans';font-weight:700;font-size:14px;color:#0C2226;background:#4FB870;padding:9px 18px;border-radius:9px;cursor:pointer;">✓ Listo</div>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div onClick="{{ onAddPieza }}" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:11px;background:rgba(201,183,154,0.14);border:0.5px solid rgba(201,183,154,0.4);font-family:'DM Sans';font-weight:600;font-size:15px;color:#C9B79A;cursor:pointer;">+ Agregar pieza</div>
+
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { now: new Date(), liveObras: {}, custom: [], archivados: [], verArchivados: false, loadOpen: false, detailId: null, procMode: false, closedZ: {}, navOpen: false, matMenuZ: null, dimMenuZ: null, espMenuZ: null, estacion: [], caps: [], stock: [], maqEstado: {}, fitScale: null, fitCols: null, avisosOpen:false, avisos:[], draftAviso:'', alertasOpen:false, archModal:{ open:false, pid:null }, form: { nombre:'', lugar:'', persona:'', tel:'', producto:'', material:'', montaje:false, pintado:false, codigoPintura:'', fecha:'', prioridad:'NORMAL' } };
+  }
+
+  componentDidMount() {
+    try{ var h=location.hash||''; if(h.indexOf('#p=')===0){ var id=decodeURIComponent(h.slice(3)); if(id) this.setState({ detailId:id }); } }catch(e){}
+    this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('stock').catch(()=>[]),
+          VelumAPI.get('archivados').catch(()=>[]),
+          VelumAPI.get('avisos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        const liveObras = {}; (Array.isArray(res[0])?res[0]:[]).forEach(o => { liveObras[o.projectId] = o.pct; });
+        const maqEstado = {}; (Array.isArray(res[5])?res[5]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const archivados = (Array.isArray(res[3])?res[3]:[]).map(a => a.projectId);
+        this.setState({
+          liveObras,
+          estacion: Array.isArray(res[1])?res[1]:[],
+          stock: Array.isArray(res[2])?res[2]:[],
+          archivados,
+          avisos: Array.isArray(res[4])?res[4]:[],
+          maqEstado,
+          caps: Array.isArray(res[6])?res[6]:[],
+          custom: Array.isArray(res[7])?res[7]:[]
+        });
+      } catch (e) {}
+    };
+    this._sync();
+    this._poll = setInterval(this._sync, 2000);
+    this._fitFn = () => this._measureFit();
+    window.addEventListener('resize', this._fitFn);
+    setTimeout(this._fitFn, 60);
+  }
+  _measureFit() { return; }
+  componentDidUpdate(prevProps, prevState) {
+    if (this._fitT) clearTimeout(this._fitT);
+    this._fitT = setTimeout(() => this._measureFit(), 40);
+  }
+  componentWillUnmount() {
+    clearInterval(this._clock); clearInterval(this._poll);
+    window.removeEventListener('storage', this._sync);
+    window.removeEventListener('resize', this._fitFn);
+    if (this._fitT) clearTimeout(this._fitT);
+  }
+  _readObras() { return this.state.liveObras||{}; }
+  _readAvisos() { return this.state.avisos||[]; }
+  _addAviso(){ const t=(this.state.draftAviso||'').trim(); if(!t) return; const item={id:'a'+Date.now(), text:t, ts:Date.now()}; this.setState(s=>({ avisos:[item, ...(s.avisos||[])], draftAviso:'' })); if(window.VelumAPI) VelumAPI.save('avisos', item).catch(()=>{}); }
+  _delAviso(id){ this.setState(s=>({ avisos:(s.avisos||[]).filter(x=>x.id!==id) })); if(window.VelumAPI) VelumAPI.del('avisos', id).catch(()=>{}); }
+  _readArch(){ return this.state.archivados||[]; }
+  _readMaqEstado(){ return this.state.maqEstado||{}; }
+  _toggleArch(pid){ const yaArch=(this.state.archivados||[]).indexOf(pid)>=0; if(!yaArch){ this.setState({ archModal:{ open:true, pid:pid } }); return; } this._doToggleArch(pid); }
+  _doToggleArch(pid){ const ya=(this.state.archivados||[]).indexOf(pid)>=0; this.setState(s=>{ const set=(s.archivados||[]).slice(); const i=set.indexOf(pid); if(i>=0) set.splice(i,1); else set.push(pid); return { archivados:set, detailId: i>=0?s.detailId:null, archModal:{ open:false, pid:null } }; }); if(window.VelumAPI){ if(ya) VelumAPI.del('archivados', pid).catch(()=>{}); else VelumAPI.save('archivados', { projectId:pid, archivedTs:Date.now() }).catch(()=>{}); } }
+  _cancelArch(){ this.setState({ archModal:{ open:false, pid:null } }); }
+  _fabDays(piezas){
+    var prods=this.state.caps||[];
+    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
+    var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
+    var H=8, total=0, matched=false;
+    (piezas||[]).forEach(function(f){ var pd=ench(f.pieza||f.archivo||''); if(!pd) return; var units=(f.objChapas||0)*(f.ppc||1); if(!units) return; matched=true; var procs=f.procesos||[]; procs.forEach(function(pid){ var mk=procMap[pid]; if(!mk) return; var rate=pd[rateField[mk]]||0; if(rate>0){ var addH=(mk==='pintura')?(units/rate)*(3/10):(units/rate); total+=addH; } }); var er=pd[rateField.embalado]||0; if(er>0){ total+=units/er; } });
+    return { hours: total, days: total/H, matched: matched && total>0 };
+  }
+
+  _readStock(){ return this.state.stock||[]; }
+  _splitMat(mt){ mt=(mt||'').trim(); const m=mt.match(/([\d.,]+\s*mm)\s*$/i); if(m) return { material: mt.slice(0,m.index).trim()||mt, espesor: m[1].replace(/\s+/g,' ') }; return { material:mt, espesor:'—' }; }
+  _matKey(material,espesor){ return (material+'|'+espesor).toLowerCase().replace(/\s+/g,''); }
+  _stockAlertas(){
+    const dem={};
+    (this.state.estacion||[]).forEach(p=>(p.files||[]).forEach(f=>{ const sp=this._splitMat(f.material); if(!sp.material||sp.material==='Insumo'||sp.material==='Referencia') return; const k=this._matKey(sp.material,sp.espesor); if(!dem[k]) dem[k]={material:sp.material,espesor:sp.espesor,demanda:0}; dem[k].demanda+=(f.objChapas||0); }));
+    const stock={}; (this.state.stock||[]).forEach(x=>{ stock[this._matKey(x.material,x.espesor)]={chapas:x.chapas,material:x.material,espesor:x.espesor}; });
+    const out=[];
+    Object.keys(dem).forEach(k=>{ const d=dem[k]; const s=stock[k]; if(!s){ out.push({ txt:d.material+' '+d.espesor, det:'falta cargar stock', color:'#E5A52B' }); return; } const saldo=s.chapas-d.demanda; if(saldo<0) out.push({ txt:d.material+' '+d.espesor, det:'faltan '+Math.round(-saldo)+' chapas', color:'#E0694A' }); else if(saldo<=Math.max(2,d.demanda*0.1)) out.push({ txt:d.material+' '+d.espesor, det:'quedan '+Math.round(saldo)+' chapas', color:'#E5A52B' }); });
+    out.sort((a,b)=> (a.color==='#E0694A'?0:1)-(b.color==='#E0694A'?0:1));
+    var maq=[]; var mqe=this.state.maqEstado||{}; Object.keys(mqe).forEach(function(k){ maq.push({ txt:(mqe[k].maquina||k)+' fuera de servicio', det:(mqe[k].motivo||'Sin especificar'), color:'#E0694A' }); });
+    return maq.concat(out);
+  }
+
+  _distKm(lugar){
+    if(!lugar) return null;
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z ]/g,'').trim();
+    const T = { 'santa fe':0,'santa fe capital':0,'parana':25,'esperanza':40,'galvez':70,'rafaela':90,'coronda':55,'sunchales':130,'sastre':130,'canada de gomez':130,'san francisco':180,'casilda':180,'rosario':170,'firmat':200,'villa constitucion':230,'venado tuerto':240,'reconquista':320,'concordia':290,'cordoba':330,'buenos aires':475,'caba':475,'capital federal':475,'la plata':500,'resistencia':540,'corrientes':560,'tucuman':600,'mar del plata':750,'bahia blanca':800,'posadas':850,'mendoza':870,'salta':880 };
+    const k = norm(lugar);
+    if(T[k]!=null) return T[k];
+    for(const key in T){ if(k.indexOf(key)>=0 || key.indexOf(k)>=0){ return T[key]; } }
+    return null;
+  }
+  _cyclePago(id){ this.setState(s=>{ const order=['IMPAGO','SEÑA','PAGADO']; var changed=null; const custom=(s.custom||[]).map(p=>{ if(p.id!==id) return p; const i=order.indexOf(p.pago||'IMPAGO'); changed=Object.assign({},p,{pago:order[(i+1)%order.length]}); return changed; }); if(changed && window.VelumAPI) VelumAPI.save('proyectos', changed).catch(()=>{}); return {custom}; }); }
+  _exportPdf(){
+    const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const C = 289.03;
+    const ordered = this._allData().slice().sort((a,b)=>{ const d=this._prioRank(a.urgencia)-this._prioRank(b.urgencia); return d!==0?d:a.deadlineDays-b.deadlineDays; });
+    const rows = ordered.map((p, idx) => {
+      const live = this.state.liveObras[p.id]; const pct = live != null ? live : (p.basePct||0);
+      const pg = this._pago(p.pago); const ent = this._entrega(p.deadlineDays);
+      const peso = this._pesoFmt(this._pesoProj(p.id)); const acab = p.pintado ? ('Pintado'+(p.colorName?(' · '+p.colorName):'')) : 'Crudo';
+      return '<tr><td class="c">'+(idx+1)+'</td><td><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.producto||'')+'</div></td>'
+        +'<td class="c"><b>'+pct+'%</b></td><td class="c">'+esc(ent.txt)+'<div class="sub">'+esc(ent.fecha||'')+'</div></td>'
+        +'<td class="c">'+esc(p.urgencia||'')+'</td><td class="c">'+esc(pg.label)+'</td>'
+        +'<td>'+esc(p.lugar||'—')+(peso?('<div class="sub">'+esc(peso)+'</div>'):'')+'</td>'
+        +'<td class="c">'+(p.montaje?'Sí':'No')+'</td><td>'+esc(acab)+'</td>'
+        +'<td>'+esc(p.contacto||'—')+(p.tel?('<div class="sub">'+esc(p.tel)+'</div>'):'')+'</td></tr>';
+    }).join('');
+    const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const n=this.state.now; const fecha=n.getDate()+' '+meses[n.getMonth()]+' '+n.getFullYear();
+    const doc = '<!doctype html><html><head><meta charset="utf-8"><title>Proyectos en curso — Velum</title><style>'
+      + "*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      + 'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}'
+      + 'h1{font-size:22px;margin:0 0 4px;}'
+      + '.date{font-size:13px;color:#777;margin-bottom:22px;}'
+      + 'table{width:100%;border-collapse:collapse;font-size:12.5px;}'
+      + 'th{text-align:left;font-size:10px;letter-spacing:0.06em;color:#888;text-transform:uppercase;border-bottom:1.5px solid #e4e2dc;padding:8px 9px;}'
+      + 'td{padding:9px;border-bottom:0.5px solid #efeee9;vertical-align:top;}'
+      + '.c{text-align:center;}'
+      + '.sub{font-size:11px;color:#999;margin-top:2px;}'
+      + '.muted{color:#aaa;}'
+      + '</style></head><body>'
+      + '<h1>Proyectos en curso · VELUM</h1>'
+      + '<div class="date">'+esc(fecha)+' · '+ordered.length+' obras activas</div>'
+      + '<table><thead><tr><th class="c">#</th><th>Proyecto</th><th class="c">Avance</th><th class="c">Entrega</th><th class="c">Prioridad</th><th class="c">Cobro</th><th>Destino</th><th class="c">Montaje</th><th>Acabado</th><th>Contacto</th></tr></thead><tbody>'
+      + (rows || '<tr><td colspan="10" class="muted">Sin proyectos activos</td></tr>')
+      + '</tbody></table></body></html>';
+    const win = window.open('', '_blank'); if(!win){ return; }
+    win.document.open(); win.document.write(doc); win.document.close();
+    setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 400);
+  }
+  _data() {
+    return [];
+  }
+
+  _mm() {
+    return { laser:'#21C7D6', plegadora:'#E5A52B', punzon:'#9B82DC', fresa:'#3E7CE0', expansora:'#F0814F', pintura:'#E76A95' };
+  }
+  _prio(p){ return p==='ALTA'?'#E0694A':(p==='MEDIA'?'#E5A52B':'#7C8B91'); }
+
+  _pago(p){
+    if (p==='PAGADO') return { label:'PAGADO', color:'#4FB870', soft:'rgba(79,184,112,0.16)' };
+    if (p==='SEÑA') return { label:'SEÑA', color:'#E5A52B', soft:'rgba(229,165,43,0.16)' };
+    return { label:'IMPAGO', color:'#E0694A', soft:'rgba(224,105,74,0.16)' };
+  }
+
+  _risk(pct, days){
+    if (pct >= 100) return '#4FB870';
+    if (days <= 1 && pct < 85) return '#E0694A';
+    if (days <= 3 && pct < 65) return '#E5A52B';
+    return '#4FB870';
+  }
+
+  _entrega(days){
+    const n = this.state.now;
+    const d = new Date(n.getTime() + days*86400000);
+    const pad = x => x<10?'0'+x:''+x;
+    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const fecha = dias[d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth()+1);
+    const txt = days<=0 ? 'HOY' : (days===1 ? 'MAÑANA' : 'EN ' + days + ' DÍAS');
+    const rest = days<=0 ? 'Vence hoy' : (days===1 ? 'Falta 1 día' : 'Faltan ' + days + ' días');
+    return { fecha, txt, rest };
+  }
+
+  _procDefs(){ return [ {id:'laser',label:'Corte láser',color:'#21C7D6'},{id:'punzon',label:'Punzonado',color:'#9B82DC'},{id:'fresa',label:'Fresado',color:'#3E7CE0'},{id:'plegadora',label:'Plegado',color:'#E5A52B'},{id:'expansora',label:'Expandido',color:'#F0814F'},{id:'pintura',label:'Pintura',color:'#E76A95'},{id:'embalado',label:'Embalado',color:'#C9B79A'} ]; }
+
+  _readEstacion() { return this.state.estacion||[]; }
+  _saveEstacion(arr){ /* persistencia vía VelumAPI en _mutate */ }
+  _piezasOf(pid){ const p = (this.state.estacion||[]).find(x=>x.id===pid); return p && p.files ? p.files : []; }
+  _exportEstado(pid){
+    var self=this; var proj=(this.state.estacion||[]).find(x=>x.id===pid)||{}; var custom=(this.state.custom||[]).find(x=>x.id===pid)||{};
+    var pdefs=this._procDefs(); var plabel={}; var pcolor={}; pdefs.forEach(function(d){ plabel[d.id]=d.label; pcolor[d.id]=d.color; });
+    var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+    var allProcs=[]; (proj.files||[]).forEach(function(z){ (z.procesos||[]).forEach(function(p){ if(allProcs.indexOf(p)<0) allProcs.push(p); }); });
+    var ordRef=['laser','punzon','fresa','expansora','plegadora','pintura','embalado']; allProcs.sort(function(a,b){ return ordRef.indexOf(a)-ordRef.indexOf(b); });
+    var stageBy={};
+    var rows=(proj.files||[]).map(function(z){ var st=self._stages(z); var byp={}; st.forEach(function(s){ byp[s.pid]=s.pct; var t=stageBy[s.pid]=stageBy[s.pid]||{done:0,nec:0}; t.done+=s.done; t.nec+=s.nec; });
+      var nec=(z.objUni!=null)?z.objUni:((z.objChapas||0)*(z.ppc||1));
+      var comp=(z.chapas||0)*(z.ppc||1)+(z.retazo||0); var pct=nec>0?Math.min(100,Math.round(comp/nec*100)):0;
+      var mat=(z.matName!=null?z.matName:(z.material||'')); var esp=(z.esp!=null&&(''+z.esp).trim()!=='')?(' '+z.esp+' mm'):'';
+      var cells=allProcs.map(function(p){ var has=(z.procesos||[]).indexOf(p)>=0; return '<td class="c">'+(has?((byp[p]!=null?byp[p]:0)+'%'):'—')+'</td>'; }).join('');
+      return '<tr><td><b>'+esc(z.pieza||z.archivo||'Pieza')+'</b></td><td>'+esc(mat+esp)+'</td><td class="c">'+nec+'</td><td class="c"><b>'+pct+'%</b></td>'+cells+'</tr>'; }).join('');
+    var heads=allProcs.map(function(p){ return '<th class="c">'+esc(plabel[p]||p)+'</th>'; }).join('');
+    // avance por proceso (barras)
+    var procBars=allProcs.map(function(p){ var t=stageBy[p]; var avg=(t&&t.nec)?Math.min(100,Math.round(t.done/t.nec*100)):0; var c=pcolor[p]||'#8B7355'; return '<div class="pb"><div class="pbl">'+esc(plabel[p]||p)+'</div><div class="pbt"><div class="pbf" style="width:'+avg+'%;background:'+c+'"></div></div><div class="pbv">'+avg+'%</div></div>'; }).join('');
+    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']; var dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; var n=new Date(); var fecha=n.getDate()+' '+meses[n.getMonth()]+' '+n.getFullYear();
+    var overall=this.state.liveObras[pid]; var ov=(overall!=null?overall:(custom.basePct||0));
+    // entrega
+    var dd=(custom.deadlineDays!=null)?custom.deadlineDays:null; var entStr='—'; var restStr='';
+    if(dd!=null){ var ed=new Date(n.getTime()+dd*86400000); entStr=dias[ed.getDay()]+' '+ed.getDate()+' '+meses[ed.getMonth()]; restStr=(dd<=0?'Hoy':(dd===1?'Mañana':('en '+dd+' días'))); }
+    var pagoTxt=(custom.pago||'—'); var montTxt=custom.montaje?'Con montaje':'Sin montaje'; var acabTxt=custom.pintado?('Pintado'+(custom.colorName?(' · '+custom.colorName):'')):'Crudo';
+    var ringC=289.03; var ringDash=(ov/100*ringC).toFixed(1)+' '+ringC.toFixed(1); var ringCol=ov>=100?'#2e9e5b':(ov>=50?'#3a8fd6':'#C9A86A');
+    var info=function(l,v){ return '<div class="inf"><div class="il">'+esc(l)+'</div><div class="iv">'+esc(v)+'</div></div>'; };
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>Estado — '+esc(custom.name||proj.name||'')+'</title><style>'
+      +"*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      +'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}h1{font-size:24px;margin:0 0 2px;}.sub{font-size:14px;color:#666;margin-bottom:2px;}.date{font-size:12px;color:#999;margin-bottom:20px;}'
+      +'.top{display:flex;gap:26px;align-items:center;margin-bottom:24px;}.ring{flex:0 0 auto;position:relative;width:120px;height:120px;}.ring .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;}'
+      +'.grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px 20px;}.inf .il{font-size:10px;letter-spacing:0.06em;color:#999;text-transform:uppercase;}.inf .iv{font-size:15px;font-weight:600;color:#1a1f1e;margin-top:2px;}'
+      +'.sec{font-size:11px;letter-spacing:0.08em;color:#888;text-transform:uppercase;margin:24px 0 12px;}'
+      +'.pb{display:flex;align-items:center;gap:12px;margin-bottom:9px;}.pbl{width:120px;font-size:13px;font-weight:600;}.pbt{flex:1;height:12px;background:#f0efe9;border-radius:6px;overflow:hidden;}.pbf{height:100%;border-radius:6px;}.pbv{width:46px;text-align:right;font-size:13px;font-weight:700;}'
+      +'table{width:100%;border-collapse:collapse;font-size:12.5px;}th{text-align:left;font-size:10px;letter-spacing:0.05em;color:#888;text-transform:uppercase;border-bottom:1.5px solid #e4e2dc;padding:8px 8px;}td{padding:9px 8px;border-bottom:0.5px solid #efeee9;}.c{text-align:center;}'
+      +'</style></head><body>'
+      +'<h1>'+esc(custom.name||proj.name||'Proyecto')+'</h1><div class="sub">'+esc(custom.producto||'')+'</div><div class="date">Informe de estado · '+esc(fecha)+'</div>'
+      +'<div class="top"><div class="ring"><svg width="120" height="120" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="#eee" stroke-width="11"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="'+ringCol+'" stroke-width="11" stroke-linecap="round" stroke-dasharray="'+ringDash+'" transform="rotate(-90 55 55)"></circle></svg><div class="v">'+ov+'%</div></div>'
+      +'<div class="grid">'+info('Entrega',entStr+(restStr?(' ('+restStr+')'):''))+info('Contacto',(custom.contacto||'—')+(custom.tel?(' · '+custom.tel):''))+info('Lugar',custom.lugar||'—')+info('Cobro',pagoTxt)+info('Montaje',montTxt)+info('Acabado',acabTxt)+'</div></div>'
+      +'<div class="sec">Avance por proceso</div>'+(procBars||'<div style="color:#999;font-size:13px;">Sin procesos asignados</div>')
+      +'<div class="sec">Detalle por pieza</div><table><thead><tr><th>Pieza</th><th>Material</th><th class="c">Necesarias</th><th class="c">Avance</th>'+heads+'</tr></thead><tbody>'+(rows||'<tr><td colspan="4">Sin piezas cargadas</td></tr>')+'</tbody></table>'
+      +'</body></html>';
+    var win=window.open('','_blank'); if(!win) return; win.document.open(); win.document.write(doc); win.document.close(); setTimeout(function(){ try{ win.focus(); win.print(); }catch(e){} },400);
+  }
+  _openDetail(pid){ this.setState({ detailId: pid }); }
+  _closeDetail(){ this.setState({ detailId: null, procMode: false, closedZ: {} }); }
+  _mutate(fn){
+    const pid = this.state.detailId; if (!pid) return;
+    this.setState(s => {
+      let est = (s.estacion||[]).map(p=>p);
+      let proj = est.find(p=>p.id===pid);
+      if (!proj) { const od = this._allData().find(x=>x.id===pid); proj = { id:pid, name: od?od.name:pid.toUpperCase(), files:[] }; est = est.concat([proj]); }
+      est = est.map(p => p.id!==pid ? p : { ...p, files: fn(p.files||[]) });
+      const _proj = est.find(p=>p.id===pid);
+      if (_proj && window.VelumAPI) VelumAPI.save('estacion', { id:_proj.id, name:_proj.name, files:_proj.files }).catch(()=>{});
+      return { estacion: est };
+    });
+  }
+  _addPieza(){
+    this._mutate(files => files.concat([{ id:'z'+Date.now(), archivo:'Nueva pieza', pieza:'Nueva pieza', material:'Acero 2,0 mm', ppc:1, objChapas:1, lote:20, chapas:0, retazo:0, fallas:0, pintado:false, procesos:['laser'] }]));
+  }
+  _delPieza(zid){ this._mutate(files => files.filter(f=>f.id!==zid)); }
+  _setPiezaName(zid, v){ this._mutate(files => files.map(f=>f.id===zid?{...f, pieza:v, archivo:v}:f)); }
+  _toggleProc(zid, procId){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const ps=f.procesos||[]; const has=ps.indexOf(procId)>=0; return {...f, procesos: has?ps.filter(x=>x!==procId):ps.concat([procId])}; })); }
+  _togglePintado(zid){ this._mutate(files => files.map(f=>f.id===zid?{...f, pintado:!f.pintado}:f)); }
+  _setNum(zid, field, delta, min){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const base = (f[field]!=null?f[field]:0); return {...f, [field]: Math.max(min, Math.round((base+delta)*10)/10)}; })); }
+  _setAbs(zid, field, val, min){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=min; v=Math.max(min, Math.round(v*10)/10); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; if(field==='ppc' && v>0 && f.objUni!=null){ return {...f, ppc:v, objChapas: Math.max(0, Math.ceil(f.objUni/v)) }; } return {...f, [field]: v}; })); }
+  _capEnChapa(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && (p.enChapa||0)>0){ best=p.enChapa; } }); return best; }catch(e){ return 0; } }
+  _capEsp(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=''; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && p.esp!=null && (''+p.esp).trim()!=='') best=(''+p.esp).trim(); }); return best; }catch(e){ return ''; } }
+  _pesoUnit(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var pf=function(v){ return parseFloat(String(v==null?'':v).replace(',','.'))||0; }; var D={Acero:7850,Galvanizado:7850,Inoxidable:8000,Aluminio:2700,MDF:750}; var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var a=pf(p.ancho),h=pf(p.alto),e=pf(p.esp); if(a>0&&h>0&&e>0) best=(a/1000)*(h/1000)*(e/1000)*(D[p.material||'Acero']||7850); } }); return best; }catch(e){ return 0; } }
+  _pesoProj(pid){ var t=0; var self=this; this._piezasOf(pid).forEach(function(z){ var nec=(z.objUni!=null)?z.objUni:((z.objChapas||0)*(z.ppc||1)); t+=self._pesoUnit(z.pieza||z.archivo||'')*nec; }); return t; }
+  _pesoFmt(t){ return t<=0?'':(t>=1000?(t/1000).toFixed(2).replace('.',',')+' t':Math.round(t).toLocaleString('es-AR')+' kg'); }
+  _setNecUnits(zid, val){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; v=Math.max(0,v); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; var ench=this._capEnChapa(f.pieza||f.archivo||''); if(ench>0){ var ppc=ench; return {...f, objUni:v, ppc:ppc, objChapas: Math.max(0, Math.ceil(v/ppc)) }; } return {...f, objUni:v}; })); }
+  _setMatEsp(zid, which, val){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; let mat = (f.matName!=null)?f.matName:(function(c){var m=c.match(/([\d.,]+\s*mm)\s*$/i); return m?c.slice(0,m.index).trim():c.trim();})(f.material||''); let esp = (f.esp!=null)?f.esp:(function(c){var m=c.match(/([\d.,]+\s*mm)\s*$/i); return m?m[1].replace(/\s+/g,' '):'';})(f.material||''); if(which==='mat') mat=val; else esp=val; const combined = (mat + (esp?(' '+esp):'')).trim(); return {...f, matName:mat, esp:esp, material: combined }; })); }
+  _pickMat(zid, mat){ this._mutate(files => files.map(f=>f.id===zid?{...f, matName:mat, material:(mat+((f.esp)?(' '+f.esp):'')).trim()}:f)); this.setState({ matMenuZ:null }); }
+  _pickEsp(zid, esp){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const mat=(f.matName!=null?f.matName:(f.material||'')); return {...f, esp:esp, material:(mat+(esp?(' '+esp):'')).trim()}; })); this.setState({ espMenuZ:null }); }
+  _setDim(zid, val){ this._mutate(files => files.map(f=>f.id===zid?{...f, dim:val}:f)); }
+  _pickDim(zid, val){ this._mutate(files => files.map(f=>f.id===zid?{...f, dim:val}:f)); this.setState({ dimMenuZ:null }); }
+  _stages(z){
+    const orden = (z.procesos||[]);
+    const lote = Math.max(1, (z.lote!=null?z.lote:20));
+    const nec = (z.objChapas||0)*(z.ppc||1);
+    const et = z.prog || {};
+    const ppc = (z.ppc||1);
+    const cutUnits = (z.chapas||0)*ppc + (z.retazo||0);
+    const out = [];
+    let prevDone = null;
+    for (let i=0;i<orden.length;i++){
+      const pid = orden[i];
+      const doneCh = et[pid] != null ? et[pid] : (i===0 ? (z.chapas||0) : 0);
+      const rawDone = doneCh*ppc;
+      const cap = i===0 ? nec : (prevDone||0);
+      const done = i===0 ? rawDone : Math.min(rawDone, cap);
+      const pct = nec>0 ? Math.min(100, Math.round(done/nec*100)) : 0;
+      out.push({ pid, done, cap, nec, lote, pct, enEspera: i>0 && cap<=0, disponible: Math.max(0, cap-done), liberados: Math.floor((prevDone!=null?prevDone:nec)/lote) });
+      prevDone = done;
+    }
+    return out;
+  }
+
+  _prioRank(p){ return p==='ALTA'?0:(p==='MEDIA'?1:2); }
+
+  _allData(){ const arch=this.state.archivados||[]; const all=this._data().concat(this.state.custom || []); return this.state.verArchivados ? all.filter(p=>arch.indexOf(p.id)>=0) : all.filter(p=>arch.indexOf(p.id)<0); }
+  _setForm(k, v){ this.setState(s => ({ form: { ...s.form, [k]: v } })); }
+  _saveProject(){
+    const f = this.state.form;
+    const nombre = (f.nombre||'').trim();
+    if (!nombre) return;
+    let deadlineDays = 7;
+    if (f.fecha) { const d = new Date(f.fecha + 'T00:00:00'); const ms = d - this.state.now; if (!isNaN(ms)) deadlineDays = Math.max(0, Math.round(ms/86400000)); }
+    const nuevo = { id: (this.state.editId||('cust'+Date.now())), createdTs: (function(){ var ex=(this.state.custom||[]).find(p=>p.id===this.state.editId); return (ex&&ex.createdTs)?ex.createdTs:Date.now(); }).call(this), name:nombre.toUpperCase(), producto:(f.producto||'').trim()||'Nuevo proyecto', tipo:((f.material||'').trim()||'Por definir'), contacto:(f.persona||'').trim()||'—', tel:(f.tel||'').trim()||'', deadlineDays:deadlineDays, pago:'IMPAGO', montaje:!!f.montaje, urgencia:(f.prioridad||'NORMAL'), basePct:0, material:(f.material||'').trim(), pintado:!!f.pintado, colorName:f.pintado?((f.codigoPintura||'').trim()||'A definir'):'', colorHex:'#8B7355', lugar:(f.lugar||'').trim()||'A definir' };
+    this.setState(s => {
+      var ex=(s.custom||[]).find(p=>p.id===nuevo.id);
+      var custom = ex ? s.custom.map(p=>p.id===nuevo.id?Object.assign({},p,nuevo):p) : [...s.custom, nuevo];
+      if(window.VelumAPI) VelumAPI.save('proyectos', nuevo).catch(()=>{});
+      return { custom, loadOpen:false, editId:null, form:{ nombre:'', lugar:'', persona:'', tel:'', producto:'', material:'', montaje:false, pintado:false, codigoPintura:'', fecha:'', prioridad:'NORMAL' } };
+    });
+  }
+  _editProject(id){ var p=(this.state.custom||[]).find(x=>x.id===id); if(!p) return; var fecha=''; try{ var dd=new Date(this.state.now.getTime()+(p.deadlineDays||0)*86400000); fecha=dd.toISOString().slice(0,10); }catch(e){} this.setState({ loadOpen:true, editId:id, form:{ nombre:p.name||'', lugar:(p.lugar||''), persona:(p.contacto||''), tel:(p.tel||''), producto:(p.producto||''), material:(p.material||''), montaje:!!p.montaje, pintado:!!p.pintado, codigoPintura:(p.colorName||''), fecha:fecha, prioridad:(p.urgencia||'NORMAL') } }); }
+
+  renderVals() {
+    const MM = this._mm();
+    const C = 289.03;
+    const ordered = this._allData().slice().sort((a,b)=>{ const d=this._prioRank(a.urgencia)-this._prioRank(b.urgencia); return d!==0?d:a.deadlineDays-b.deadlineDays; });
+    const projects = ordered.map((p, idx) => {
+      const live = this.state.liveObras[p.id];
+      const pct = live != null ? live : p.basePct;
+      const risk = this._risk(pct, p.deadlineDays);
+      const ent = this._entrega(p.deadlineDays);
+      const pg = this._pago(p.pago);
+      return {
+        id:p.id, name:p.name, producto:p.producto, tipo:p.tipo||p.material||'Proyecto', contacto:p.contacto||'—', tel:p.tel||'', urgencia:p.urgencia, rank:'#'+(idx+1),
+        urgColor:this._prio(p.urgencia), urgSoft:this._prio(p.urgencia)+'26',
+        pctStr: pct + '%', ringArr:(pct/100*C).toFixed(1)+' '+C.toFixed(1), riskColor:risk,
+        cardBd: risk==='#E0694A' ? 'rgba(224,105,74,0.3)' : 'rgba(139,115,85,0.16)',
+        pagoLabel:pg.label, pagoColor:pg.color, pagoSoft:pg.soft,
+        montLabel: p.montaje ? '⚒ CON MONTAJE' : 'SIN MONTAJE',
+        montColor: p.montaje ? '#C9B79A' : '#7E8C89',
+        montSoft: p.montaje ? 'rgba(201,183,154,0.16)' : 'rgba(255,255,255,0.04)',
+        pintado:!!p.pintado, crudo:!p.pintado, colorName:p.colorName||'', colorHex:p.colorHex||'#8B7355', lugar:p.lugar,
+        kmTxt:(function(){ var km=this._distKm(p.lugar); return km!=null?('≈ '+km+' km'):''; }).call(this), hasKm:(this._distKm(p.lugar)!=null),
+        pesoTxt:this._pesoFmt(this._pesoProj(p.id)), hasPeso:(this._pesoProj(p.id)>0),
+        fabDaysTxt:(function(){ var fab=this._fabDays(this._piezasOf(p.id)); if(!fab.matched) return ''; var v=Math.round(fab.days*10)/10; return (v===1?'1 día fabric.':(String(v).replace('.',',')+' días fabric.')); }).call(this), fabColor:(function(){ var fab=this._fabDays(this._piezasOf(p.id)); return (fab.matched && fab.days>(p.deadlineDays||0))?'#E0694A':'#4FB870'; }).call(this), hasFab:(this._fabDays(this._piezasOf(p.id)).matched),
+        entregaFecha:ent.fecha, entregaTxt:ent.txt, restanteTxt:ent.rest, deadlineDays: p.deadlineDays
+      };
+    });
+
+    const raw = this._allData();
+    const conMont = raw.filter(p=>p.montaje).length;
+    const impagos = raw.filter(p=>p.pago==='IMPAGO').length;
+    const stats = [
+      { value: raw.length, label:'EN CURSO', color:'#C9B79A' },
+      { value: conMont, label:'CON MONTAJE', color:'#21C7D6' },
+      { value: impagos, label:'IMPAGAS', color:'#E0694A' }
+    ];
+
+    const n = this.state.now;
+    const pad = x=>x<10?'0'+x:''+x;
+    const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+    const n2 = this._allData().length;
+    const cols = n2<=1?1 : n2<=2?2 : n2<=3?3 : n2===4?2 : n2<=6?3 : n2<=8?4 : n2===9?3 : n2<=12?4 : 5;
+    const rows = Math.ceil(n2/cols);
+    const scaleByCols = { 1:1.25, 2:1.12, 3:1.0, 4:0.9, 5:0.8 };
+    const baseScale = scaleByCols[cols] || 1;
+    const cardScale = baseScale;
+    this._gridRows = rows; this._curScale = cardScale; this._curCols = cols;
+    projects.forEach(p => { p.scale = cardScale; p.onOpen = () => this._openDetail(p.id); });
+
+    let detail = null;
+    const dProj = projects.find(p => p.id === this.state.detailId);
+    if (dProj) {
+      const procDefs = this._procDefs();
+      const rawPiezas = this._piezasOf(dProj.id);
+      const stockArr = this._readStock();
+      const stockMatNames = (function(){ var seen={}, out=[]; stockArr.forEach(function(x){ var m=(x.material||'').trim(); if(!m||seen[m]) return; seen[m]=1; out.push(m); }); return out; })();
+      const stockMatOpts = (function(self){ var st=stockArr; var seen={}; var out=[]; st.forEach(function(x){ var key=(x.material+'|'+x.espesor+'|'+(x.dimension||'')); if(seen[key]) return; seen[key]=1; out.push({ material:x.material, espesor:x.espesor||'', dimension:x.dimension||'', label:(x.material+' '+(x.espesor||'')+(x.dimension&&x.dimension!=='—'?(' · '+x.dimension):'')).trim() }); }); return out; })(this);
+      const stockDimOpts = (function(self){ var st=stockArr; var seen={}; var out=[]; st.forEach(function(x){ var d=(x.dimension||'').trim(); if(!d||d==='—'||seen[d]) return; seen[d]=1; out.push(d); }); return out; })(this);
+      const piezas = rawPiezas.map((z, i) => {
+        const procesos = z.procesos || [];
+        const rutaOrden = procDefs.filter(d => procesos.indexOf(d.id)>=0);
+        const obj = z.objChapas || 0;
+        const ppc = z.ppc || 1;
+        const comp = (z.chapas||0)*ppc + (z.retazo||0);
+        const nec = (z.objUni!=null) ? z.objUni : obj*ppc;
+        const pct = nec>0 ? Math.min(100, Math.round(comp/nec*100)) : 0;
+        const estadoDone = (function(){ var ids=rutaOrden.map(d=>d.id); var lastId=ids.length?ids[ids.length-1]:'laser'; var lastCh=(z.prog&&z.prog[lastId]!=null)?z.prog[lastId]:((ids.length&&lastId===ids[0])?(z.chapas||0):0); return nec>0 && (lastCh*ppc)>=nec; })();
+        const code = 'L'+(i+1);
+        const espDefault = this._capEsp(z.pieza||z.archivo||'');
+        return {
+          id:z.id, nombre:z.pieza||z.archivo||'Pieza', archivo:code, pct, pctStr: pct+'%', barW: pct+'%',
+          grupo: (function(nm){ var m=(nm||'').match(/^\s*(\d{1,2})/); var n=m?parseInt(m[1]):-1; if(n===0) return {label:'INSUMO',color:'#8B7355'}; if(n===3) return {label:'PANEL',color:'#E76A95'}; if(n===1||n===2) return {label:'ESTRUCTURA',color:'#21C7D6'}; return {label:'',color:'#7E8C89'}; })(z.pieza||z.archivo||''),
+          isInsumo: (function(nm){ var m=(nm||'').match(/^\s*(\d{1,2})/); return m && parseInt(m[1])===0; })(z.pieza||z.archivo||''),
+          notInsumo: !((function(nm){ var m=(nm||'').match(/^\s*(\d{1,2})/); return m && parseInt(m[1])===0; })(z.pieza||z.archivo||'')),
+          material: (function(){ if(z.matName!=null) return z.matName||'—'; var mt=(z.material||'—'); var em=mt.match(/([\d.,]+\s*mm)\s*$/i); return em? (mt.slice(0,em.index).trim()||'—') : mt; })(),
+          espesor: (function(){ if(z.esp!=null && (''+z.esp).trim()!=='') return z.esp; var mt=(z.material||''); var em=mt.match(/([\d.,]+\s*mm)\s*$/i); return em? em[1] : espDefault; })(),
+          espLabel: (function(){ if(z.esp!=null && (''+z.esp).trim()!=='') return (''+z.esp).replace(/\s*mm/i,''); var mt=(z.material||''); var em=mt.match(/([\d.,]+\s*mm)\s*$/i); if(em) return em[1].replace(/\s*mm/i,''); return espDefault?(''+espDefault).replace(/\s*mm/i,''):'—'; })(),
+          dim: z.dim||'', dimLabel: (z.dim||'—'), onDimSet:(e)=>this._setDim(z.id, e.target.value),
+          hasDimOpts: (function(zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var seen={},n=0; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; var d=(x.dimension||'').trim(); if(d&&d!=='—'&&!seen[d]){seen[d]=1;n++;} }); return n>0; })(z),
+          hasEspOpts: (function(zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var dm=(zz.dim||'').trim(); var seen={},n=0; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; if(dm && (x.dimension||'').trim()!==dm) return; var e=(x.espesor||'').trim(); if(e&&!seen[e]){seen[e]=1;n++;} }); return n>0; })(z),
+          sinDimOpts: !(function(zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var seen={},n=0; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; var d=(x.dimension||'').trim(); if(d&&d!=='—'&&!seen[d]){seen[d]=1;n++;} }); return n>0; })(z),
+          sinEspOpts: !(function(zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var dm=(zz.dim||'').trim(); var seen={},n=0; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; if(dm && (x.dimension||'').trim()!==dm) return; var e=(x.espesor||'').trim(); if(e&&!seen[e]){seen[e]=1;n++;} }); return n>0; })(z),
+          matMenuOpen: this.state.matMenuZ===z.id, onMatMenu:()=>this.setState(s=>({ matMenuZ: s.matMenuZ===z.id?null:z.id })),
+          matOpts: stockMatNames.map(m=>({ label:m, onPick:()=>this._pickMat(z.id, m) })), hasMatOpts: stockMatNames.length>0, sinMatOpts: stockMatNames.length===0,
+          dimMenuOpen: this.state.dimMenuZ===z.id, onDimMenu:()=>this.setState(s=>({ dimMenuZ: s.dimMenuZ===z.id?null:z.id })),
+          dimOpts: (function(self,zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var seen={}, out=[]; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; var d=(x.dimension||'').trim(); if(!d||d==='—'||seen[d]) return; seen[d]=1; out.push({ label:d, onPick:()=>self._pickDim(zz.id, d) }); }); return out; })(this,z),
+          espMenuOpen: this.state.espMenuZ===z.id, onEspMenu:()=>this.setState(s=>({ espMenuZ: s.espMenuZ===z.id?null:z.id })),
+          espOpts: (function(self,zz){ var mn=(zz.matName!=null?zz.matName:'').trim(); var dm=(zz.dim||'').trim(); var seen={}, out=[]; stockArr.forEach(function(x){ if(mn && (x.material||'').trim()!==mn) return; if(dm && (x.dimension||'').trim()!==dm) return; var e=((x.espesor||'')+'').replace(/\s*mm/i,'').trim(); if(!e||seen[e]) return; seen[e]=1; out.push({ label:e, onPick:()=>self._pickEsp(zz.id, e) }); }); return out; })(this,z),
+          necesarioStr: comp+' / '+nec+' piezas', necNum: nec, compNum: comp,
+          resumen: (function(st){ return st.map(s=>{ var dd=procDefs.find(x=>x.id===s.pid)||{label:s.pid,color:'#999'}; return { label:dd.label, color:dd.color, pctStr: s.enEspera?'en espera':(s.pct+'%'), espera:s.enEspera }; }); })(this._stages(z)), hasResumen: procesos.length>0, sinResumen: procesos.length===0,
+          estado: estadoDone?'DESPACHO':'EN PROCESO', estadoColor: estadoDone?'#4FB870':'#C9B79A', estadoBg: estadoDone?'rgba(79,184,112,0.16)':'rgba(201,183,154,0.14)',
+          pintado: !!z.pintado, pintadoLabel: z.pintado?'Pintado':'Crudo', pintadoColor: z.pintado?'#E76A95':'#9AA6A2', pintadoBg: z.pintado?'rgba(231,106,149,0.16)':'rgba(255,255,255,0.04)', pintadoBd: z.pintado?'rgba(231,106,149,0.45)':'rgba(139,115,85,0.25)',
+          onName:(e)=>this._setPiezaName(z.id, e.target.value),
+          onDel:()=>this._delPieza(z.id),
+          onTogglePintado:()=>this._togglePintado(z.id),
+          rutaResumen: rutaOrden.length ? rutaOrden.map(d=>d.label).join(' → ') : 'Sin procesos',
+          rutaColor: rutaOrden.length ? '#A9D9DE' : '#6E7E85',
+          loteNum: (z.lote!=null?z.lote:20), objNum: (z.objChapas||0), ppcNum: (z.ppc||1),
+          loteCalcTxt: (function(){ var lt=(z.lote!=null?z.lote:20); var tot=nec; var full=Math.floor(tot/lt); var resto=Math.round((tot-full*lt)*10)/10; return full>0 ? (full+' lotes × '+lt+(resto>0?' + '+resto+' sueltas':'')) : (resto+' piezas sueltas'); })(),
+          paqCalcTxt: (function(){ var pq=(z.paquete!=null?z.paquete:0); if(!pq) return ''; var tot=nec; var n=Math.ceil(tot/pq); return n+' paquetes × '+pq; })(),
+          hasPaqCalc: !!(z.paquete && z.paquete>0),
+          onLoteDec:()=>this._setNum(z.id,'lote',-1,1), onLoteInc:()=>this._setNum(z.id,'lote',1,1),
+          onObjDec:()=>this._setNum(z.id,'objChapas',-0.5,0), onObjInc:()=>this._setNum(z.id,'objChapas',0.5,0),
+          onPpcDec:()=>this._setNum(z.id,'ppc',-1,1), onPpcInc:()=>this._setNum(z.id,'ppc',1,1),
+          onObjSet:(e)=>this._setAbs(z.id,'objChapas',e.target.value,0), onPpcSet:(e)=>this._setAbs(z.id,'ppc',e.target.value,1), onLoteSet:(e)=>this._setAbs(z.id,'lote',e.target.value,1),
+          onNecSet:(e)=>this._setNecUnits(z.id, e.target.value), onMatSet:(e)=>this._setMatEsp(z.id,'mat',e.target.value), onEspSet:(e)=>this._setMatEsp(z.id,'esp',e.target.value),
+          paqNum: (z.paquete!=null?z.paquete:0), onPaqDec:()=>this._setNum(z.id,'paquete',-1,0), onPaqInc:()=>this._setNum(z.id,'paquete',1,0), onPaqSet:(e)=>this._setAbs(z.id,'paquete',e.target.value,0),
+          editOpen: this.state.procMode && !this.state.closedZ[z.id], onListoZ:()=>this.setState(s=>({ closedZ: Object.assign({}, s.closedZ, { [z.id]: true }) })),
+          procs: procDefs.map(d => { const on = procesos.indexOf(d.id)>=0; return { icon:d.id, label:d.label, on, pctStr: on?pct+'%':'', color: on?d.color:'#8E9A96', iconColor: on?d.color:'#5A6562', bg: on?d.color+'1F':'rgba(255,255,255,0.03)', bd: on?d.color+'66':'rgba(139,115,85,0.2)', onToggle:()=>this._toggleProc(z.id, d.id) }; })
+        };
+      });
+      const stageBy = {};
+      rawPiezas.forEach(z => { this._stages(z).forEach(s => { const t=stageBy[s.pid]=stageBy[s.pid]||{done:0,nec:0}; t.done+=s.done; t.nec+=s.nec; }); });
+      const breakdown = procDefs.map(d => {
+        const t = stageBy[d.id];
+        if (!t || !t.nec) return null;
+        const avg = Math.min(100, Math.round(t.done/t.nec*100));
+        return { label:d.label, color:d.color, pctStr:avg+'%', barW:avg+'%', ringArr:(avg/100*289).toFixed(1)+' 289', count:1 };
+      }).filter(Boolean);
+      const archivos = rawPiezas.map((z,i)=>({z,i})).filter(o => (o.z.procesos||[]).indexOf('laser')>=0).map(o => ({ archivo:'L'+(o.i+1), nombre:o.z.pieza||o.z.archivo||'Pieza', pintado:o.z.pintado, pintColor: o.z.pintado?'#E76A95':'#7E8C89' }));
+      const fab = this._fabDays(rawPiezas);
+      const fabDaysVal = Math.round(fab.days*10)/10;
+      var _pesoTot=0; var _self=this; rawPiezas.forEach(function(z){ var nec=(z.objUni!=null)?z.objUni:((z.objChapas||0)*(z.ppc||1)); var pu=_self._pesoUnit(z.pieza||z.archivo||''); _pesoTot+=pu*nec; });
+      const pesoTotalStr = _pesoTot>0 ? (_pesoTot>=1000 ? (_pesoTot/1000).toFixed(2).replace('.',',')+' t' : Math.round(_pesoTot).toLocaleString('es-AR')+' kg') : '';
+      detail = Object.assign({}, dProj, { pesoTotalStr: pesoTotalStr, hasPeso: _pesoTot>0, onPago: ()=>this._cyclePago(dProj.id), onExportEstado: ()=>this._exportEstado(dProj.id), fabHasData: fab.matched, fabDaysTxt: (fabDaysVal===1?'1 día':(String(fabDaysVal).replace('.',',')+' días')), fabColor: (fab.matched && fab.days > (dProj.deadlineDays||0)) ? '#E0694A' : '#4FB870', onEditar: ()=>this._editProject(dProj.id), archLabel: (this.state.archivados||[]).indexOf(dProj.id)>=0 ? '↺ Reabrir proyecto' : '✓ Cerrar proyecto (terminado)', archColor: (this.state.archivados||[]).indexOf(dProj.id)>=0 ? '#21C7D6' : '#C9B79A', archBg: (this.state.archivados||[]).indexOf(dProj.id)>=0 ? 'rgba(33,199,214,0.14)' : 'rgba(201,183,154,0.14)', archBd: (this.state.archivados||[]).indexOf(dProj.id)>=0 ? 'rgba(33,199,214,0.4)' : 'rgba(201,183,154,0.4)', onArchivar: ()=>this._toggleArch(dProj.id), piezas, breakdown, hasBreakdown: breakdown.length>0, sinBreakdown: breakdown.length===0, archivos, archivoCount: archivos.length, hasArchivos: archivos.length>0, sinArchivos: archivos.length===0, riskSoft: dProj.riskColor + '22', piezaCount: piezas.length });
+    }
+
+    return {
+      projects, stats,
+      stockAlertas: this._stockAlertas(), hayStockAlertas: this._stockAlertas().length>0,
+      alertas: this._stockAlertas().map(a=>({ txt:a.txt, det:a.det, color:a.color, soft:a.color+'18', line:a.color+'55' })), alertaCount: this._stockAlertas().length, sinStockAlertas: this._stockAlertas().length===0,
+      alertasOpen: this.state.alertasOpen, onOpenAlertas: ()=>this.setState({alertasOpen:true}), onCloseAlertas: ()=>this.setState({alertasOpen:false}),
+      stockResumen: (function(a){ if(!a.length) return ''; const f=a.filter(x=>x.color==='#E0694A').length; const parts=a.slice(0,3).map(x=>x.txt); return parts.join(' · ') + (a.length>3 ? ' +'+(a.length-3)+' más' : ''); })(this._stockAlertas()),
+      gridCols: 'repeat('+cols+',1fr)', gridRows: 'repeat('+rows+',1fr)',
+      gridRef: (el)=>{ this._gridEl = el; },
+      loadOpen: this.state.loadOpen,
+      gridOpen: !detail,
+      detailOpen: !!detail, detail: detail || { piezas:[] },
+      archModalOpen: this.state.archModal.open, onArchConfirm: ()=>this._doToggleArch(this.state.archModal.pid), onArchCancel: ()=>this._cancelArch(),
+      onCloseDetail: () => this._closeDetail(), onAddPieza: () => this._addPieza(),
+      verArchivados: this.state.verArchivados,
+      onToggleArchivados: () => this.setState(s=>({ verArchivados: !s.verArchivados })),
+      archToggleLabel: this.state.verArchivados ? '← Ver activos' : 'Ver archivados',
+      procMode: this.state.procMode,
+      onToggleProcMode: () => this.setState(s=>({ procMode: !s.procMode, closedZ: {} })),
+      procModeLabel: this.state.procMode ? 'Listo' : 'Asignar procesos',
+      procModeColor: this.state.procMode ? '#0C2226' : '#C9B79A',
+      procModeBg: this.state.procMode ? '#C9B79A' : 'rgba(139,115,85,0.14)',
+      procModeBd: this.state.procMode ? '#C9B79A' : 'rgba(139,115,85,0.35)',
+      onOpenLoad: () => this.setState({ loadOpen:true }),
+      onExportPdf: () => this._exportPdf(),
+      onOpenAvisos: () => this.setState({ avisosOpen:true }), onCloseAvisos: () => this.setState({ avisosOpen:false }), avisosOpen: this.state.avisosOpen,
+      avisos: (this.state.avisos||[]).map(a=>({ text:a.text, onDel:()=>this._delAviso(a.id) })), hasAvisos:(this.state.avisos||[]).length>0, avisosCount:(this.state.avisos||[]).length, noAvisos:(this.state.avisos||[]).length===0,
+      draftAviso: this.state.draftAviso, onDraftAviso:(e)=>this.setState({draftAviso:e.target.value}), onDraftAvisoKey:(e)=>{ if(e.key==='Enter') this._addAviso(); }, onAddAviso:()=>this._addAviso(),
+      navOpen: this.state.navOpen,
+      onToggleNav: () => this.setState(s=>({ navOpen: !s.navOpen })),
+      navLinks: [
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso + cargar', dot:'#C9B79A', bg:'rgba(201,183,154,0.12)' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Materia prima', desc:'Stock de chapas', dot:'#8B7355', bg:'transparent' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ],
+      onCloseLoad: () => this.setState({ loadOpen:false }),
+      stop: (e)=>e.stopPropagation(),
+      onSaveProject: () => this._saveProject(),
+      form: { nombre:this.state.form.nombre, lugar:this.state.form.lugar, persona:this.state.form.persona, tel:this.state.form.tel, producto:this.state.form.producto, material:this.state.form.material, fecha:this.state.form.fecha, pintado:this.state.form.pintado, codigoPintura:this.state.form.codigoPintura,
+        onNombre:(e)=>this._setForm('nombre',e.target.value), onLugar:(e)=>this._setForm('lugar',e.target.value), onPersona:(e)=>this._setForm('persona',e.target.value), onTel:(e)=>this._setForm('tel',e.target.value), onProducto:(e)=>this._setForm('producto',e.target.value), onMaterial:(e)=>this._setForm('material',e.target.value), onFecha:(e)=>this._setForm('fecha',e.target.value), onCodigoPintura:(e)=>this._setForm('codigoPintura',e.target.value),
+        montajeSi:()=>this._setForm('montaje',true), montajeNo:()=>this._setForm('montaje',false),
+        prioOpts: ['ALTA','MEDIA','NORMAL'].map(pr=>{ const on=(this.state.form.prioridad||'NORMAL')===pr; const col=this._prio(pr); return { label:pr, color: on?'#0C2226':col, bg: on?col:'transparent', bd: col+'66', onClick:()=>this._setForm('prioridad',pr) }; }),
+        montajeSiColor:this.state.form.montaje?'#0C2226':'#9AA6A2', montajeSiBg:this.state.form.montaje?'#C9B79A':'rgba(255,255,255,0.04)', montajeSiBd:this.state.form.montaje?'#C9B79A':'rgba(139,115,85,0.25)',
+        montajeNoColor:!this.state.form.montaje?'#0C2226':'#9AA6A2', montajeNoBg:!this.state.form.montaje?'#C9B79A':'rgba(255,255,255,0.04)', montajeNoBd:!this.state.form.montaje?'#C9B79A':'rgba(139,115,85,0.25)',
+        crudoSet:()=>this._setForm('pintado',false), pintadoSet:()=>this._setForm('pintado',true),
+        crudoColor:!this.state.form.pintado?'#0C2226':'#9AA6A2', crudoBg:!this.state.form.pintado?'#C9B79A':'rgba(255,255,255,0.04)', crudoBd:!this.state.form.pintado?'#C9B79A':'rgba(139,115,85,0.25)',
+        pintadoColor:this.state.form.pintado?'#0C2226':'#9AA6A2', pintadoBg:this.state.form.pintado?'#C9B79A':'rgba(255,255,255,0.04)', pintadoBd:this.state.form.pintado?'#C9B79A':'rgba(139,115,85,0.25)' },
+      timeStr: pad(n.getHours())+':'+pad(n.getMinutes()),
+      dateStr: dias[n.getDay()]+' '+n.getDate()+' '+meses[n.getMonth()]
+    };
+  }
+}
+</script>
+</body>
+</html>

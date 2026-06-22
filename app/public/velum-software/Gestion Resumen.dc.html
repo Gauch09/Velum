@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    ::-webkit-scrollbar{width:10px;height:10px;}
+    ::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}
+    @keyframes velPulseSoft{0%,100%{box-shadow:0 0 0 rgba(224,105,74,0);}50%{box-shadow:0 0 18px rgba(224,105,74,0.5);}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 30px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:15px;position:relative;">
+      <a href="Dashboard Oficina.dc.html" title="Volver" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="25" height="32" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:15px;letter-spacing:0.04em;color:#fff;line-height:1.1;">GESTIÓN DE PRODUCCIÓN</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:11px;letter-spacing:0.14em;color:#C9B79A;">{{ manager }}</div>
+        </div>
+        <span style="font-size:13px;color:#8E9A96;">▾</span>
+      </div>
+      <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:46px;left:0;z-index:40;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:248px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="4">
+            <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;text-decoration:none;padding:11px 13px;border-radius:8px;background:{{ n.bg }};">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#EAE6DF;">{{ n.label }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:11px;color:#7E8C89;">{{ n.desc }}</div>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:none;">
+      <sc-for list="{{ switcher }}" as="s" hint-placeholder-count="5">
+        <div onClick="{{ s.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:13px;letter-spacing:0.02em;color:{{ s.color }};background:{{ s.bg }};padding:8px 15px;border-radius:6px;cursor:pointer;white-space:nowrap;">{{ s.label }}</div>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+    <sc-if value="{{ hayMaqFuera }}" hint-placeholder-val="{{ false }}">
+      <a href="#" onClick="{{ onScrollTop }}" style="display:flex;align-items:center;gap:9px;text-decoration:none;background:rgba(224,105,74,0.12);border:0.5px solid rgba(224,105,74,0.45);border-radius:10px;padding:9px 14px;animation:velPulseSoft 1.8s ease-in-out infinite;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+        <div style="line-height:1.15;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:14px;color:#F0B6A6;">Máquina parada</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:11px;color:#C2C8C4;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ maqFueraTxt }}</div>
+        </div>
+      </a>
+    </sc-if>
+    <a href="Ocupacion.dc.html" title="{{ ocuMsg }}" style="display:flex;align-items:center;gap:9px;text-decoration:none;background:{{ ocuBg }};border:0.5px solid {{ ocuLine }};border-radius:10px;padding:9px 14px;{{ ocuAnim }}">
+      <span style="width:10px;height:10px;border-radius:50%;background:{{ ocuColor }};flex:0 0 auto;"></span>
+      <div style="line-height:1.15;">
+        <div style="font-family:'DM Sans';font-weight:700;font-size:14px;color:#fff;">Planta {{ ocuPct }}%</div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:11px;color:{{ ocuColor }};">{{ ocuShort }}</div>
+      </div>
+    </a>
+    <div style="text-align:right;">
+      <div style="font-family:'DM Sans';font-weight:600;font-size:20px;color:#EAE6DF;line-height:1;font-variant-numeric:tabular-nums;">{{ dateStr }}</div>
+      <div style="font-family:'DM Sans';font-weight:400;font-size:11px;letter-spacing:0.12em;color:#7E8C89;margin-top:3px;">{{ projectCount }} OBRAS · PLANTA {{ plantaPct }}</div>
+    </div>
+    </div>
+  </div>
+
+  <div style="max-width:1560px;margin:0 auto;padding:22px 30px 48px;">
+
+    <!-- ░░ KPIs ░░ -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;">
+      <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid {{ k.color }};border-radius:11px;padding:15px 18px;">
+          <div style="font-family:'DM Sans';font-weight:700;font-size:32px;color:{{ k.color }};line-height:1;font-variant-numeric:tabular-nums;">{{ k.value }}</div>
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.05em;color:#9AA6A2;margin-top:6px;">{{ k.label }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- ═══ V1 · TARJETAS ═══ -->
+    <sc-if value="{{ isCards }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+          <div style="background:#1C2928;border:0.5px solid {{ p.cardBd }};border-left:6px solid {{ p.riskColor }};border-radius:14px;padding:22px 26px;display:flex;flex-direction:column;gap:18px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;">
+              <div style="display:flex;align-items:flex-start;gap:14px;min-width:0;">
+                <span style="width:12px;height:12px;border-radius:50%;background:{{ p.urgColor }};margin-top:8px;flex:0 0 auto;"></span>
+                <div style="min-width:0;">
+                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:26px;letter-spacing:0.02em;text-transform:uppercase;color:#fff;line-height:1;">{{ p.name }}</span>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:{{ p.urgColor }};background:{{ p.urgSoft }};padding:4px 11px;border-radius:20px;">{{ p.urgencia }}</span>
+                  </div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:17px;color:#C9B79A;margin-top:7px;">{{ p.producto }}</div>
+                  <div style="font-family:'DM Sans';font-weight:400;font-size:14px;color:#8E9A96;margin-top:3px;">{{ p.cliente }}</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;flex:0 0 auto;">
+                <div style="position:relative;width:104px;height:104px;">
+                  <svg width="104" height="104" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ p.riskColor }}" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ p.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+                  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:28px;color:#fff;">{{ p.pctStr }}</div>
+                </div>
+                <div style="display:inline-flex;align-items:center;font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.08em;color:{{ p.riskColor }};background:{{ p.riskSoft }};padding:5px 12px;border-radius:20px;">{{ p.riskLabel }}</div>
+              </div>
+            </div>
+
+            <sc-if value="{{ p.hasAlerta }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(224,105,74,0.1);border:0.5px solid rgba(224,105,74,0.35);border-radius:9px;padding:11px 15px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#F0B6A6;">{{ p.alerta }}</span>
+              </div>
+            </sc-if>
+
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:18px;padding:16px 0;border-top:0.5px solid rgba(139,115,85,0.14);border-bottom:0.5px solid rgba(139,115,85,0.14);">
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">ENTREGA</div>
+                <div style="font-family:'DM Sans';font-weight:700;font-size:18px;color:{{ p.riskColor }};line-height:1.1;">{{ p.entregaTxt }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#9AA6A2;margin-top:2px;">{{ p.entregaFecha }}</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">FLETE / DESTINO</div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;line-height:1.15;">{{ p.flete }}</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">COBRO</div>
+                <div style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.04em;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:4px 10px;border-radius:6px;">{{ p.pagoLabel }}</div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ p.despachoColor }};margin-top:6px;">{{ p.despachoLabel }}</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">PINTURA</div>
+                <sc-if value="{{ p.pintado }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="width:22px;height:22px;border-radius:6px;background:{{ p.colorHex }};border:1px solid rgba(255,255,255,0.25);flex:0 0 auto;"></span>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;">{{ p.colorName }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ p.sinPintura }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#9AA6A2;">Sin pintura · natural</div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">CONTACTO</div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;">{{ p.contacto }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#9AA6A2;margin-top:2px;">{{ p.contactoRol }} · {{ p.contactoTel }}</div>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">INGRESÓ</div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;">{{ p.ingreso }}</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;">
+              <div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:14px;">RUTA DE FABRICACIÓN</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <sc-for list="{{ p.ruta }}" as="r" hint-placeholder-count="3">
+                    <div style="flex:1;min-width:118px;background:rgba(255,255,255,0.03);border:0.5px solid {{ r.line }};border-radius:11px;padding:13px 14px;">
+                      <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px;">
+                        <div style="width:26px;height:26px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ r.icon }}" color="{{ r.color }}" hint-size="26px,26px"></dc-import></div>
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#D2CEC4;line-height:1.05;">{{ r.maq }}</span>
+                      </div>
+                      <div style="font-family:'DM Sans';font-weight:700;font-size:23px;color:{{ r.color }};font-variant-numeric:tabular-nums;margin-bottom:8px;">{{ r.pctStr }}</div>
+                      <div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;"><div style="height:100%;width:{{ r.barW }};background:{{ r.color }};border-radius:4px;"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:14px;">PIEZAS DERIVADAS · {{ p.piezaCount }}</div>
+                <div style="display:flex;flex-direction:column;gap:13px;">
+                  <sc-for list="{{ p.piezas }}" as="z" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;width:170px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ z.nombre }}</span>
+                      <div style="flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden;"><div style="height:100%;width:{{ z.barW }};background:#C9B79A;border-radius:5px;"></div></div>
+                      <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;font-variant-numeric:tabular-nums;width:44px;text-align:right;flex:0 0 auto;">{{ z.pctStr }}</span>
+                      <span style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#7E8C89;width:54px;text-align:right;flex:0 0 auto;">{{ z.cantStr }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V2 · TABLA ═══ -->
+    <sc-if value="{{ isTable }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:12px;overflow:hidden;">
+        <div style="display:grid;grid-template-columns:2.6fr 1.3fr 1.5fr 1.2fr 1.3fr 1.4fr;gap:18px;align-items:center;padding:14px 24px;background:rgba(0,0,0,0.28);border-bottom:0.5px solid rgba(139,115,85,0.24);">
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">OBRA / PRODUCTO</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">ENTREGA</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">AVANCE</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">COBRO</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">PINTURA</span>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;">DESTINO</span>
+        </div>
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:2.6fr 1.3fr 1.5fr 1.2fr 1.3fr 1.4fr;gap:18px;align-items:center;padding:16px 24px;border-bottom:0.5px solid rgba(139,115,85,0.1);border-left:4px solid {{ p.riskColor }};">
+            <div style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="width:9px;height:9px;border-radius:50%;background:{{ p.urgColor }};flex:0 0 auto;"></span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:18px;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+              </div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.producto }}</div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:16px;color:{{ p.riskColor }};">{{ p.entregaTxt }}</div>
+              <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#7E8C89;margin-top:2px;">{{ p.entregaFecha }}</div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:9px;">
+                <div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ p.barW }};background:{{ p.riskColor }};border-radius:4px;"></div></div>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;font-variant-numeric:tabular-nums;width:44px;text-align:right;">{{ p.pctStr }}</span>
+              </div>
+            </div>
+            <div>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:12px;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:4px 9px;border-radius:6px;">{{ p.pagoLabel }}</span>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;color:{{ p.despachoColor }};margin-top:5px;">{{ p.despachoLabel }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+              <sc-if value="{{ p.pintado }}" hint-placeholder-val="{{ true }}">
+                <span style="width:18px;height:18px;border-radius:5px;background:{{ p.colorHex }};border:1px solid rgba(255,255,255,0.25);flex:0 0 auto;"></span>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#D2CEC4;white-space:nowrap;">{{ p.colorName }}</span>
+              </sc-if>
+              <sc-if value="{{ p.sinPintura }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#8E9A96;">Sin pintura</span>
+              </sc-if>
+            </div>
+            <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#D2CEC4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.flete }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V3 · TABLERO (RIESGO) ═══ -->
+    <sc-if value="{{ isBoard }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat({{ riskColCount }},1fr);gap:16px;align-items:start;">
+        <sc-for list="{{ riskGroups }}" as="g" hint-placeholder-count="3">
+          <div style="background:rgba(255,255,255,0.02);border:0.5px solid rgba(139,115,85,0.14);border-top:4px solid {{ g.color }};border-radius:12px;padding:16px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:14px;letter-spacing:0.08em;color:{{ g.color }};">{{ g.label }}</span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:14px;color:{{ g.color }};background:{{ g.soft }};padding:2px 9px;border-radius:12px;">{{ g.count }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px;">
+              <sc-for list="{{ g.items }}" as="p" hint-placeholder-count="2">
+                <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:10px;padding:15px 16px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:17px;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:18px;color:{{ p.riskColor }};font-variant-numeric:tabular-nums;flex:0 0 auto;">{{ p.pctStr }}</span>
+                  </div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.producto }}</div>
+                  <div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;margin:11px 0;"><div style="height:100%;width:{{ p.barW }};background:{{ p.riskColor }};border-radius:4px;"></div></div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ p.riskColor }};">{{ p.entregaTxt }}</span>
+                    <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:11px;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:3px 8px;border-radius:5px;">{{ p.pagoLabel }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V4 · AGENDA ═══ -->
+    <sc-if value="{{ isAgenda }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:22px;">
+        <sc-for list="{{ dayGroups }}" as="g" hint-placeholder-count="3">
+          <div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:13px;">
+              <span style="width:10px;height:10px;border-radius:50%;background:{{ g.color }};"></span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:15px;letter-spacing:0.1em;color:{{ g.color }};">{{ g.label }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#7E8C89;">{{ g.count }} obras</span>
+              <div style="flex:1;height:0.5px;background:rgba(139,115,85,0.2);"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ g.items }}" as="p" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;gap:20px;background:#1C2928;border:0.5px solid rgba(139,115,85,0.14);border-left:5px solid {{ p.riskColor }};border-radius:11px;padding:16px 22px;">
+                  <div style="width:62px;flex:0 0 auto;text-align:center;">
+                    <div style="font-family:'DM Sans';font-weight:700;font-size:24px;color:{{ p.riskColor }};line-height:1;font-variant-numeric:tabular-nums;">{{ p.pctStr }}</div>
+                  </div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                      <span style="font-family:'DM Sans';font-weight:700;font-size:19px;text-transform:uppercase;color:#fff;">{{ p.name }}</span>
+                      <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.08em;color:{{ p.urgColor }};background:{{ p.urgSoft }};padding:3px 9px;border-radius:20px;">{{ p.urgencia }}</span>
+                    </div>
+                    <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-top:4px;">{{ p.producto }} · {{ p.flete }}</div>
+                  </div>
+                  <div style="text-align:right;flex:0 0 auto;">
+                    <div style="font-family:'DM Sans';font-weight:700;font-size:16px;color:{{ p.riskColor }};">{{ p.entregaFecha }}</div>
+                    <span style="display:inline-flex;margin-top:5px;font-family:'DM Sans';font-weight:700;font-size:11px;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:3px 9px;border-radius:5px;">{{ p.pagoLabel }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V5 · COBROS & FLETES ═══ -->
+    <sc-if value="{{ isCobros }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+        <div style="background:#1C2928;border:0.5px solid rgba(79,184,112,0.3);border-radius:12px;padding:18px 22px;">
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.1em;color:#9AA6A2;">LISTAS PARA ENVIAR</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#4FB870;margin-top:6px;font-variant-numeric:tabular-nums;">{{ despacho.listas }}</div>
+        </div>
+        <div style="background:#1C2928;border:0.5px solid rgba(224,105,74,0.3);border-radius:12px;padding:18px 22px;">
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.1em;color:#9AA6A2;">TRABADAS POR COBRO</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#E0694A;margin-top:6px;font-variant-numeric:tabular-nums;">{{ despacho.trabadas }}</div>
+        </div>
+        <div style="background:#1C2928;border:0.5px solid rgba(201,183,154,0.3);border-radius:12px;padding:18px 22px;">
+          <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.1em;color:#9AA6A2;">EN FABRICACIÓN</div>
+          <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#C9B79A;margin-top:6px;font-variant-numeric:tabular-nums;">{{ despacho.fab }}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:1.8fr 1.1fr 1.6fr 1.2fr;gap:22px;align-items:center;background:#1C2928;border:0.5px solid rgba(139,115,85,0.14);border-left:5px solid {{ p.despachoColor }};border-radius:11px;padding:18px 24px;">
+            <div style="min-width:0;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:19px;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;margin-top:4px;">{{ p.cliente }}</div>
+            </div>
+            <div>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.04em;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:5px 12px;border-radius:6px;">{{ p.pagoLabel }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px;"><span style="display:inline-flex;align-items:center;align-self:flex-start;font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.04em;color:{{ p.despachoColor }};background:{{ p.despachoSoft }};padding:6px 13px;border-radius:7px;">{{ p.despachoLabel }}</span><div style="display:flex;gap:12px;flex-wrap:wrap;"><sc-for list="{{ p.checklist }}" as="c" hint-placeholder-count="3"><span style="font-family:'DM Sans';font-weight:500;font-size:12px;color:{{ c.color }};">{{ c.icon }} {{ c.label }}</span></sc-for></div></div>
+            <div style="text-align:right;">
+              <div style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#D2CEC4;">{{ p.flete }}</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ p.riskColor }};margin-top:3px;">Entrega {{ p.entregaTxt }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V6b · COMPRAS ═══ -->
+    <sc-if value="{{ isCompras }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ hayCompras }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(224,105,74,0.1);border:0.5px solid rgba(224,105,74,0.4);border-radius:12px;padding:14px 18px;margin-bottom:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#F0B6A6;"><b style="color:#fff;">{{ comprasCount }}</b> obra(s) trabadas por falta de material — avisar a compras</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <sc-for list="{{ compras }}" as="p" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:1.6fr 2fr 1.4fr;gap:22px;align-items:center;background:#1C2928;border:0.5px solid rgba(224,105,74,0.3);border-left:5px solid #E0694A;border-radius:12px;padding:18px 24px;">
+              <div style="min-width:0;">
+                <div style="font-family:'DM Sans';font-weight:700;font-size:19px;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;margin-top:4px;">Entrega {{ p.entregaTxt }} · {{ p.entregaFecha }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0894A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><rect x="3" y="7" width="18" height="12" rx="1.5"></rect><path d="M3 11h18"></path></svg>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:17px;color:#F0B6A6;">{{ p.matDetalle }}</span>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-family:'DM Sans';font-weight:500;font-size:11px;letter-spacing:0.14em;color:#7E8C89;">PEDIR A</div>
+                <div style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#D2CEC4;margin-top:2px;">{{ p.contacto }} · {{ p.contactoTel }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hayCompras }}" hint-placeholder-val="{{ false }}"></sc-if>
+      <sc-if value="{{ comprasVacio }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;padding:70px 0;font-family:'DM Sans';font-weight:500;font-size:16px;color:#6E7E85;">✓ Ninguna obra trabada por material. Todo el stock cubierto.</div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ═══ V6 · RESUMEN ═══ -->
+    <sc-if value="{{ isResumen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:16px;">
+        <a href="Capacidad.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:14px;color:#21C7D6;background:rgba(33,199,214,0.12);border:0.5px solid rgba(33,199,214,0.35);padding:10px 16px;border-radius:9px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#21C7D6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+          Capacidad
+        </a>
+        <a href="Ocupacion.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:14px;color:#4FB870;background:rgba(79,184,112,0.12);border:0.5px solid rgba(79,184,112,0.3);padding:10px 16px;border-radius:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4FB870" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><rect x="7" y="12" width="3" height="6"></rect><rect x="12" y="8" width="3" height="10"></rect><rect x="17" y="5" width="3" height="13"></rect></svg>
+          Ocupación
+        </a>
+        <a href="Tiempos.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:14px;color:#E5A52B;background:rgba(229,165,43,0.12);border:0.5px solid rgba(229,165,43,0.35);padding:10px 16px;border-radius:9px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E5A52B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          Tiempos
+        </a>
+        <div onClick="{{ onGoMetricas }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 16px;border-radius:9px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><rect x="7" y="11" width="3" height="6"></rect><rect x="12" y="7" width="3" height="10"></rect><rect x="17" y="13" width="3" height="4"></rect></svg>
+          Ver métricas
+        </div>
+      </div>
+      <sc-if value="{{ hayRetrasadas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(224,105,74,0.1);border:0.5px solid rgba(224,105,74,0.4);border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#F0B6A6;">Al ritmo actual no llegan a la fecha: <b style="color:#fff;">{{ retrasadasTxt }}</b></span>
+        </div>
+      </sc-if>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.onOpen }}" style="background:#1C2928;border:0.5px solid {{ p.cardBd }};border-left:6px solid {{ p.riskColor }};border-radius:14px;padding:22px 24px;cursor:pointer;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;">
+              <div style="min-width:0;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="width:11px;height:11px;border-radius:50%;background:{{ p.urgColor }};flex:0 0 auto;"></span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:22px;text-transform:uppercase;color:#fff;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+                </div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#C9B79A;margin-top:7px;">{{ p.producto }}</div>
+              </div>
+              <div style="position:relative;width:72px;height:72px;flex:0 0 auto;">
+                <svg width="72" height="72" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ p.riskColor }}" stroke-width="11" stroke-linecap="round" stroke-dasharray="{{ p.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:19px;color:#fff;">{{ p.pctStr }}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;">
+              <span style="display:inline-flex;align-items:center;font-family:'DM Sans';font-weight:700;font-size:12px;color:{{ p.riskColor }};background:{{ p.riskSoft }};padding:5px 11px;border-radius:20px;">{{ p.entregaTxt }} · {{ p.entregaFecha }}</span>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:12px;color:{{ p.despachoColor }};background:{{ p.despachoSoft }};padding:5px 11px;border-radius:20px;">{{ p.despachoLabel }}</span>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:12px;color:{{ p.pagoColor }};background:{{ p.pagoSoft }};padding:5px 11px;border-radius:20px;">{{ p.pagoLabel }}</span>
+              <span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:12px;color:{{ p.ritmoColor }};background:{{ p.ritmoSoft }};padding:5px 11px;border-radius:20px;">{{ p.ritmoLabel }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-family:'DM Sans';font-weight:500;font-size:13px;color:#9AA6A2;">
+              <span>Inicio <b style="color:#D2CEC4;font-weight:600;">{{ p.ingreso }}</b></span>
+              <span>Límite <b style="color:#D2CEC4;font-weight:600;">{{ p.entregaFecha }}</b></span>
+              <span style="color:{{ p.riskColor }};font-weight:700;">{{ p.restanteTxt }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:0.5px solid rgba(139,115,85,0.14);">
+              <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8E9A96" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#D2CEC4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.flete }}</span>
+              </div>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#7E8C89;flex:0 0 auto;">Ver detalle ›</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ═══ V7 · MÉTRICAS ═══ -->
+    <sc-if value="{{ isMetricas }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ onGoResumen }}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:14px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:9px 16px;border-radius:9px;margin-bottom:16px;">← Volver a Resumen</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.24);border:0.5px solid rgba(139,115,85,0.18);border-radius:9px;padding:4px;width:fit-content;">
+          <sc-for list="{{ metricToggle }}" as="t" hint-placeholder-count="2">
+            <div onClick="{{ t.onClick }}" style="font-family:'DM Sans';font-weight:600;font-size:14px;color:{{ t.color }};background:{{ t.bg }};padding:9px 18px;border-radius:6px;cursor:pointer;">{{ t.label }}</div>
+          </sc-for>
+        </div>
+        <div onClick="{{ onExportPdf }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'DM Sans';font-weight:700;font-size:14px;color:#0C2226;background:#C9B79A;padding:11px 18px;border-radius:9px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0C2226" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>
+          Exportar PDF semanal
+        </div>
+      </div>
+
+      <sc-if value="{{ hasFallas }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#1C2928;border:0.5px solid rgba(224,137,74,0.3);border-radius:14px;padding:20px 24px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+            <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;">FALLAS POR ESTACIÓN</span>
+            <span style="font-family:'DM Sans';font-weight:700;font-size:18px;color:#E0894A;">{{ fallasTotal }} en total</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:14px;">
+            <sc-for list="{{ fallasByStation }}" as="fb" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.03);border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid {{ fb.color }};border-radius:10px;padding:13px 18px;">
+                <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#D2CEC4;">{{ fb.etapa }}</span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:22px;color:#E0894A;font-variant-numeric:tabular-nums;">{{ fb.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ metricDia }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+          <sc-for list="{{ metricKpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:4px solid {{ k.color }};border-radius:11px;padding:16px 18px;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:30px;color:{{ k.color }};line-height:1;font-variant-numeric:tabular-nums;">{{ k.value }}</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#9AA6A2;margin-top:6px;">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:24px 28px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
+            <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;">PRODUCCIÓN DIARIA · CHAPAS POR OBRA</span>
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+              <sc-for list="{{ projsLeg }}" as="g" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:7px;">
+                  <span style="width:12px;height:12px;border-radius:3px;background:{{ g.color }};"></span>
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C2C8C4;">{{ g.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;height:210px;">
+            <sc-for list="{{ dailyBars }}" as="d" hint-placeholder-count="7">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px;height:100%;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:#EAE6DF;font-variant-numeric:tabular-nums;">{{ d.chapas }}</span>
+                <div style="width:100%;max-width:64px;height:{{ d.barH }};display:flex;flex-direction:column-reverse;border-radius:6px 6px 0 0;overflow:hidden;">
+                  <sc-for list="{{ d.segs }}" as="s" hint-placeholder-count="4">
+                    <div style="height:{{ s.h }};background:{{ s.color }};"></div>
+                  </sc-for>
+                </div>
+                <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#8E9A96;">{{ d.dia }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ hasDailyShares }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:18px;padding-top:14px;border-top:0.5px solid rgba(139,115,85,0.14);display:flex;flex-direction:column;gap:7px;">
+              <sc-for list="{{ dailyShares }}" as="d" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:#EAE6DF;width:46px;flex:0 0 auto;">{{ d.dia }}</span>
+                  <sc-for list="{{ d.parts }}" as="pt" hint-placeholder-count="3">
+                    <span style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans';font-weight:500;font-size:13px;color:#C2C8C4;"><span style="width:10px;height:10px;border-radius:3px;background:{{ pt.color }};"></span>{{ pt.name }} <b style="font-weight:700;color:#EAE6DF;">{{ pt.pctStr }}</b></span>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ metricProj }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:22px 26px;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+            <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;">TOTAL DE LA PLANTA · POR ETAPA</span>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span style="font-family:'DM Sans';font-weight:700;font-size:30px;color:#C9B79A;font-variant-numeric:tabular-nums;">{{ prodTotal.pctStr }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#9AA6A2;">{{ prodTotal.hechas }} / {{ prodTotal.total }} chapas</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;">
+            <sc-for list="{{ stageTotals }}" as="s" hint-placeholder-count="4">
+              <div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;">
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#D2CEC4;">{{ s.etapa }}</span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:16px;color:{{ s.color }};font-variant-numeric:tabular-nums;">{{ s.pctStr }}</span>
+                </div>
+                <div style="height:8px;border-radius:4px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ s.barW }};background:{{ s.color }};border-radius:4px;"></div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+          <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+            <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:6px solid {{ p.riskColor }};border-radius:14px;padding:20px 24px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                <span style="font-family:'DM Sans';font-weight:700;font-size:20px;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:24px;color:{{ p.riskColor }};font-variant-numeric:tabular-nums;flex:0 0 auto;">{{ p.pctStr }}</span>
+              </div>
+              <div style="margin-bottom:16px;"><span style="display:inline-flex;font-family:'DM Sans';font-weight:700;font-size:11px;color:{{ p.ritmoColor }};background:{{ p.ritmoSoft }};padding:4px 11px;border-radius:20px;">{{ p.ritmoLabel }}</span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+                <div>
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:#EAE6DF;font-variant-numeric:tabular-nums;">{{ p.chapasHechas }}<span style="font-weight:500;font-size:13px;color:#7E8C89;">/{{ p.chapasTotal }}</span></div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:11px;color:#9AA6A2;margin-top:3px;">Chapas</div>
+                </div>
+                <div>
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:{{ p.fallasColor }};font-variant-numeric:tabular-nums;">{{ p.fallas }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:11px;color:#9AA6A2;margin-top:3px;">Fallas</div>
+                </div>
+                <div>
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:20px;color:{{ p.riskColor }};font-variant-numeric:tabular-nums;">{{ p.deadlineDays }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:11px;color:#9AA6A2;margin-top:3px;">Días restantes</div>
+                </div>
+              </div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:10px;">POR ETAPA</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+                <sc-for list="{{ p.ruta }}" as="r" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#D2CEC4;width:100px;flex:0 0 auto;">{{ r.maq }}</span>
+                    <div style="flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;"><div style="height:100%;width:{{ r.barW }};background:{{ r.color }};border-radius:4px;"></div></div>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ r.color }};font-variant-numeric:tabular-nums;width:42px;text-align:right;flex:0 0 auto;">{{ r.pctStr }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:10px;">POR PIEZA</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{ p.piezas }}" as="z" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#EAE6DF;width:150px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ z.nombre }}</span>
+                    <div style="flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;"><div style="height:100%;width:{{ z.barW }};background:#C9B79A;border-radius:4px;"></div></div>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;font-variant-numeric:tabular-nums;width:42px;text-align:right;flex:0 0 auto;">{{ z.pctStr }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ░░ PANEL DE DETALLE ░░ -->
+    <sc-if value="{{ detailOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ onCloseDetail }}" style="position:fixed;inset:0;z-index:50;background:rgba(8,12,11,0.74);backdrop-filter:blur(4px);display:flex;align-items:flex-start;justify-content:center;padding:40px 24px;overflow:auto;">
+        <div onClick="{{ stop }}" style="width:980px;max-width:100%;background:#1C2928;border:0.5px solid {{ detail.cardBd }};border-left:6px solid {{ detail.riskColor }};border-radius:16px;padding:24px 28px;display:flex;flex-direction:column;gap:18px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;">
+            <div style="display:flex;align-items:flex-start;gap:14px;min-width:0;">
+              <span style="width:12px;height:12px;border-radius:50%;background:{{ detail.urgColor }};margin-top:8px;flex:0 0 auto;"></span>
+              <div style="min-width:0;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:26px;letter-spacing:0.02em;text-transform:uppercase;color:#fff;line-height:1;">{{ detail.name }}</span>
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:{{ detail.urgColor }};background:{{ detail.urgSoft }};padding:4px 11px;border-radius:20px;">{{ detail.urgencia }}</span>
+                </div>
+                <div style="font-family:'DM Sans';font-weight:500;font-size:17px;color:#C9B79A;margin-top:7px;">{{ detail.producto }}</div>
+                <div style="font-family:'DM Sans';font-weight:400;font-size:14px;color:#8E9A96;margin-top:3px;">{{ detail.cliente }}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;flex:0 0 auto;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+                <div style="position:relative;width:96px;height:96px;">
+                  <svg width="96" height="96" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"></circle><circle cx="55" cy="55" r="46" fill="none" stroke="{{ detail.riskColor }}" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ detail.ringArr }}" transform="rotate(-90 55 55)"></circle></svg>
+                  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Sans';font-weight:700;font-size:26px;color:#fff;">{{ detail.pctStr }}</div>
+                </div>
+                <div style="display:inline-flex;font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.08em;color:{{ detail.riskColor }};background:{{ detail.riskSoft }};padding:5px 12px;border-radius:20px;">{{ detail.riskLabel }}</div>
+              </div>
+              <a href="Dashboard Oficina.dc.html#p={{ detail.id }}" style="display:flex;align-items:center;gap:7px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(139,115,85,0.16);border:0.5px solid rgba(139,115,85,0.4);padding:0 15px;height:42px;border-radius:11px;flex:0 0 auto;">Ir al proyecto →</a>
+              <div onClick="{{ onCloseDetail }}" style="width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:20px;color:#C2C8C4;cursor:pointer;flex:0 0 auto;">✕</div>
+            </div>
+          </div>
+
+          <sc-if value="{{ detail.hasAlerta }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:10px;background:rgba(224,105,74,0.1);border:0.5px solid rgba(224,105,74,0.35);border-radius:9px;padding:11px 15px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#F0B6A6;">{{ detail.alerta }}</span>
+            </div>
+          </sc-if>
+
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:18px;padding:16px 0;border-top:0.5px solid rgba(139,115,85,0.14);border-bottom:0.5px solid rgba(139,115,85,0.14);">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">ENTREGA</div>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:18px;color:{{ detail.riskColor }};line-height:1.1;">{{ detail.entregaTxt }}</div>
+              <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#9AA6A2;margin-top:2px;">{{ detail.entregaFecha }}</div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">FLETE / DESTINO</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;line-height:1.15;">{{ detail.flete }}</div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">COBRO</div>
+              <div style="display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans';font-weight:700;font-size:13px;letter-spacing:0.04em;color:{{ detail.pagoColor }};background:{{ detail.pagoSoft }};padding:4px 10px;border-radius:6px;">{{ detail.pagoLabel }}</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:13px;color:{{ detail.despachoColor }};margin-top:6px;">{{ detail.despachoLabel }}</div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">PINTURA</div>
+              <sc-if value="{{ detail.pintado }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="width:22px;height:22px;border-radius:6px;background:{{ detail.colorHex }};border:1px solid rgba(255,255,255,0.25);flex:0 0 auto;"></span>
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:15px;color:#EAE6DF;">{{ detail.colorName }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ detail.sinPintura }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#9AA6A2;">Sin pintura · natural</div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">CONTACTO</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;">{{ detail.contacto }}</div>
+              <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#9AA6A2;margin-top:2px;">{{ detail.contactoRol }} · {{ detail.contactoTel }}</div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:10px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:6px;">INGRESÓ</div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;">{{ detail.ingreso }}</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:30px;">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:14px;">RUTA DE FABRICACIÓN</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <sc-for list="{{ detail.ruta }}" as="r" hint-placeholder-count="3">
+                  <div style="flex:1;min-width:118px;background:rgba(255,255,255,0.03);border:0.5px solid {{ r.line }};border-radius:11px;padding:13px 14px;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px;">
+                      <div style="width:26px;height:26px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ r.icon }}" color="{{ r.color }}" hint-size="26px,26px"></dc-import></div>
+                      <span style="font-family:'DM Sans';font-weight:600;font-size:13px;color:#D2CEC4;line-height:1.05;">{{ r.maq }}</span>
+                    </div>
+                    <div style="font-family:'DM Sans';font-weight:700;font-size:23px;color:{{ r.color }};font-variant-numeric:tabular-nums;margin-bottom:8px;">{{ r.pctStr }}</div>
+                    <div style="height:7px;border-radius:4px;background:rgba(255,255,255,0.07);overflow:hidden;"><div style="height:100%;width:{{ r.barW }};background:{{ r.color }};border-radius:4px;"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.16em;color:#7E8C89;margin-bottom:14px;">SEGUIMIENTO</div>
+              <div style="display:flex;flex-direction:column;gap:11px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">Piezas / componentes</span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#EAE6DF;">{{ detail.piezaCount }}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">Estado de despacho</span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ detail.despachoColor }};background:{{ detail.despachoSoft }};padding:4px 11px;border-radius:6px;">{{ detail.despachoLabel }}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">Ritmo vs. fecha</span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ detail.ritmoColor }};background:{{ detail.ritmoSoft }};padding:4px 11px;border-radius:6px;">{{ detail.ritmoLabel }}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;">Fallas registradas</span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:{{ detail.fallasColor }};">{{ detail.fallas }}</span>
+                </div>
+                <div style="margin-top:6px;font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;line-height:1.5;">Para ver cada pieza, su material y avance, entrá a la pestaña del proyecto.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;tarjetas&quot;,&quot;resumen&quot;,&quot;tabla&quot;,&quot;tablero&quot;,&quot;agenda&quot;,&quot;cobros&quot;,&quot;compras&quot;,&quot;metricas&quot;],&quot;default&quot;:&quot;tarjetas&quot;},&quot;manager&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Jefe de Planta&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { variant: null, now: new Date(), openId: null, metricMode: 'dia', navOpen: false, estacion: [], obras: {}, custom: [], maqEstado: {}, historial: [], caps: [], prodDiaria: {} };
+  }
+  componentDidMount() {
+    this._t = setInterval(() => this.setState({ now: new Date() }), 30000);
+    this._sync = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('historial').catch(()=>[]),
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('prod-diaria').catch(()=>[])
+        ]);
+        const obras = {}; (Array.isArray(res[1])?res[1]:[]).forEach(o => { obras[o.projectId] = o.pct; });
+        const maqEstado = {}; (Array.isArray(res[3])?res[3]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const _pd = res[6]; let prodDiaria = {};
+        if (Array.isArray(_pd)) { _pd.forEach(r => { if(r && r.fecha) prodDiaria[r.fecha] = r; }); }
+        else if (_pd && typeof _pd==='object') { prodDiaria = _pd; }
+        this.setState({
+          estacion: Array.isArray(res[0])?res[0]:[],
+          obras,
+          custom: Array.isArray(res[2])?res[2]:[],
+          maqEstado,
+          historial: Array.isArray(res[4])?res[4]:[],
+          caps: Array.isArray(res[5])?res[5]:[],
+          prodDiaria
+        });
+      } catch (e) {}
+    };
+    this._sync();
+    this._sp = setInterval(this._sync, 2000);
+  }
+  componentWillUnmount() { clearInterval(this._t); clearInterval(this._sp); }
+  _procOrder(f){ return (f.procesos&&f.procesos.length)?f.procesos:['laser']; }
+  _progOf(f,pid){ if(f.prog&&f.prog[pid]!=null) return f.prog[pid]; const o=this._procOrder(f); return pid===o[0]?(f.chapas||0):0; }
+  _liveStages(pid){
+    const proj=(this.state.estacion||[]).find(p=>p.id===pid);
+    if(!proj||!proj.files||!proj.files.length) return null;
+    const byProc={}; let lastDone=0,lastNec=0;
+    proj.files.forEach(f=>{ const ord=this._procOrder(f); const ppc=(f.ppc||1); const nec=(f.objChapas||0)*ppc;
+      ord.forEach((pid2,i)=>{ const prev=i>0?this._progOf(f,ord[i-1]):null; let dCh=this._progOf(f,pid2); if(i>0&&prev!=null) dCh=Math.min(dCh,prev); const done=dCh*ppc; const t=byProc[pid2]=byProc[pid2]||{done:0,nec:0}; t.done+=done; t.nec+=nec; });
+      const last=ord[ord.length-1]; lastDone+=Math.min(this._progOf(f,last), this._progOf(f,ord[0]))*ppc; lastNec+=nec;
+    });
+    let _tD=0,_tW=0; Object.keys(byProc).forEach(k=>{ _tD+=byProc[k].done; _tW+=byProc[k].nec; });
+    const overall=_tW>0?Math.min(100,Math.round(_tD/_tW*100)):0;
+    const pct={}; Object.keys(byProc).forEach(k=>{ pct[k]=byProc[k].nec>0?Math.min(100,Math.round(byProc[k].done/byProc[k].nec*100)):0; });
+    return { overall, pct };
+  }
+  _mm() {
+    return {
+      laser:{name:'Láser CNC',color:'#21C7D6'}, plegadora:{name:'Plegadora',color:'#E5A52B'},
+      punzon:{name:'Punzonadora',color:'#9B82DC'}, fresa:{name:'Fresa CNC',color:'#3E7CE0'},
+      expansora:{name:'Expansora',color:'#F0814F'}, pintura:{name:'Pintura',color:'#E76A95'}
+    };
+  }
+
+  _data() {
+    var custom=Array.isArray(this.state.custom)?this.state.custom:[];
+    return custom.map(function(p){ return {
+      id:p.id, name:p.name, producto:p.producto||'—', cliente:(p.contacto||''),
+      responsable:(p.contacto||'—'), ingreso:(function(){ if(p.createdTs){ var d=new Date(p.createdTs); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); } return ''; })(), deadlineDays:(p.deadlineDays!=null?p.deadlineDays:7),
+      flete:(p.lugar||'A definir'), urgencia:(p.urgencia||'NORMAL'), pago:(p.pago||'IMPAGO'), monto:0, fallas:0,
+      faltaMat:false, pinturaCurada:false, fleteAsignado:!!p.montaje,
+      contacto:{ nombre:(p.contacto||'—'), rol:'Contacto', tel:(p.tel||'') },
+      pintado:!!p.pintado, colorName:(p.colorName||''), colorHex:(p.colorHex||'#8B7355'),
+      ruta:[], piezas:[{ nombre:'', pct:0, cant:'' }]
+    }; });
+  }
+
+  _prio(p){ return p==='ALTA'?'#E0694A':(p==='MEDIA'?'#E5A52B':'#7C8B91'); }
+  _money(n){ return '$' + n.toLocaleString('es-AR'); }
+
+  _risk(overall, days){
+    if (overall >= 100) return { label:'LISTO', color:'#4FB870' };
+    if (days <= 0) return { label:'VENCE HOY', color:'#E0694A' };
+    if (days <= 1 && overall < 85) return { label:'EN RIESGO', color:'#E0694A' };
+    if (days <= 3 && overall < 65) return { label:'AJUSTADO', color:'#E5A52B' };
+    return { label:'EN FECHA', color:'#4FB870' };
+  }
+
+  _entrega(days){
+    const n = this.state.now;
+    const d = new Date(n.getTime() + days*86400000);
+    const pad = x => x<10?'0'+x:''+x;
+    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const fecha = dias[d.getDay()] + ' ' + pad(d.getDate()) + '/' + pad(d.getMonth()+1);
+    let txt = days<=0 ? 'HOY' : (days===1 ? 'MAÑANA' : 'EN ' + days + ' DÍAS');
+    return { txt, fecha };
+  }
+
+  _pago(p){
+    if (p==='PAGADO') return { color:'#4FB870', soft:'rgba(79,184,112,0.16)' };
+    if (p==='SEÑA') return { color:'#E5A52B', soft:'rgba(229,165,43,0.16)' };
+    return { color:'#E0694A', soft:'rgba(224,105,74,0.16)' };
+  }
+
+  _maquinasFuera(){ var arr=[]; var d=this.state.maqEstado; if(d&&typeof d==='object'){ Object.keys(d).forEach(function(k){ arr.push({ maquina:(d[k].maquina||k), motivo:(d[k].motivo||'Sin especificar') }); }); } return arr; }
+  _ocupacionHoy(){    var hist=Array.isArray(this.state.historial)?this.state.historial:[];
+    var caps=Array.isArray(this.state.caps)?this.state.caps:[];
+    var base=new Date(); base.setHours(0,0,0,0); var start=base.getTime(), end=start+86400000;
+    var recs=hist.filter(function(x){ return x.ts>=start && x.ts<end; });
+    var defs=[ {id:'laser',unit:'LEAPION',name:'Leapion',field:'laser'}, {id:'laser',unit:'BODOR',name:'Bodor',field:'laser'}, {id:'punzon',unit:null,name:'Punzonadora',field:'fresado'}, {id:'plegadora',unit:'DERATECH',name:'Deratech',field:'plegado'}, {id:'plegadora',unit:'HUAXIA',name:'Huaxia',field:'plegado'}, {id:'pintura',unit:null,name:'Pintura',field:'pintura'}, {id:'embalado',unit:null,name:'Embalado',field:'embalado'} ];
+    function rate(field, machine, pieza){ if(!field) return 0; var nm=(pieza||'').toLowerCase(); var rr=0; caps.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var v=p[field]||0; if(v>0) rr=v; } }); if(rr<=0) return 0; return machine==='pintura'? rr*10/3 : rr; }
+    var totUsed=0, totCap=0, top=null;
+    defs.forEach(function(def){ var mr=recs.filter(function(x){ return x.machineId===def.id && (def.unit? x.unit===def.unit : true); }); var usedH=0; mr.forEach(function(x){ var p=x.pieces||x.delta||0; var rt=rate(def.field,def.id,x.pieza); if(rt>0) usedH+=p/rt; }); var capH=8; var pct=Math.round(usedH/capH*100); totUsed+=usedH; totCap+=capH; if(!top||pct>top.pct) top={name:def.name,pct:pct}; });
+    var gen=totCap>0?Math.round(totUsed/totCap*100):0;
+    return { pct:gen, top:(top||{name:'—',pct:0}) };
+  }
+  _ritmo(overall, ingreso, days){
+    if(!ingreso || (''+ingreso).indexOf('/')<0){ return {ritmoLabel:'—', ritmoColor:'#7E8C89', ritmoSoft:'rgba(255,255,255,0.04)', noLlega:false}; }
+    const np=(ingreso||'').split('/'); const ingD=new Date(this.state.now.getFullYear(),(parseInt(np[1])||1)-1,parseInt(np[0])||1);
+    const elapsed=Math.max(1,Math.round((this.state.now-ingD)/86400000));
+    const rate=overall/elapsed;
+    const projDays=rate>0?Math.ceil((100-overall)/rate):999;
+    if(overall>=100) return {ritmoLabel:'COMPLETO',ritmoColor:'#4FB870',ritmoSoft:'#4FB87022',noLlega:false};
+    if(projDays<=days) return {ritmoLabel:'EN RITMO',ritmoColor:'#4FB870',ritmoSoft:'#4FB87022',noLlega:false};
+    const at=Math.max(1,projDays-days);
+    if(at<=1) return {ritmoLabel:'AJUSTADO',ritmoColor:'#E5A52B',ritmoSoft:'#E5A52B22',noLlega:false};
+    return {ritmoLabel:'NO LLEGA · +'+at+' días',ritmoColor:'#E0694A',ritmoSoft:'#E0694A22',noLlega:true};
+  }
+
+  _fabDays(piezas){
+    var prods=Array.isArray(this.state.caps)?this.state.caps:[];
+    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
+    var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
+    var H=8, total=0, matched=false;
+    (piezas||[]).forEach(function(f){ var pd=ench(f.pieza||f.archivo||''); if(!pd) return; var units=(f.objChapas||0)*(f.ppc||1); if(!units) return; matched=true; var procs=f.procesos||[]; procs.forEach(function(pid){ var mk=procMap[pid]; if(!mk) return; var rate=pd[rateField[mk]]||0; if(rate>0){ var addH=(mk==='pintura')?(units/rate)*(3/10):(units/rate); total+=addH; } }); var er=pd[rateField.embalado]||0; if(er>0){ total+=units/er; } });
+    return { hours: total, days: total/H, matched: matched && total>0 };
+  }
+  _filePct(f){ const ord=this._procOrder(f); const ppc=f.ppc||1; const nec=(f.objChapas||0)*ppc; let tW=0,dW=0; ord.forEach((pid,i)=>{ const prev=i>0?this._progOf(f,ord[i-1]):null; let dCh=this._progOf(f,pid); if(i>0&&prev!=null) dCh=Math.min(dCh,prev); dW+=Math.min(nec,dCh*ppc); tW+=nec; }); return tW>0?Math.min(100,Math.round(dW/tW*100)):0; }
+  _enrich(p){
+    const MM = this._mm();
+    const live = this._liveStages(p.id);
+    const efiles = (function(){ const pr=(this.state.estacion||[]).find(x=>x.id===p.id); return pr&&pr.files?pr.files:[]; }).call(this);
+    const piezasReal = efiles.map(f=>({ nombre:(f.pieza||f.archivo||'Pieza'), pct:this._filePct(f) }));
+    let pRuta = p.ruta;
+    if((!pRuta || !pRuta.length) && live && live.pct){ const ord=['laser','punzon','fresa','plegadora','expansora','pintura']; pRuta = ord.filter(k=>live.pct[k]!=null && MM[k]).map(k=>({ m:k, pct:live.pct[k] })); }
+    if(!pRuta) pRuta=[];
+    const overall = live ? live.overall : Math.round(p.piezas.reduce((a,z)=>a+z.pct,0)/p.piezas.length);
+    const risk = this._risk(overall, p.deadlineDays);
+    const ent = this._entrega(p.deadlineDays);
+    const pg = this._pago(p.pago);
+    let desp;
+    const checklist = [ { label:'Producción completa', ok: overall>=100 }, { label:'Cobro', ok: p.pago==='PAGADO' } ];
+    if (p.pintado) checklist.push({ label:'Pintura curada', ok: !!p.pinturaCurada });
+    checklist.push({ label:'Flete asignado', ok: !!p.fleteAsignado });
+    const pendientes = checklist.filter(c=>!c.ok).length;
+    if (p.faltaMat) desp={label:'TRABA · FALTA MATERIAL', color:'#E0694A'};
+    else if (p.pago==='IMPAGO') desp={label:'TRABA · FALTA COBRO', color:'#E0694A'};
+    else if (pendientes===0) desp={label:'LISTO PARA DESPACHO', color:'#4FB870'};
+    else desp={label:'EN FABRICACIÓN', color:'#C9B79A'};
+    const pc = c => parseInt(c)||0;
+    var _ef=Array.isArray(this.state.estacion)?this.state.estacion:[];
+    var _pr=_ef.find(x=>x.id===p.id); var _files=(_pr&&_pr.files)?_pr.files:[];
+    var chapasTotal = _files.length ? _files.reduce((a,z)=>a+(z.objChapas||0),0) : p.piezas.reduce((a,z)=>a+pc(z.cant),0);
+    var chapasHechas = _files.length ? _files.reduce((a,z)=>a+(z.chapas||0),0) : p.piezas.reduce((a,z)=>a+Math.round(z.pct/100*pc(z.cant)),0);
+    return {
+      id:p.id, name:p.name, producto:p.producto, cliente:p.cliente, responsable:p.responsable, ingreso:p.ingreso,
+      urgencia:p.urgencia, urgColor:this._prio(p.urgencia), urgSoft:this._prio(p.urgencia)+'26',
+      pctStr:overall+'%', barW:overall+'%', overall, deadlineDays:p.deadlineDays,
+      riskLabel:risk.label, riskColor:risk.color, riskSoft:risk.color+'22',
+      ...this._ritmo(overall, p.ingreso, p.deadlineDays),
+      cardBd: risk.color==='#E0694A' ? 'rgba(224,105,74,0.3)' : 'rgba(139,115,85,0.16)',
+      entregaTxt:ent.txt, entregaFecha:ent.fecha, flete:p.flete,
+      pagoLabel:p.pago, pagoColor:pg.color, pagoSoft:pg.soft, monto:this._money(p.monto), montoNum:p.monto, pagoState:p.pago,
+      pintado:!!p.pintado, sinPintura:!p.pintado, colorName:p.colorName, colorHex:p.colorHex,
+      hasAlerta:!!p.alerta, alerta:p.alerta,
+      ruta:pRuta.map(r=>({ icon:r.m, maq:MM[r.m].name, color:MM[r.m].color, line:MM[r.m].color+'40', pctStr:((live&&live.pct[r.m]!=null)?live.pct[r.m]:r.pct)+'%', barW:((live&&live.pct[r.m]!=null)?live.pct[r.m]:r.pct)+'%', pct:((live&&live.pct[r.m]!=null)?live.pct[r.m]:r.pct) })),
+      piezas:(piezasReal.length?piezasReal:p.piezas).map(z=>({ nombre:z.nombre, pctStr:z.pct+'%', barW:z.pct+'%', cantStr:(z.cant||'') })),
+      piezaCount:(piezasReal.length?piezasReal.length:p.piezas.length),
+      ringArr:(overall/100*289).toFixed(1)+' 289',
+      contacto:p.contacto.nombre, contactoRol:p.contacto.rol, contactoTel:p.contacto.tel,
+      despachoLabel:desp.label, despachoColor:desp.color, despachoSoft:desp.color+'22',
+      restanteTxt: p.deadlineDays<=0?'Vence hoy':(p.deadlineDays===1?'Falta 1 día':'Faltan '+p.deadlineDays+' días'),
+      chapasTotal, chapasHechas, faltan: chapasTotal-chapasHechas, fallas: p.fallas||0, fallasColor:(p.fallas||0)>0?'#E0894A':'#4FB870',
+      faltaMat:!!p.faltaMat, matDetalle:p.matDetalle||'', checklist: checklist.map(c=>({ label:c.label, ok:c.ok, color:c.ok?'#4FB870':'#7E8C89', icon:c.ok?'✓':'○' }))
+    };
+  }
+
+  _exportReport(){
+    const r = this._report; if(!r){ return; }
+    const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const kpiHtml = r.kpis.map(k=>'<div class="kpi"><div class="kv">'+esc(k.value)+'</div><div class="kl">'+esc(k.label)+'</div></div>').join('');
+    const stageHtml = r.stageTotals.map(s=>'<div class="st"><div class="stt"><span>'+esc(s.etapa)+'</span><b>'+esc(s.pctStr)+'</b></div><div class="bar"><i style="width:'+esc(s.pctStr)+';background:'+esc(s.color)+'"></i></div></div>').join('');
+    const rows = r.projects.map(p=>{ const etapas=(p.ruta||[]).map(x=>esc(x.maq)+' '+x.pct+'%').join(' · ')||'—'; const fd=(p.fabDays!=null)?(String(p.fabDays).replace('.',',')+' d'):'—'; return '<tr><td><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.producto||'')+'</div></td><td class="c"><b>'+p.pct+'%</b></td><td class="c">'+esc(p.entrega)+'</td><td class="c">'+fd+'</td><td class="c">'+esc(p.pago)+'</td><td>'+etapas+'</td><td class="c">'+(p.fallas||0)+'</td></tr>'; }).join('');
+    const legHtml = (r.legend||[]).map(g=>'<span class="lg"><i style="background:'+esc(g.color)+'"></i>'+esc(g.name)+'</span>').join('');
+    const dmax = Math.max(1, Math.max.apply(null, (r.daily||[]).map(d=>d.total||0)));
+    const dailyHtml = (r.daily||[]).map(d=>{ const bh=Math.round((d.total||0)/dmax*120); const segs=(d.segs||[]).map(sg=>'<div class="seg" style="height:'+Math.round((d.total>0?sg.val/d.total:0)*bh)+'px;background:'+esc(sg.color)+'" title="'+esc(sg.name)+' '+sg.pct+'%"></div>').join(''); return '<div class="dcol"><div class="dval">'+(d.total||0)+'</div><div class="dbar" style="height:'+bh+'px">'+segs+'</div><div class="dlbl">'+esc(d.dia)+'</div></div>'; }).join('');
+    const dailyPctHtml = (r.daily||[]).filter(d=>(d.total||0)>0).map(d=>'<div class="dprow"><b>'+esc(d.dia)+'</b> — '+(d.segs||[]).map(sg=>esc(sg.name)+' '+sg.pct+'%').join(' · ')+'</div>').join('');
+    const fallasHtml = r.fallas.length ? r.fallas.map(f=>'<span class="fchip">'+esc(f.etapa)+': <b>'+f.n+'</b></span>').join('') : '<span class="muted">Sin fallas registradas</span>';
+    const doc = '<!doctype html><html><head><meta charset="utf-8"><title>Reporte semanal — Velum</title><style>'
+      + "*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      + 'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}'
+      + 'h1{font-size:22px;margin:0 0 2px;letter-spacing:.02em;}'
+      + '.date{color:#6b7572;font-size:13px;margin-bottom:22px;}'
+      + '.sec{font-size:11px;letter-spacing:.14em;color:#8a9491;font-weight:700;margin:24px 0 10px;border-bottom:1px solid #e4e2dc;padding-bottom:6px;}'
+      + '.kpis{display:flex;gap:10px;flex-wrap:wrap;}'
+      + '.kpi{flex:1;min-width:115px;border:1px solid #e4e2dc;border-radius:10px;padding:12px 14px;}'
+      + '.kv{font-size:26px;font-weight:700;line-height:1;}'
+      + '.kl{font-size:11px;color:#6b7572;margin-top:5px;text-transform:uppercase;letter-spacing:.05em;}'
+      + '.st{margin-bottom:9px;}'
+      + '.stt{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}'
+      + '.bar{height:9px;background:#eee;border-radius:5px;overflow:hidden;}'
+      + '.bar i{display:block;height:100%;border-radius:5px;}'
+      + 'table{width:100%;border-collapse:collapse;font-size:13px;}'
+      + 'th{text-align:left;font-size:10px;letter-spacing:.08em;color:#8a9491;border-bottom:1.5px solid #d8d6cf;padding:8px;text-transform:uppercase;}'
+      + 'td{padding:9px 8px;border-bottom:1px solid #eceae4;vertical-align:top;}'
+      + 'td.c{text-align:center;white-space:nowrap;}'
+      + '.sub{font-size:11px;color:#8a9491;margin-top:2px;}'
+      + '.fchip{display:inline-block;border:1px solid #e4e2dc;border-radius:8px;padding:6px 11px;font-size:13px;margin:0 8px 8px 0;}'
+      + '.lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#444;margin:0 14px 8px 0;}'
+      + '.lg i{width:12px;height:12px;border-radius:3px;display:inline-block;}'
+      + '.daily{display:flex;align-items:flex-end;gap:14px;height:150px;margin-top:6px;}'
+      + '.dcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}'
+      + '.dval{font-size:13px;font-weight:700;color:#1a1f1e;}'
+      + '.dbar{width:70%;max-width:54px;display:flex;flex-direction:column-reverse;border-radius:5px;overflow:hidden;background:#f0efe9;}'
+      + '.seg{width:100%;}'
+      + '.dlbl{font-size:11px;color:#8a9491;}'
+      + '.dprow{font-size:12px;color:#555;margin-bottom:5px;}'
+      + '.muted{color:#8a9491;font-size:13px;}'
+      + '.foot{margin-top:28px;font-size:11px;color:#aab2af;}'
+      + '@media print{body{padding:0;}}'
+      + '</style></head><body>'
+      + '<h1>Reporte semanal de producción · VELUM</h1>'
+      + '<div class="date">'+esc(r.dateStr)+' — Avance general de planta '+r.plantaPct+'</div>'
+      + '<div class="sec">RESUMEN DE PLANTA</div><div class="kpis">'+kpiHtml+'</div>'
+      + '<div class="sec">AVANCE POR ETAPA · '+esc(r.prodTotal.hechas)+'/'+esc(r.prodTotal.total)+' chapas ('+esc(r.prodTotal.pctStr)+')</div>'
+      + (stageHtml||'<div class="muted">Sin datos de etapas</div>')
+      + '<div class="sec">PRODUCCIÓN DIARIA · CHAPAS POR OBRA</div>'
+      + '<div>'+legHtml+'</div>'
+      + '<div class="daily">'+(dailyHtml||'')+'</div>'
+      + (dailyPctHtml ? ('<div style="margin-top:14px;">'+dailyPctHtml+'</div>') : '')
+      + '<div class="sec">DETALLE POR PROYECTO</div><table><thead><tr><th>Proyecto</th><th class="c">Avance</th><th class="c">Entrega</th><th class="c">Días fabric.</th><th class="c">Pago</th><th>Etapas</th><th class="c">Fallas</th></tr></thead><tbody>'
+      + (rows||'<tr><td colspan="7" class="muted">Sin proyectos activos</td></tr>')
+      + '</tbody></table>'
+      + '<div class="sec">FALLAS POR ESTACIÓN · TOTAL '+(r.fallasTotal||0)+'</div><div>'+fallasHtml+'</div>'
+      + '<div class="foot">Generado automáticamente — Dashboard de producción Velum</div>'
+      + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt>'
+      + '</body></html>';
+    const w = window.open('', '_blank'); if(!w){ alert('Permití las ventanas emergentes para exportar el PDF.'); return; }
+    w.document.open(); w.document.write(doc); w.document.close();
+  }
+
+  renderVals() {
+    const active = this.state.variant || 'resumen';
+    const labels = [['resumen','Resumen']];
+    const switcher = labels.map(([id,label]) => { const on = id===active; return { id, label, color: on?'#EAE6DF':'#7E8C89', bg: on?'rgba(201,183,154,0.22)':'transparent', onClick: () => this.setState({ variant: id }) }; });
+
+    const projects = this._data().map(p => this._enrich(p)).sort((a,b)=>a.deadlineDays-b.deadlineDays);
+    projects.forEach(p => { p.onOpen = () => this.setState({ openId: p.id }); });
+    const detail = projects.find(p => p.id === this.state.openId) || null;
+    const retrasadas = projects.filter(p=>p.noLlega);
+    const compras = projects.filter(p=>p.faltaMat);
+    const verbs = { laser:'Corte láser', plegadora:'Plegado', punzon:'Punzonado', fresa:'Fresado', expansora:'Expandido', pintura:'Pintura' };
+    const stageMap = {};
+    projects.forEach(p => p.ruta.forEach(r => { const k=r.icon; stageMap[k]=stageMap[k]||{etapa:verbs[k]||r.maq,color:r.color,sum:0,n:0}; stageMap[k].sum+=r.pct; stageMap[k].n++; }));
+    const stageTotals = Object.keys(stageMap).map(k=>{ const s=stageMap[k]; const pct=Math.round(s.sum/s.n); return { etapa:s.etapa, color:s.color, pctStr:pct+'%', barW:pct+'%' }; });
+    const tHechas = projects.reduce((a,p)=>a+p.chapasHechas,0);
+    const tTotal = projects.reduce((a,p)=>a+p.chapasTotal,0);
+    const prodTotal = { hechas:tHechas, total:tTotal, pctStr:(tTotal?Math.round(tHechas/tTotal*100):0)+'%', barW:(tTotal?Math.round(tHechas/tTotal*100):0)+'%' };
+
+    // risk groups
+    const order = [['EN RIESGO','#E0694A'],['VENCE HOY','#E0694A'],['AJUSTADO','#E5A52B'],['EN FECHA','#4FB870'],['LISTO','#4FB870']];
+    const seen = {};
+    const riskGroups = [];
+    order.forEach(([lab,col]) => {
+      const items = projects.filter(p => p.riskLabel === lab);
+      if (items.length && !seen[lab]) { seen[lab]=1; riskGroups.push({ label:lab, color:col, soft:col+'22', count:items.length, items }); }
+    });
+
+    // day groups
+    const buckets = [
+      { label:'VENCE HOY', color:'#E0694A', test:d=>d<=0 },
+      { label:'MAÑANA', color:'#E0894A', test:d=>d===1 },
+      { label:'ESTA SEMANA', color:'#E5A52B', test:d=>d>=2&&d<=7 },
+      { label:'MÁS ADELANTE', color:'#4FB870', test:d=>d>7 }
+    ];
+    const dayGroups = buckets.map(b => ({ label:b.label, color:b.color, items: projects.filter(p=>b.test(p.deadlineDays)) })).filter(g=>g.items.length).map(g=>({ ...g, count:g.items.length }));
+
+    // totals
+    const raw = this._data();
+    const cobradoN = raw.filter(p=>p.pago==='PAGADO').reduce((a,p)=>a+p.monto,0);
+    const totalN = raw.reduce((a,p)=>a+p.monto,0);
+    const totals = { porCobrar:this._money(totalN-cobradoN), cobrado:this._money(cobradoN), total:this._money(totalN) };
+    const despacho = {
+      listas: projects.filter(p=>p.despachoLabel==='LISTO PARA DESPACHO').length,
+      trabadas: projects.filter(p=>p.despachoLabel.indexOf('TRABA')===0).length,
+      fab: projects.filter(p=>p.despachoLabel==='EN FABRICACIÓN').length
+    };
+    const mm = this.state.metricMode;
+    const metricToggle = [['dia','Por día'],['proj','Por proyecto']].map(([id,label])=>({ label, color: mm===id?'#0C2226':'#8E9A96', bg: mm===id?'#C9B79A':'transparent', onClick:()=>this.setState({metricMode:id}) }));
+    const _pal=['#21C7D6','#E5A52B','#9B82DC','#4FB870','#E76A95','#F0814F'];
+    const projsLeg = projects.map((p,i)=>({ id:p.id, name:p.name, color:_pal[i%_pal.length] }));
+    let _led=(this.state.prodDiaria&&typeof this.state.prodDiaria==='object')?this.state.prodDiaria:{};
+    const _dw=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const _now=this.state.now||new Date();
+    const dailyRaw=[]; const dailyFallas=[];
+    for(let _k=6;_k>=0;_k--){ const dt=new Date(_now.getFullYear(),_now.getMonth(),_now.getDate()-_k); const ds=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); const rec=_led[ds]||{byProj:{},fallas:0}; const lbl=(_k===0)?'Hoy':_dw[dt.getDay()]; dailyRaw.push({ dia:lbl, vals: projsLeg.map(p=>Math.round((rec.byProj&&rec.byProj[p.id])||0)) }); dailyFallas.push(rec.fallas||0); }
+    const dayTotals = dailyRaw.map(d=>d.vals.reduce((a,b)=>a+b,0));
+    const maxDay = Math.max.apply(null, dayTotals) || 1;
+    const dailyBars = dailyRaw.map((d,di)=>{ const total=dayTotals[di]; const bh=Math.round(total/maxDay*170); const segs=d.vals.map((v,i)=>({ color:projsLeg[i].color, name:projsLeg[i].name, val:v, pct:(total>0?Math.round(v/total*100):0), h:Math.round((total>0?v/total:0)*bh)+'px' })); return { dia:d.dia, chapas:total, barH:bh+'px', segs }; });
+    const dailyShares = dailyBars.filter(d=>d.chapas>0).map(d=>({ dia:d.dia, parts: d.segs.filter(s=>s.val>0).map(s=>({ name:s.name, color:s.color, pctStr:s.pct+'%' })) }));
+    const totSemana = dayTotals.reduce((a,b)=>a+b,0);
+    const falSemana = dailyFallas.reduce((a,d)=>a+d,0);
+    const fbsMap = {};
+    (this.state.estacion||[]).forEach(p => (p.files||[]).forEach(f => { const fp = f.fallasProc||{}; Object.keys(fp).forEach(k=>{ fbsMap[k]=(fbsMap[k]||0)+fp[k]; }); }));
+    const fallasByStation = Object.keys(this._mm()).map(k=>({ etapa:this._mm()[k].name, color:this._mm()[k].color, n: fbsMap[k]||0 })).filter(x=>x.n>0);
+    const fallasTotal = Object.keys(fbsMap).reduce((a,k)=>a+fbsMap[k],0);
+    var _realCh=0, _realUni=0; (this.state.estacion||[]).forEach(function(pr){ (pr.files||[]).forEach(function(f){ _realCh += (f.chapas||0); _realUni += (f.chapas||0)*(f.ppc||1); }); });
+    const metricKpis = [
+      { value: Math.round(_realCh), label:'Chapas hechas', color:'#21C7D6' },
+      { value: Math.round(_realUni), label:'Unidades hechas', color:'#C9B79A' },
+      { value: fallasTotal, label:'Fallas registradas', color:'#E0894A' },
+      { value: (_realUni>0?Math.round((1-fallasTotal/_realUni)*100):100)+'%', label:'Eficiencia', color:'#4FB870' }
+    ];
+
+    // kpis
+    const enRiesgo = projects.filter(p=>p.riskColor==='#E0694A').length;
+    const ent3 = projects.filter(p=>p.deadlineDays<=3).length;
+    const impagos = raw.filter(p=>p.pago==='IMPAGO').length;
+    const plantaPct = Math.round(projects.reduce((a,p)=>a+p.overall,0)/projects.length) + '%';
+    const kpis = [
+      { value:projects.length, label:'Obras activas', color:'#C9B79A' },
+      { value:enRiesgo, label:'En riesgo', color:'#E0694A' },
+      { value:ent3, label:'Entregan ≤ 3 días', color:'#E5A52B' },
+      { value:impagos, label:'Impagas', color:'#E0894A' },
+      { value:plantaPct, label:'Avance planta', color:'#4FB870' }
+    ];
+
+    const n = this.state.now;
+    const pad = x=>x<10?'0'+x:''+x;
+    const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+    const _legend = projsLeg.map(p=>({ name:p.name, color:p.color }));
+    const _dailyReport = dailyRaw.map((d,i)=>({ dia:d.dia, total:dayTotals[i], segs: d.vals.map((v,j)=>({ name:projsLeg[j].name, color:projsLeg[j].color, val:v, pct: dayTotals[i]>0?Math.round(v/dayTotals[i]*100):0 })).filter(x=>x.val>0) }));
+    this._report = {
+      dateStr: dias[n.getDay()] + ' ' + n.getDate() + ' ' + meses[n.getMonth()] + ' ' + n.getFullYear(),
+      plantaPct,
+      kpis: [
+        { value: projects.length, label:'Obras activas' },
+        { value: plantaPct, label:'Avance planta' },
+        { value: Math.round(prodTotal.hechas), label:'Chapas hechas' },
+        { value: Math.round(prodTotal.total), label:'Chapas objetivo' },
+        { value: fallasTotal || 0, label:'Fallas totales' }
+      ],
+      stageTotals,
+      prodTotal,
+      legend: _legend,
+      daily: _dailyReport,
+      projects: projects.map(p=>{ const fab=this._fabDays((((this.state.estacion||[]).find(x=>x.id===p.id)||{}).files)||[]); return { name:p.name, producto:p.producto, pct:p.overall, entrega:p.entregaTxt, pago:p.pagoLabel, fabDays: fab.matched?(Math.round(fab.days*10)/10):null, ruta:(p.ruta||[]).map(r=>({ maq:r.maq, pct:r.pct })), fallas:p.fallas||0 }; }),
+      fallas: fallasByStation.map(f=>({ etapa:f.etapa, n:f.n })),
+      fallasTotal: fallasTotal || 0
+    };
+
+    return {
+      manager: this.props.manager || 'Jefe de Planta',
+      navOpen: this.state.navOpen,
+      onToggleNav: () => this.setState(s=>({ navOpen: !s.navOpen })),
+      navLinks: [
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso + cargar', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Tu pestaña — seguimiento', dot:'#4FB870', bg:'rgba(201,183,154,0.12)' },
+        { href:'Tareas.dc.html', label:'Tareas de oficina', desc:'Diseño · Ingeniería · Jefatura', dot:'#A78BDC', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Materia prima', desc:'Stock de chapas', dot:'#8B7355', bg:'transparent' },
+        { href:'Capacidad.dc.html', label:'Capacidad y tiempos', desc:'Unidades/hora por máquina', dot:'#21C7D6', bg:'transparent' },
+        { href:'Ocupacion.dc.html', label:'Ocupación de máquinas', desc:'Rendimiento y eficiencia', dot:'#4FB870', bg:'transparent' },
+        { href:'TV Bloques con Embalado.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'transparent' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ],
+      dateStr: dias[n.getDay()] + ' ' + n.getDate() + ' ' + meses[n.getMonth()],
+      projectCount: projects.length, plantaPct,
+      switcher, projects, riskGroups, riskColCount: Math.max(riskGroups.length,1), dayGroups, totals, despacho, kpis, hayRetrasadas: retrasadas.length>0, retrasadasTxt: retrasadas.map(p=>p.name).join(' · '),
+      empty: projects.length===0,
+      isCards: active==='tarjetas', isResumen: active==='resumen', isTable: active==='tabla', isBoard: active==='tablero', isAgenda: active==='agenda', isCobros: active==='cobros', isCompras: active==='compras', compras, hayCompras: compras.length>0, comprasVacio: compras.length===0, comprasCount: compras.length,
+      detail, detailOpen: !!detail, onCloseDetail: () => this.setState({ openId: null }), stop: (e)=>e.stopPropagation(),
+      isMetricas: active==='metricas', metricDia: this.state.metricMode==='dia', metricProj: this.state.metricMode==='proj', metricToggle, dailyBars, dailyShares, hasDailyShares: dailyShares.length>0, metricKpis, stageTotals, prodTotal, projsLeg, fallasByStation, fallasTotal, hasFallas: fallasByStation.length>0, onExportPdf: ()=>this._exportReport(), onGoMetricas: ()=>this.setState({variant:'metricas'}), onGoResumen: ()=>this.setState({variant:'resumen'}),
+      ...(function(self){ var fuera=self._maquinasFuera(); return { maqFuera: fuera, hayMaqFuera: fuera.length>0, onScrollTop:function(e){ e.preventDefault(); }, maqFueraTxt: fuera.map(function(x){ return x.maquina+' ('+x.motivo+')'; }).join(' · ') }; })(this),
+      ...(function(self){ var o=self._ocupacionHoy(); var pct=o.pct; var color=pct>=90?'#E0694A':(pct>=70?'#E5A52B':(pct>=40?'#4FB870':'#7BB0A8')); var msg; if(pct>=90){ msg='Al límite · cuello: '+o.top.name+' '+o.top.pct+'%'; } else if(pct>=70){ msg='Demanda alta · más cargada: '+o.top.name+' '+o.top.pct+'%'; } else if(pct>=1){ msg='Hay margen · más cargada: '+o.top.name+' '+o.top.pct+'%'; } else { msg='Sin marcas hoy todavía'; } return { ocuPct:pct, ocuColor:color, ocuMsg:msg, ocuShort:(pct>=90?('Cuello: '+o.top.name):(pct>=70?'Demanda alta':(pct>=1?'Hay margen':'Sin marcas'))), ocuBg:(pct>=90?'rgba(224,105,74,0.1)':'rgba(139,115,85,0.07)'), ocuLine:(pct>=90?'rgba(224,105,74,0.4)':'rgba(139,115,85,0.25)'), ocuAnim:(pct>=90?'animation:velPulseSoft 1.8s ease-in-out infinite;':'') }; })(this)
+    };
+  }
+}
+</script>
+</body>
+</html>

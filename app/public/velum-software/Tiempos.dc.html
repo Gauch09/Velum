@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>html,body{margin:0;padding:0;background:#101514;}*{box-sizing:border-box;}::-webkit-scrollbar{width:10px;height:10px;}::-webkit-scrollbar-thumb{background:rgba(139,115,85,0.3);border-radius:5px;}</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(150% 100% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);font-family:'DM Sans',sans-serif;color:#EAE6DF;">
+  <div style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 34px;background:rgba(16,21,20,0.92);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(139,115,85,0.28);">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <a href="Gestion Resumen.dc.html" title="Volver" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.04);border:0.5px solid rgba(139,115,85,0.25);text-decoration:none;flex:0 0 auto;"><span style="font-size:18px;color:#C9B79A;">‹</span></a>
+      <svg width="27" height="34" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+      <div>
+        <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#fff;line-height:1.1;">TIEMPOS Y CARGA</div>
+        <div style="font-family:'DM Sans';font-weight:500;font-size:12px;letter-spacing:0.14em;color:#8B7355;">JORNADA DE {{ horas }} HS</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="Capacidad.dc.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;font-family:'DM Sans';font-weight:600;font-size:13px;color:#21C7D6;background:rgba(33,199,214,0.12);border:0.5px solid rgba(33,199,214,0.35);padding:10px 15px;border-radius:9px;">Capacidad</a>
+      <div onClick="{{ onExportPdf }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;font-family:'DM Sans';font-weight:600;font-size:13px;color:#C9B79A;background:rgba(139,115,85,0.14);border:0.5px solid rgba(139,115,85,0.35);padding:10px 15px;border-radius:9px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9B79A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>Exportar PDF</div>
+    </div>
+  </div>
+
+  <div style="max-width:1280px;margin:0 auto;padding:24px 30px 48px;">
+    <div style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;margin-bottom:14px;">CARGA DE LOS PROYECTOS ACTIVOS · HORAS POR MÁQUINA</div>
+    <sc-if value="{{ hayCarga }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <sc-for list="{{ cargaRows }}" as="m" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:170px 1fr 160px;gap:18px;align-items:center;background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-left:5px solid {{ m.color }};border-radius:12px;padding:18px 24px;">
+            <div>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:19px;color:#fff;">{{ m.label }}</div>
+              <sc-if value="{{ m.fuera }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:700;font-size:11px;letter-spacing:0.04em;color:#E0694A;margin-top:4px;">{{ m.fueraTxt }}</div></sc-if>
+              <sc-if value="{{ m.cuello }}" hint-placeholder-val="{{ false }}"><div style="font-family:'DM Sans';font-weight:700;font-size:11px;letter-spacing:0.08em;color:#E0694A;margin-top:4px;">⚠ CUELLO DE BOTELLA</div></sc-if>
+            </div>
+            <div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#9AA6A2;">{{ m.unidades }} unidades</span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:{{ m.color }};">{{ m.pct }}% de 1 día</span>
+              </div>
+              <div style="height:12px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ m.barW }};background:{{ m.color }};border-radius:6px;"></div></div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'DM Sans';font-weight:700;font-size:26px;color:#EAE6DF;font-variant-numeric:tabular-nums;">{{ m.horas }} h</div>
+              <div style="font-family:'DM Sans';font-weight:500;font-size:13px;color:{{ m.capColor }};">{{ m.dias }} días</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ sinCargaShow }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'DM Sans';font-weight:500;font-size:15px;color:#6E7E85;padding:30px 0;">Cargá piezas en los proyectos (con nombres que coincidan con los productos de Capacidad) para ver la carga por máquina.</div>
+    </sc-if>
+    <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;margin-top:18px;line-height:1.5;">Horas = unidades ÷ unidades/hora (de Capacidad). Días = horas ÷ {{ horas }} hs. El cuello de botella es la máquina con más horas comprometidas.</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin:32px 0 14px;flex-wrap:wrap;">
+      <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.14em;color:#7E8C89;">PROGRAMACIÓN POR MÁQUINA · DÍAS (orden por prioridad y fecha límite)</span>
+      <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.24);border:0.5px solid rgba(139,115,85,0.25);border-radius:9px;padding:4px;">
+        <sc-for list="{{ vistaToggle }}" as="v" hint-placeholder-count="2">
+          <div onClick="{{ v.onClick }}" style="font-family:'DM Sans';font-weight:700;font-size:13px;color:{{ v.color }};background:{{ v.bg }};padding:7px 16px;border-radius:6px;cursor:pointer;">{{ v.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ hayGantt }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#1C2928;border:0.5px solid rgba(139,115,85,0.16);border-radius:14px;padding:20px 24px;">
+        <div style="position:relative;height:18px;margin-left:150px;margin-bottom:10px;">
+          <sc-for list="{{ gticks }}" as="t" hint-placeholder-count="6">
+            <div style="position:absolute;top:0;left:{{ t.leftPct }};font-family:'DM Sans';font-weight:500;font-size:11px;color:#7E8C89;transform:translateX(-50%);">{{ t.d }}d</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ laneRows }}" as="m" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:0;">
+              <div style="width:150px;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding-right:12px;">
+                <span style="width:11px;height:11px;border-radius:3px;background:{{ m.color }};flex:0 0 auto;"></span>
+                <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#fff;white-space:nowrap;">{{ m.label }}</span>
+              </div>
+              <div style="flex:1;position:relative;height:38px;background:rgba(255,255,255,0.04);border-radius:7px;">
+                <sc-for list="{{ m.blocks }}" as="b" hint-placeholder-count="2">
+                  <div style="position:absolute;top:3px;bottom:3px;left:{{ b.startPct }};width:{{ b.widthPct }};background:{{ b.color }};border-radius:5px;display:flex;align-items:center;padding:0 9px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,0.35);">
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:12px;color:#0C2226;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ b.proj }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:18px;padding-top:16px;border-top:0.5px solid rgba(139,115,85,0.14);display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ projSummary }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:13px;">
+              <span style="width:12px;height:12px;border-radius:3px;background:{{ p.color }};flex:0 0 auto;"></span>
+              <span style="font-family:'DM Sans';font-weight:700;font-size:15px;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</span>
+              <span style="font-family:'DM Sans';font-weight:600;font-size:14px;color:#9AA6A2;white-space:nowrap;">termina {{ p.finishTxt }}</span>
+              <span style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#7E8C89;white-space:nowrap;">límite {{ p.deadlineTxt }}</span>
+              <sc-if value="{{ p.late }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:700;font-size:11px;color:#E0694A;background:rgba(224,105,74,0.14);padding:4px 10px;border-radius:5px;white-space:nowrap;">⚠ NO LLEGA</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-family:'DM Sans';font-weight:400;font-size:13px;color:#6E7E85;margin-top:16px;line-height:1.5;">Cada fila es una máquina. Los proyectos se encolan según prioridad y fecha límite; un proyecto entra a una máquina recién cuando terminó el proceso anterior y la máquina quedó libre. Así se ve la superposición y el cuello de botella.</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:760}}">
+class Component extends DCLogic {
+  constructor(props){ super(props); this.state = { horas:8, now:Date.now(), vista:'auto', caps:[], full:[], maqEstado:{}, custom:[] }; }
+  componentDidMount(){
+    this._cargar = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('capacidades').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
+        ]);
+        const maqEstado = {}; (Array.isArray(res[2])?res[2]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        this.setState({
+          caps: Array.isArray(res[0])?res[0]:[],
+          full: Array.isArray(res[1])?res[1]:[],
+          maqEstado,
+          custom: Array.isArray(res[3])?res[3]:[],
+          now: Date.now()
+        });
+      } catch (e) {}
+    };
+    this._cargar();
+    this._t = setInterval(this._cargar, 2000);
+  }
+  componentWillUnmount(){ clearInterval(this._t); }
+  renderVals(){
+    const H=this.state.horas;
+    var prodsArr=Array.isArray(this.state.caps)?this.state.caps:[];
+    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    var full=Array.isArray(this.state.full)?this.state.full:[];
+    var maq={ laser:{label:'Láser (×2)',color:'#21C7D6',h:0,u:0,n:2}, plegado:{label:'Plegadora (×2)',color:'#E5A52B',h:0,u:0,n:2}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0,n:1}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0,n:1}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0,n:1} };
+    var _est=(this.state.maqEstado&&typeof this.state.maqEstado==='object')?this.state.maqEstado:{};
+    var _fueraMap={ laser:0, plegado:0, punzonado:0, pintura:0, embalado:0 };
+    var _uMap={ 'laser|LEAPION':'laser','laser|BODOR':'laser','plegadora|DERATECH':'plegado','plegadora|HUAXIA':'plegado','punzon':'punzonado','pintura':'pintura','embalado':'embalado' };
+    var _fueraLabels={ laser:[], plegado:[] };
+    Object.keys(_est).forEach(function(k){ var mk=_uMap[k]; if(mk!=null){ _fueraMap[mk]=(_fueraMap[mk]||0)+1; var un=k.indexOf('|')>=0?k.split('|')[1]:''; if(_fueraLabels[mk]&&un) _fueraLabels[mk].push(un); } });
+    Object.keys(maq).forEach(function(mk){ if(_fueraMap[mk]){ maq[mk].nFull=maq[mk].n; maq[mk].n=Math.max(0, maq[mk].n-_fueraMap[mk]); maq[mk].fueraTxt=(_fueraLabels[mk]&&_fueraLabels[mk].length)?_fueraLabels[mk].join(', '):'1 máq'; } });
+    var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
+    var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
+    full.forEach(function(pr){ (pr.files||[]).forEach(function(f){ var pd=ench(f.pieza||f.archivo||''); if(!pd) return; var units=(f.objUni!=null?f.objUni:((f.objChapas||0)*(f.ppc||1))); if(!units) return; var procs=f.procesos||[]; procs.forEach(function(pid){ var mk=procMap[pid]; if(!mk||!maq[mk]) return; var rate=pd[rateField[mk]]||0; if(rate>0){ var addH=(mk==='pintura')?(units/rate)*(3/10):(units/rate); maq[mk].h += addH; maq[mk].u += units; } }); var er=pd[rateField.embalado]||0; if(er>0){ maq.embalado.h += units/er; maq.embalado.u += units; } }); });
+    var cargaRows=Object.keys(maq).map(function(k){ var m=maq[k]; var cap=H*m.n; var dias=cap>0?m.h/cap:Infinity; var ef=m.n>0?m.h/m.n:Infinity; var fuera=(m.fueraTxt!=null); return { label:m.label, color:m.color, unidades:Math.round(m.u), horas:(Math.round(m.h*10)/10), dias:(cap>0?(Math.round(dias*100)/100):'∞'), pct:cap>0?Math.min(100,Math.round((m.h/cap)*100)):100, barW:(cap>0?Math.min(100,Math.round((m.h/cap)*100)):100)+'%', activo:m.u>0, _ef:ef, fuera:fuera, fueraTxt:(fuera?('⛔ '+m.fueraTxt+' fuera'):''), capColor:(cap<=0?'#E0694A':m.color) }; }).filter(function(r){ return r.activo; });
+    var maxEf=0; cargaRows.forEach(function(r){ if(r._ef>maxEf) maxEf=r._ef; });
+    cargaRows.forEach(function(r){ r.cuello=(r._ef===maxEf && maxEf>0); });
+    // ░ Programación finita con máquinas en paralelo ░
+    var custom=Array.isArray(this.state.custom)?this.state.custom:[];
+    function prioRank(u){ u=(u||'').toUpperCase(); if(u==='URGENTE'||u==='ALTA') return 0; if(u==='BAJA') return 2; return 1; }
+    var palette=['#21C7D6','#E5A52B','#9B82DC','#4FB870','#E76A95','#F0814F','#5BC0BE','#D98C5F'];
+    var MACH=[ {id:'leapion',proc:'laser',label:'Láser · Leapion',color:'#21C7D6'}, {id:'bodor',proc:'laser',label:'Láser · Bodor',color:'#34C2CE'}, {id:'punzon',proc:'punzonado',label:'Punzonadora',color:'#3E7CE0'}, {id:'deratech',proc:'plegado',label:'Plegadora · Deratech',color:'#E5A52B'}, {id:'muaxia',proc:'plegado',label:'Plegadora · Muaxia',color:'#EFBE57'}, {id:'pintura',proc:'pintura',label:'Pintura',color:'#E76A95'}, {id:'embalado',proc:'embalado',label:'Embalado',color:'#C9B79A'} ];
+    var flow=['laser','punzonado','plegado','pintura','embalado'];
+    var projs=[]; full.forEach(function(pr,idx){ var hrs={}; (pr.files||[]).forEach(function(f){ var pd=ench(f.pieza||f.archivo||''); if(!pd) return; var units=(f.objUni!=null?f.objUni:((f.objChapas||0)*(f.ppc||1))); if(!units) return; var procs=f.procesos||[]; procs.forEach(function(pid){ var mk=procMap[pid]; if(!mk) return; var rate=pd[rateField[mk]]||0; if(rate>0){ var addH=(mk==='pintura')?(units/rate)*(3/10):(units/rate); hrs[mk]=(hrs[mk]||0)+addH; } }); var er=pd[rateField.embalado]||0; if(er>0){ hrs.embalado=(hrs.embalado||0)+units/er; } }); var cm=custom.find(function(c){return c.id===pr.id;}); var totalH=0; Object.keys(hrs).forEach(function(k){totalH+=hrs[k];}); if(totalH<=0) return; projs.push({ id:pr.id, name:pr.name, hrs:hrs, deadline:(cm&&cm.deadlineDays!=null)?cm.deadlineDays:7, prio:cm?cm.urgencia:'NORMAL', color:palette[idx%palette.length] }); });
+    projs.sort(function(a,b){ var d=prioRank(a.prio)-prioRank(b.prio); return d!==0?d:a.deadline-b.deadline; });
+    MACH.forEach(function(m){ m.free=0; m.blocks=[]; });
+    function pickMachine(proc){ var best=null; MACH.forEach(function(m){ if(m.proc!==proc) return; if(!best||m.free<best.free) best=m; }); return best; }
+    var horizon=1;
+    projs.forEach(function(p){ var ready=0; flow.forEach(function(proc){ var h=p.hrs[proc]||0; if(h<=0) return; var m=pickMachine(proc); if(!m) return; var dur=h/H; var start=Math.max(m.free, ready); var end=start+dur; m.free=end; ready=end; m.blocks.push({ proj:p.name, color:p.color, _s:start, _e:end, diasTxt:(Math.round(dur*10)/10)+'d' }); if(end>horizon) horizon=end; }); p.finish=ready; if(p.deadline>horizon) horizon=p.deadline; });
+    var vista=this.state.vista||'auto';
+    var H2=(vista==='mes')?Math.max(30, Math.ceil(horizon)+0.5):(Math.ceil(horizon)+0.5);
+    MACH.forEach(function(m){ m.blocks.forEach(function(b){ b.startPct=(b._s/H2*100)+'%'; b.widthPct=Math.max(1.5,(b._e-b._s)/H2*100)+'%'; }); });
+    var laneRows=MACH.filter(function(m){return m.blocks.length>0;}).map(function(m){ return { label:m.label, color:m.color, blocks:m.blocks }; });
+    var gstep=(vista==='mes')?7:(H2<=8?1:(H2<=20?2:5));
+    var gticks=[]; for(var gt=0;gt<=H2;gt+=gstep){ gticks.push({ d:gt, leftPct:(gt/H2*100)+'%' }); }
+    var projSummary=projs.map(function(p){ return { name:p.name, color:p.color, finishTxt:(Math.round(p.finish*10)/10)+' d', deadlineTxt:p.deadline+' d', late:p.finish>p.deadline }; });
+    this._report={ cargaRows:cargaRows, projSummary:projSummary, horas:H, laneRows:laneRows, gticks:gticks, ganttDays:H2 };
+    var vistaToggle=[['auto','Ajustado'],['mes','Mensual']].map((o)=>({ label:o[1], color: vista===o[0]?'#0C2226':'#9AA6A2', bg: vista===o[0]?'#C9B79A':'transparent', onClick:()=>this.setState({vista:o[0]}) }));
+    return { horas:H, cargaRows, hayCarga:cargaRows.length>0, sinCargaShow:cargaRows.length===0,
+      laneRows:laneRows, hayGantt:laneRows.length>0, gticks:gticks, projSummary:projSummary, vistaToggle:vistaToggle, onExportPdf:()=>this._exportPdf() };
+  }
+  _exportPdf(){
+    var r=this._report; if(!r) return; var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+    var maqRows=r.cargaRows.map(function(m){ return '<tr><td><b>'+esc(m.label)+'</b>'+(m.cuello?' <span class="ce">cuello</span>':'')+'</td><td class="c">'+esc(m.unidades)+'</td><td class="c">'+esc(m.horas)+' h</td><td class="c">'+esc(m.dias)+' d</td></tr>'; }).join('');
+    var projRows=(r.projSummary||[]).map(function(p){ return '<tr><td><span class="dot" style="background:'+esc(p.color)+'"></span><b>'+esc(p.name)+'</b></td><td class="c">'+esc(p.finishTxt)+'</td><td class="c">'+esc(p.deadlineTxt)+'</td><td class="c">'+(p.late?'<span style="color:#d04a2a">No llega</span>':'<span style="color:#2e9e5b">A tiempo</span>')+'</td></tr>'; }).join('');
+    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']; var n=new Date(); var fecha=n.getDate()+' '+meses[n.getMonth()]+' '+n.getFullYear();
+    var ganttHtml='';
+    if(r.laneRows && r.laneRows.length){
+      var lanes=r.laneRows.map(function(m){ var bars=(m.blocks||[]).map(function(b){ return '<div class="gbar" style="left:'+b.startPct+';width:'+b.widthPct+';background:'+esc(m.color)+'"></div>'; }).join('');
+        return '<div class="grow"><div class="glbl"><span class="dot" style="background:'+esc(m.color)+'"></span>'+esc(m.label)+'</div><div class="gtrack">'+bars+'</div></div>'; }).join('');
+      var ticks=(r.gticks||[]).map(function(t){ return '<div class="gtick" style="left:'+t.leftPct+'"><span>'+t.d+'d</span></div>'; }).join('');
+      ganttHtml='<div class="sec">Programación · Gantt por máquina</div><div class="gantt">'+lanes+'<div class="grow"><div class="glbl"></div><div class="gtrack gaxis">'+ticks+'</div></div></div>';
+    }
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>Tiempos y carga — Velum</title><style>'
+      +"*{box-sizing:border-box;font-family:'DM Sans',Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}"
+      +'body{margin:0;padding:34px 40px;color:#1a1f1e;background:#fff;}h1{font-size:22px;margin:0 0 4px;}.date{font-size:13px;color:#777;margin-bottom:22px;}'
+      +'.sec{font-size:11px;letter-spacing:0.08em;color:#888;text-transform:uppercase;margin:22px 0 10px;}'
+      +'table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px;}th{text-align:left;font-size:10px;letter-spacing:0.06em;color:#888;text-transform:uppercase;border-bottom:1.5px solid #e4e2dc;padding:8px 9px;}td{padding:9px;border-bottom:0.5px solid #efeee9;}.c{text-align:center;}'
+      +'.ce{font-size:10px;color:#d04a2a;border:1px solid #f0c4b8;border-radius:8px;padding:1px 6px;}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle;}'
+      +'.gantt{margin-top:6px;}.grow{display:flex;align-items:center;height:30px;}.glbl{width:150px;flex:0 0 auto;font-size:12px;font-weight:600;padding-right:10px;}.gtrack{position:relative;flex:1;height:22px;background:#f4f3ee;border-radius:5px;}.gbar{position:absolute;top:3px;height:16px;border-radius:4px;}.gaxis{background:none;height:18px;}.gtick{position:absolute;top:0;border-left:1px solid #ddd;height:14px;}.gtick span{position:absolute;top:14px;left:-8px;font-size:9px;color:#999;}'
+      +'</style></head><body><h1>Tiempos y carga · VELUM</h1><div class="date">'+esc(fecha)+' · jornada de '+esc(r.horas)+' h</div>'
+      +'<div class="sec">Carga por máquina</div><table><thead><tr><th>Máquina</th><th class="c">Unidades</th><th class="c">Horas</th><th class="c">Días</th></tr></thead><tbody>'+(maqRows||'<tr><td colspan="4">Sin carga</td></tr>')+'</tbody></table>'
+      +'<div class="sec">Proyectos · fecha estimada</div><table><thead><tr><th>Proyecto</th><th class="c">Fabricación</th><th class="c">Límite</th><th class="c">Estado</th></tr></thead><tbody>'+(projRows||'<tr><td colspan="4">Sin proyectos</td></tr>')+'</tbody></table>'
+      +ganttHtml
+      +'</body></html>';
+    var win=window.open('','_blank'); if(!win) return; win.document.open(); win.document.write(doc); win.document.close(); setTimeout(function(){ try{ win.focus(); win.print(); }catch(e){} },400);
+  }
+}
+</script>
+</body>
+</html>

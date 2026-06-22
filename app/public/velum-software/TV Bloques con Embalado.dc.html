@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./velum-api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;padding:0;background:#101514;overflow:hidden;}
+    *{box-sizing:border-box;}
+    @keyframes velumPulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+    @keyframes avisoGlow{0%,100%{box-shadow:0 0 0 rgba(232,69,69,0);border-color:rgba(232,69,69,0.45);}50%{box-shadow:0 0 30px rgba(232,69,69,0.6);border-color:rgba(232,69,69,0.95);}}
+    @keyframes avisoBlink{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  </style>
+</helmet>
+<div style="position:fixed;inset:0;background:#101514;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+  <div style="width:1920px;height:1080px;flex:0 0 auto;transform:{{ scaleStr }};transform-origin:center center;background:radial-gradient(130% 130% at 50% 0%, #21302F 0%, #1A2625 45%, #141E1D 100%);display:flex;flex-direction:column;font-family:'DM Sans',sans-serif;">
+
+    <!-- ░░ HEADER ░░ -->
+    <div style="display:flex;align-items:center;justify-content:space-between;height:96px;flex:0 0 auto;padding:0 42px;border-bottom:0.5px solid rgba(139,115,85,0.28);">
+      <div style="display:flex;align-items:center;gap:18px;position:relative;">
+        <div onClick="{{ onToggleNav }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+          <svg width="30" height="38" viewBox="0 0 28 36"><polygon points="0,0 5,0 14,26 9,26" fill="#FFFFFF"></polygon><polygon points="23,0 28,0 19,26 14,26" fill="#FFFFFF"></polygon><rect x="4" y="14" width="20" height="2" fill="#8B7355"></rect></svg>
+          <span style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:33px;letter-spacing:0.26em;color:#fff;">VELUM</span>
+          <span style="font-size:16px;color:#8E9A96;">▾</span>
+        </div>
+        <span style="width:0.5px;height:36px;background:rgba(139,115,85,0.4);"></span>
+        <span style="font-family:'DM Sans';font-weight:500;font-size:16px;letter-spacing:0.24em;color:#8B7355;">{{ planta }}</span>
+        <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:54px;left:0;z-index:60;background:#16201F;border:0.5px solid rgba(139,115,85,0.35);border-radius:12px;padding:8px;width:280px;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+            <sc-for list="{{ navLinks }}" as="n" hint-placeholder-count="4">
+              <a href="{{ n.href }}" style="display:flex;align-items:center;gap:12px;text-decoration:none;padding:12px 14px;border-radius:8px;background:{{ n.bg }};">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ n.dot }};flex:0 0 auto;"></span>
+                <div style="min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:600;font-size:16px;color:#EAE6DF;">{{ n.label }}</div>
+                  <div style="font-family:'DM Sans';font-weight:400;font-size:12px;color:#7E8C89;">{{ n.desc }}</div>
+                </div>
+              </a>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#4FB870;animation:velumPulse 2s ease-in-out infinite;"></span>
+          <span style="font-family:'DM Sans';font-weight:500;font-size:13px;letter-spacing:0.18em;color:#7E8C89;">EN VIVO</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Sans';font-weight:500;font-size:38px;letter-spacing:0.04em;color:#EAE6DF;line-height:1;font-variant-numeric:tabular-nums;">{{ timeStr }}</div>
+          <div style="font-family:'DM Sans';font-weight:400;font-size:14px;letter-spacing:0.12em;color:#6E7E85;margin-top:3px;">{{ dateStr }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ░░ BODY ░░ -->
+    <div style="flex:1;padding:24px 30px;overflow:hidden;display:flex;">
+
+      <!-- ═══ V1 · COLUMNAS ═══ -->
+      <sc-if value="{{ isCol }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:14px;width:100%;height:100%;">
+          <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;background:{{ m.obraBg }};border:0.5px solid {{ m.cardBorder }};border-top:{{ m.obraTop }};border-radius:5px;overflow:hidden;opacity:{{ m.obraOpacity }};filter:{{ m.obraFilter }};">
+              <div style="display:flex;align-items:center;gap:11px;padding:16px 15px;border-bottom:0.5px solid rgba(139,115,85,0.16);">
+                <div style="width:32px;height:32px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="32px,32px"></dc-import></div>
+                <div style="min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.03em;text-transform:uppercase;color:#fff;line-height:1.05;white-space:nowrap;">{{ m.name }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:12px;color:#8E9A96;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.encargado }}</div>
+                </div>
+              </div>
+              <div style="padding:18px 15px;flex:1;display:flex;flex-direction:column;">
+                <sc-if value="{{ m.fuera }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px 4px;text-align:center;">
+                    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+                    <span style="font-family:'DM Sans';font-weight:700;font-size:16px;letter-spacing:0.04em;color:#E0694A;">FUERA DE SERVICIO</span>
+                    <span style="font-family:'DM Sans';font-weight:500;font-size:13px;color:#C2C8C4;line-height:1.3;">{{ m.fueraMotivo }}</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ m.activa }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-direction:column;gap:20px;">
+                    <sc-for list="{{ m.obras }}" as="o" hint-placeholder-count="2">
+                      <div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                          <span style="font-family:'DM Sans';font-weight:600;font-size:16px;letter-spacing:0.01em;color:#EAE6DF;line-height:1.12;flex:1;min-width:0;">{{ o.proyecto }}</span>
+                          <span style="font-family:'DM Sans';font-weight:600;font-size:9.5px;letter-spacing:0.08em;color:{{ o.urgColor }};background:{{ o.urgSoft }};padding:3px 8px;border-radius:20px;flex:0 0 auto;">{{ o.urg }}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                          <div style="flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ o.barW }};background:{{ m.color }};border-radius:5px;"></div></div>
+                          <span style="font-family:'DM Sans';font-weight:700;font-size:22px;color:{{ m.color }};font-variant-numeric:tabular-nums;min-width:56px;text-align:right;">{{ o.pctStr }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ m.apagada }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 0;">
+                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#6E7E85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"></path><path d="M6.5 6.4a8 8 0 1 0 11 0"></path></svg>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:16px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">SIN PROYECTOS</span>
+                    <span style="font-family:'DM Sans';font-weight:400;font-size:12px;letter-spacing:0.16em;color:#6E7E85;text-align:center;">MÁQUINA DETENIDA</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ═══ V2 · TARJETAS ═══ -->
+      <sc-if value="{{ isCard }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:16px;width:100%;height:100%;">
+          <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;background:{{ m.obraBg }};border:0.5px solid rgba(139,115,85,0.16);border-left:6px solid {{ m.iconColor }};border-radius:6px;padding:24px 30px;overflow:hidden;opacity:{{ m.obraOpacity }};filter:{{ m.obraFilter }};">
+              <div style="display:flex;align-items:center;gap:15px;margin-bottom:22px;">
+                <div style="width:44px;height:44px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="44px,44px"></dc-import></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:27px;text-transform:uppercase;letter-spacing:0.02em;color:#fff;line-height:1;white-space:nowrap;">{{ m.name }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;margin-top:6px;">Encargado · {{ m.encargado }}</div>
+                </div>
+              </div>
+              <sc-if value="{{ m.activa }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px;">
+                  <sc-for list="{{ m.obras }}" as="o" hint-placeholder-count="2">
+                    <div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px;">
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:24px;letter-spacing:0.01em;color:#EAE6DF;">{{ o.proyecto }}</span>
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.1em;color:{{ o.urgColor }};background:{{ o.urgSoft }};padding:5px 13px;border-radius:20px;">{{ o.urg }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:16px;">
+                        <div style="flex:1;height:12px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ o.barW }};background:{{ m.color }};border-radius:6px;"></div></div>
+                        <span style="font-family:'DM Sans';font-weight:700;font-size:32px;color:{{ m.color }};font-variant-numeric:tabular-nums;min-width:98px;text-align:right;">{{ o.pctStr }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.apagada }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 0;">
+                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#6E7E85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"></path><path d="M6.5 6.4a8 8 0 1 0 11 0"></path></svg>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:16px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">SIN PROYECTOS</span>
+                    <span style="font-family:'DM Sans';font-weight:400;font-size:12px;letter-spacing:0.16em;color:#6E7E85;text-align:center;">MÁQUINA DETENIDA</span>
+                  </div>
+                </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ═══ V3 · FILAS ═══ -->
+      <sc-if value="{{ isRow }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:11px;width:100%;height:100%;">
+          <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+            <div style="flex:1;display:grid;grid-template-columns:360px 1fr;align-items:center;gap:34px;background:{{ m.obraBg }};border:0.5px solid rgba(139,115,85,0.14);border-left:7px solid {{ m.iconColor }};border-radius:5px;padding:0 32px;overflow:hidden;opacity:{{ m.obraOpacity }};filter:{{ m.obraFilter }};">
+              <div style="display:flex;align-items:center;gap:15px;">
+                <div style="width:46px;height:46px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="46px,46px"></dc-import></div>
+                <div style="min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:25px;text-transform:uppercase;letter-spacing:0.02em;color:#fff;line-height:1.05;white-space:nowrap;">{{ m.name }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;margin-top:4px;">Encargado · {{ m.encargado }}</div>
+                </div>
+              </div>
+              <sc-if value="{{ m.activa }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:40px;align-items:center;">
+                  <sc-for list="{{ m.obras }}" as="o" hint-placeholder-count="2">
+                    <div style="flex:1;min-width:0;">
+                      <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:20px;color:#EAE6DF;line-height:1.12;flex:1;min-width:0;">{{ o.proyecto }}</span>
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:10px;letter-spacing:0.08em;color:{{ o.urgColor }};background:{{ o.urgSoft }};padding:3px 9px;border-radius:20px;flex:0 0 auto;">{{ o.urg }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:13px;">
+                        <div style="flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="height:100%;width:{{ o.barW }};background:{{ m.color }};border-radius:5px;"></div></div>
+                        <span style="font-family:'DM Sans';font-weight:700;font-size:26px;color:{{ m.color }};font-variant-numeric:tabular-nums;min-width:76px;text-align:right;">{{ o.pctStr }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.apagada }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:16px;">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#6E7E85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"></path><path d="M6.5 6.4a8 8 0 1 0 11 0"></path></svg>
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:18px;letter-spacing:0.06em;color:#9AA6A2;">SIN PROYECTOS</span>
+                  <span style="font-family:'DM Sans';font-weight:400;font-size:13px;letter-spacing:0.16em;color:#6E7E85;">· MÁQUINA DETENIDA</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ═══ V4 · BLOQUES ═══ -->
+      <sc-if value="{{ isBlock }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:16px;width:100%;height:100%;">
+          <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;background:{{ m.obraBg }};border:0.5px solid {{ m.cardBorder }};border-top:6px solid {{ m.iconColor }};border-radius:6px;padding:24px 30px;overflow:hidden;opacity:{{ m.obraOpacity }};filter:{{ m.obraFilter }};">
+              <div style="display:flex;align-items:center;gap:15px;margin-bottom:22px;">
+                <div style="width:44px;height:44px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="44px,44px"></dc-import></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:27px;text-transform:uppercase;letter-spacing:0.02em;color:#fff;line-height:1;white-space:nowrap;">{{ m.name }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#9AA6A2;margin-top:6px;">Encargado · {{ m.encargado }}</div>
+                  <sc-if value="{{ m.parcial }}" hint-placeholder-val="{{ false }}"><div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-family:'DM Sans';font-weight:700;font-size:12px;letter-spacing:0.03em;color:#E0694A;background:rgba(224,105,74,0.14);border:0.5px solid rgba(224,105,74,0.4);padding:3px 9px;border-radius:6px;">⛔ {{ m.parcialTxt }}</div></sc-if>
+                </div>
+              </div>
+              <sc-if value="{{ m.fuera }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;">
+                  <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#E0694A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:21px;letter-spacing:0.04em;color:#E0694A;">FUERA DE SERVICIO</span>
+                  <span style="font-family:'DM Sans';font-weight:500;font-size:16px;color:#D2CEC4;line-height:1.3;">{{ m.fueraMotivo }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.activa }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:13px;">
+                  <sc-for list="{{ m.obras }}" as="o" hint-placeholder-count="2">
+                    <div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;">
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:20px;letter-spacing:0.01em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ o.proyecto }}</span>
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:11px;letter-spacing:0.1em;color:{{ o.urgColor }};background:{{ o.urgSoft }};padding:4px 10px;border-radius:20px;flex:0 0 auto;">{{ o.urg }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:14px;">
+                        <div style="flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,0.09);overflow:hidden;"><div style="height:100%;width:{{ o.barW }};background:{{ m.color }};border-radius:5px;"></div></div>
+                        <span style="font-family:'DM Sans';font-weight:700;font-size:24px;color:{{ m.color }};font-variant-numeric:tabular-nums;min-width:74px;text-align:right;">{{ o.pctStr }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.apagada }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 0;">
+                    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#6E7E85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"></path><path d="M6.5 6.4a8 8 0 1 0 11 0"></path></svg>
+                    <span style="font-family:'DM Sans';font-weight:600;font-size:16px;letter-spacing:0.06em;color:#9AA6A2;text-align:center;">SIN PROYECTOS</span>
+                    <span style="font-family:'DM Sans';font-weight:400;font-size:12px;letter-spacing:0.16em;color:#6E7E85;text-align:center;">MÁQUINA DETENIDA</span>
+                  </div>
+                </sc-if>
+            </div>
+          </sc-for>
+          <div style="display:flex;flex-direction:column;background:{{ avisosBg }};border:0.5px solid {{ avisosBorder }};border-top:6px solid {{ avisosTop }};border-radius:6px;padding:24px 30px;overflow:hidden;{{ avisosAnim }}">
+            <div style="display:flex;align-items:center;gap:13px;margin-bottom:20px;{{ avisosTitleAnim }}">
+              <span style="font-size:26px;opacity:{{ avisosIconOpacity }};">📌</span>
+              <div style="font-family:'DM Sans';font-weight:700;font-size:25px;text-transform:uppercase;letter-spacing:0.02em;color:{{ avisosTitleColor }};">Avisos de oficina</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:15px;overflow:hidden;">
+              <sc-for list="{{ avisos }}" as="a" hint-placeholder-count="3">
+                <div style="display:flex;align-items:flex-start;gap:13px;">
+                  <span style="width:10px;height:10px;border-radius:50%;background:#E84545;flex:0 0 auto;margin-top:10px;"></span>
+                  <span style="font-family:'DM Sans';font-weight:700;font-size:23px;color:#fff;line-height:1.28;">{{ a.text }}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noAvisos }}" hint-placeholder-val="{{ false }}"><span style="font-family:'DM Sans';font-weight:500;font-size:17px;letter-spacing:0.06em;color:#5A6562;">SIN AVISOS</span></sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ═══ V5 · OBRAS ═══ -->
+      <sc-if value="{{ isObras }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:16px;width:100%;height:100%;">
+          <sc-for list="{{ machines }}" as="m" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;background:{{ m.obraBg }};border:0.5px solid rgba(139,115,85,0.16);border-top:{{ m.obraTop }};border-radius:6px;padding:24px 28px;opacity:{{ m.obraOpacity }};filter:{{ m.obraFilter }};">
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                <div style="width:42px;height:42px;flex:0 0 auto;"><dc-import name="MachineIcon" type="{{ m.icon }}" color="{{ m.iconColor }}" hint-size="42px,42px"></dc-import></div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:'DM Sans';font-weight:700;font-size:27px;text-transform:uppercase;letter-spacing:0.02em;color:#fff;line-height:1;white-space:nowrap;">{{ m.name }}</div>
+                  <div style="font-family:'DM Sans';font-weight:500;font-size:14px;color:#8E9A96;margin-top:5px;">Encargado · {{ m.encargado }}</div>
+                </div>
+              </div>
+              <sc-if value="{{ m.activa }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:18px;">
+                  <sc-for list="{{ m.obras }}" as="o" hint-placeholder-count="2">
+                    <div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;">
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:22px;letter-spacing:0.02em;color:#EAE6DF;">{{ o.proyecto }}</span>
+                        <span style="font-family:'DM Sans';font-weight:600;font-size:12px;letter-spacing:0.1em;color:{{ o.urgColor }};background:{{ o.urgSoft }};padding:5px 13px;border-radius:20px;">{{ o.urg }}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:16px;">
+                        <div style="flex:1;height:11px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;">
+                          <div style="height:100%;width:{{ o.barW }};background:{{ m.color }};border-radius:6px;"></div>
+                        </div>
+                        <span style="font-family:'DM Sans';font-weight:700;font-size:30px;color:{{ m.color }};font-variant-numeric:tabular-nums;min-width:92px;text-align:right;">{{ o.pctStr }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ m.apagada }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 0;">
+                  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#6E7E85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"></path><path d="M6.5 6.4a8 8 0 1 0 11 0"></path></svg>
+                  <span style="font-family:'DM Sans';font-weight:600;font-size:19px;letter-spacing:0.08em;color:#9AA6A2;">SIN PROYECTOS</span>
+                  <span style="font-family:'DM Sans';font-weight:400;font-size:14px;letter-spacing:0.18em;color:#6E7E85;">MÁQUINA DETENIDA</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;columnas&quot;,&quot;tarjetas&quot;,&quot;filas&quot;,&quot;bloques&quot;,&quot;obras&quot;],&quot;default&quot;:&quot;columnas&quot;},&quot;planta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;PRODUCCIÓN · PLANTA&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      variant: null,
+      now: new Date(),
+      navOpen: false,
+      scale: this._fit(),
+      machines: this._data()
+    };
+    this._onResize = () => this.setState({ scale: this._fit() });
+  }
+
+  _fit() {
+    if (typeof window === 'undefined') return 1;
+    return Math.min(window.innerWidth / 1920, window.innerHeight / 1080) || 1;
+  }
+
+  _data() {
+    return [
+      { id:'laser', name:'Láser CNC', code:'LAS', icon:'laser', color:'#21C7D6', pre:'L1', encargado:'M. Gómez', activa:false, obras:[],
+        current:{ pieza:'PANEL MultiSlim A', archivo:'PANEL MultiSlim A', proyecto:'TORRE PUERTO', hechas:38, total:120, unidad:'chapas', loteSize:30, material:'Alum. comp. 4 mm', operario:'M. Gómez', prioridad:'ALTA', diasRest:0, obs:'Falta material — confirmar stock antes de seguir' },
+        cola:[ {pieza:'COSTILLA 3000mm', archivo:'COSTILLA 3000mm', cant:60, prio:'MEDIA'}, {pieza:'PIC', archivo:'PIC', cant:200, prio:'NORMAL'}, {pieza:'PARANTE 300', archivo:'PARANTE 300', cant:40, prio:'NORMAL'} ] },
+      { id:'punzon', name:'Punzonadora', code:'PUN', icon:'punzon', color:'#9B82DC', pre:'P01', encargado:'L. Ferreyra', activa:false, obras:[],
+        current:{ pieza:'PIC', archivo:'PIC', proyecto:'TORRE PUERTO', hechas:210, total:500, unidad:'chapas', loteSize:100, material:'Galvaniz. 1,2 mm', operario:'L. Ferreyra', prioridad:'NORMAL', diasRest:2, obs:'Cambiar matriz a Ø8 en el lote 3' },
+        cola:[ {pieza:'COSTILLA 1500MM', archivo:'COSTILLA 1500MM', cant:120, prio:'MEDIA'}, {pieza:'PEC', archivo:'PEC', cant:75, prio:'NORMAL'}, {pieza:'PANEL MultiSlim A', archivo:'PANEL MultiSlim A', cant:50, prio:'NORMAL'} ] },
+      { id:'fresa', name:'Fresa CNC', code:'FRE', icon:'fresa', color:'#3E7CE0', pre:'F1', encargado:'J. Sosa', activa:false, obras:[],
+        current:{ pieza:'COSTILLA 3000mm', archivo:'COSTILLA 3000mm', proyecto:'HOTEL RIVA', hechas:6, total:24, unidad:'piezas', loteSize:6, material:'Aluminio 10 mm', operario:'J. Sosa', prioridad:'ALTA', diasRest:0, obs:'Verificar herramienta — desgaste en punta' },
+        cola:[ {pieza:'PARANTE 300', archivo:'PARANTE 300', cant:40, prio:'MEDIA'}, {pieza:'PANEL MultiSlim A', archivo:'PANEL MultiSlim A', cant:18, prio:'NORMAL'}, {pieza:'PIC', archivo:'PIC', cant:12, prio:'ALTA'} ] },
+      { id:'expansora', name:'Expansora', code:'EXP', icon:'expansora', color:'#F0814F', pre:'E1', encargado:'C. Ruiz', activa:false, obras:[],
+        current:{ pieza:'PEC', archivo:'PEC', proyecto:'CASINO', hechas:22, total:60, unidad:'chapas', loteSize:12, material:'Chapa 1,0 mm', operario:'C. Ruiz', prioridad:'MEDIA', diasRest:3, obs:'Rombo estándar 40×20 mm' },
+        cola:[ {pieza:'PANEL MultiSlim C', archivo:'PANEL MultiSlim C', cant:35, prio:'NORMAL'}, {pieza:'COSTILLA 1500MM', archivo:'COSTILLA 1500MM', cant:48, prio:'MEDIA'}, {pieza:'PIC', archivo:'PIC', cant:20, prio:'NORMAL'} ] },
+      { id:'plegadora', name:'Plegadora', code:'PLG', icon:'plegadora', color:'#E5A52B', pre:'PL1', encargado:'R. Díaz', activa:false, obras:[],
+        current:{ pieza:'PARANTE 300', archivo:'PARANTE 300', proyecto:'CASINO', hechas:14, total:45, unidad:'piezas', loteSize:15, material:'Acero 1,5 mm', operario:'R. Díaz', prioridad:'MEDIA', diasRest:1, obs:'Respetar radio de plegado 2 mm' },
+        cola:[ {pieza:'PANEL MultiSlim C', archivo:'PANEL MultiSlim C', cant:30, prio:'ALTA'}, {pieza:'PEC', archivo:'PEC', cant:80, prio:'NORMAL'}, {pieza:'COSTILLA 1500MM', archivo:'COSTILLA 1500MM', cant:25, prio:'MEDIA'} ] },
+      { id:'pintura', name:'Pintura', code:'PIN', icon:'pintura', color:'#E76A95', pre:'PT1', encargado:'A. Núñez', activa:false, obras:[],
+        current:{ pieza:'PANEL MultiSlim C', archivo:'PANEL MultiSlim C', proyecto:'TORRE PUERTO', hechas:80, total:150, unidad:'piezas', loteSize:50, material:'RAL 7016 mate', operario:'A. Núñez', prioridad:'ALTA', diasRest:0, obs:'Horno a 200° — verificar curado' },
+        cola:[ {pieza:'PANEL MultiSlim A', archivo:'PANEL MultiSlim A', cant:90, prio:'MEDIA'}, {pieza:'PARANTE 300', archivo:'PARANTE 300', cant:55, prio:'NORMAL'}, {pieza:'PEC', archivo:'PEC', cant:60, prio:'MEDIA'} ] },
+      { id:'embalado', name:'Embalado', code:'EMB', icon:'embalado', color:'#C9B79A', pre:'EM1', encargado:'P. López', activa:false, obras:[],
+        current:{ pieza:'PEC', archivo:'PEC', proyecto:'CASINO', hechas:12, total:40, unidad:'paquetes', loteSize:5, material:'Capachos de 5', operario:'P. López', prioridad:'MEDIA', diasRest:2, obs:'Embalar en capachos de 5 — etiquetar por obra' },
+        cola:[ {pieza:'PANEL MultiSlim C', archivo:'PANEL MultiSlim C', cant:18, prio:'MEDIA'}, {pieza:'COSTILLA 1500MM', archivo:'COSTILLA 1500MM', cant:14, prio:'NORMAL'} ] }
+    ];
+  }
+
+  componentDidMount() {
+    window.addEventListener('resize', this._onResize);
+    this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
+    this._syncObras = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('avisos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[])
+        ]);
+        const liveObras = {}; (Array.isArray(res[0])?res[0]:[]).forEach(o => { liveObras[o.projectId] = o.pct; });
+        const estacion = Array.isArray(res[1])?res[1]:[];
+        const avisos = Array.isArray(res[2])?res[2]:[];
+        const maqEstado = {}; (Array.isArray(res[3])?res[3]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const activeProcs = {}; estacion.forEach(p => (p.files||[]).forEach(f => (f.procesos||[]).forEach(pr => { activeProcs[pr] = true; })));
+        this.setState({ liveObras, activeProcs, estacion, avisos, maqEstado });
+      } catch (e) {}
+    };
+    this._syncObras();
+    this._obrasPoll = setInterval(this._syncObras, 2000);
+    this._prog = setInterval(() => {
+      this.setState(s => {
+        const ms = s.machines.map(m => {
+          const c = m.current;
+          if (c.hechas < c.total && Math.random() < 0.5) {
+            return { ...m, current: { ...c, hechas: c.hechas + 1 } };
+          }
+          return m;
+        });
+        return { machines: ms };
+      });
+    }, 4000);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('storage', this._syncObras);
+    clearInterval(this._clock);
+    clearInterval(this._prog);
+    clearInterval(this._obrasPoll);
+  }
+
+  _readObras() { return this.state.liveObras||{}; }
+  _readMaqEstado() { return this.state.maqEstado||{}; }
+  _readAvisos() { return this.state.avisos||[]; }
+  _fileReachable(f, mid){
+    const ord=(f.procesos&&f.procesos.length)?f.procesos:['laser'];
+    const idx=ord.indexOf(mid);
+    if(idx<0) return false;
+    if(idx===0) return (f.objChapas||0)>0;
+    const prog=f.prog||{};
+    const prevId=ord[idx-1];
+    const prevCh=(prog[prevId]!=null)?prog[prevId]:(prevId===ord[0]?(f.chapas||0):0);
+    const prevUnits=prevCh*(f.ppc||1);
+    const lote=Math.max(1,f.lote||20);
+    const paq=(f.paquete&&f.paquete>0)?f.paquete:lote;
+    if(idx===1) return Math.floor(prevUnits/lote)>0;
+    return Math.floor(prevUnits/paq)>0;
+  }
+  _readActiveProcs() { return this.state.activeProcs||null; }
+  _readEstacion() { return this.state.estacion||[]; }
+  _liveObra(o) {
+    const NID = { 'CASINO':'casino', 'HOTEL RIVA':'riva', 'TORRE PUERTO':'centro', 'NINO JUNIO':'ninojunio' };
+    const live = this.state.liveObras || {};
+    const pid = NID[o.proyecto];
+    return (pid != null && live[pid] != null) ? live[pid] : o.pct;
+  }
+
+  _prioColor(p) { return p === 'ALTA' ? '#E0694A' : (p === 'MEDIA' ? '#E5A52B' : '#7C8B91'); }
+
+  _hex(h) { h = h.replace('#', ''); return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+  _mix(a, b, t) {
+    const pa = this._hex(a), pb = this._hex(b);
+    const c = i => Math.round(pa[i] + (pb[i] - pa[i]) * t).toString(16).padStart(2,'0');
+    return '#' + c(0) + c(1) + c(2);
+  }
+
+  renderVals() {
+    const active = this.state.variant || 'bloques';
+    const labels = [['columnas','Columnas'],['tarjetas','Tarjetas'],['filas','Filas'],['bloques','Bloques'],['obras','Obras']];
+    const switcher = labels.map(([id, label]) => {
+      const on = id === active;
+      return { id, label, active: on,
+        color: on ? '#EAE6DF' : '#7E8C89',
+        bg: on ? 'rgba(139,115,85,0.28)' : 'transparent',
+        onClick: () => this.setState({ variant: id }) };
+    });
+
+    const C = 289.03;
+    const n = this.state.now;
+    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const pad = x => (x < 10 ? '0' + x : '' + x);
+
+    const machines = this.state.machines.map(m => {
+      const c = m.current;
+      const est = this.state.estacion || [];
+      let dynObras = null;
+      let reachableActiva = false;
+      if (est.length) {
+        const NID = { 'casino':'CASINO', 'riva':'HOTEL RIVA', 'centro':'TORRE PUERTO', 'ninojunio':'NINO JUNIO' };
+        const lv = this.state.liveObras || {};
+        dynObras = est.filter(p => (p.files||[]).some(f => this._fileReachable(f, m.id)))
+          .map(p => { const pid=p.id; const pctv = lv[pid]!=null ? lv[pid] : 0; return { proyecto: (NID[pid]||p.name||pid), pct: pctv, urg: 'NORMAL' }; });
+        reachableActiva = dynObras.length > 0;
+      }
+      const activa = est.length ? reachableActiva : m.activa;
+      const _me = this._readMaqEstado(); let _fueraMot=''; const _unitsMap={ laser:['LEAPION','BODOR'], plegadora:['DERATECH','HUAXIA'] }; const _munits=_unitsMap[m.id]||null; let _fueraUnits=[];
+      if(_munits){ _munits.forEach(u=>{ if(_me[m.id+'|'+u]){ _fueraUnits.push(u); if(!_fueraMot) _fueraMot=_me[m.id+'|'+u].motivo||''; } }); }
+      else if(_me[m.id]){ _fueraUnits.push(''); _fueraMot=_me[m.id].motivo||''; }
+      const _totalUnits=_munits?_munits.length:1;
+      const _fuera = _fueraUnits.length>=_totalUnits && _fueraUnits.length>0;
+      const _parcial = _fueraUnits.length>0 && !_fuera;
+      const _parcialTxt = _parcial ? (_fueraUnits.join(', ')+' fuera de servicio'+(_fueraMot?(' · '+_fueraMot):'')) : '';
+      const obrasSrc = dynObras != null ? dynObras : (m.obras || []);
+      const pct = Math.max(0, Math.min(100, Math.round(c.hechas / c.total * 100)));
+      const lotesTot = Math.ceil(c.total / c.loteSize);
+      const lotesHechos = Math.floor(c.hechas / c.loteSize);
+      const pips = [];
+      for (let i = 0; i < lotesTot; i++) pips.push({ bg: i < lotesHechos ? m.color : 'rgba(255,255,255,0.12)' });
+
+      const d = c.diasRest;
+      const dd = new Date(n.getTime() + d * 86400000);
+      const diaStr = dias[dd.getDay()] + ' ' + pad(dd.getDate()) + '/' + pad(dd.getMonth() + 1);
+      let entTxt, entColor, entSoft;
+      if (d <= 0) { entTxt = 'HOY'; entColor = '#E0694A'; entSoft = 'rgba(224,105,74,0.12)'; }
+      else if (d === 1) { entTxt = 'MAÑANA'; entColor = '#E5A52B'; entSoft = 'rgba(229,165,43,0.1)'; }
+      else { entTxt = 'EN ' + d + ' DÍAS'; entColor = '#C9B79A'; entSoft = 'rgba(139,115,85,0.1)'; }
+
+      return {
+        id:m.id, name:m.name, code:m.code, icon:m.icon, color:m.color,
+        soft:m.color+'1A', mid:m.color+'2B', line:m.color+'4D',
+        fuera:_fuera, noFuera:!_fuera, fueraMotivo:_fueraMot||'Sin especificar',
+        parcial:_parcial, parcialTxt:_parcialTxt,
+        cardBorder: _fuera ? 'rgba(224,105,74,0.55)' : (_parcial?'rgba(224,105,74,0.35)':'rgba(139,115,85,0.14)'),
+        activa: activa && !_fuera, apagada:(!activa && !_fuera), encargado:m.encargado,
+        obraTop: _fuera ? '4px solid #E0694A' : (activa ? ('4px solid ' + m.color) : '4px solid #3A4442'),
+        iconColor: activa ? m.color : (_fuera ? '#E0694A' : '#5A6562'),
+        obraBg: _fuera ? 'rgba(224,105,74,0.06)' : (activa ? '#1C2928' : 'rgba(255,255,255,0.015)'),
+        obraOpacity: (activa || _fuera) ? '1' : '0.48',
+        obraFilter: (activa || _fuera) ? 'none' : 'grayscale(0.85)',
+        obras: obrasSrc.map(o => { const pct = this._liveObra(o); return { proyecto:o.proyecto, pctStr:pct + '%', barW:pct + '%', urg:o.urg, urgColor:this._prioColor(o.urg), urgSoft:this._prioColor(o.urg) + '26' }; }),
+        deep: this._mix(m.color, '#141E1D', 0.85),
+        pct, pctStr: pct + '%', barW: pct + '%',
+        ringArr: (pct / 100 * C).toFixed(1) + ' ' + C.toFixed(1),
+        lotePips: pips, loteStr: lotesTot + ' lotes × ' + c.loteSize + 'u',
+        entrega: { txt: entTxt, dia: diaStr, color: entColor, soft: entSoft },
+        cur: {
+          pieza:c.pieza, archivo:c.archivo, proyecto: m.pre + '  ·  ' + c.proyecto, cantStr:c.hechas + ' / ' + c.total, unidad:c.unidad,
+          material:c.material, operario:c.operario, prioridad:c.prioridad,
+          prioColor:this._prioColor(c.prioridad), prioSoft:this._prioColor(c.prioridad) + '26',
+          obs:c.obs
+        },
+        cola: m.cola.map(q => ({ pieza:q.pieza, archivo:q.archivo, cant:q.cant, prioridad:q.prio, prioColor:this._prioColor(q.prio) })),
+        colaTop: m.cola.slice(0, 2).map(q => ({ pieza:q.pieza, cant:q.cant, prioColor:this._prioColor(q.prio) }))
+      };
+    });
+
+    return {
+      planta: this.props.planta || 'PRODUCCIÓN · PLANTA',
+      navOpen: this.state.navOpen,
+      onToggleNav: () => this.setState(s=>({ navOpen: !s.navOpen })),
+      navLinks: [
+        { href:'Inicio.dc.html', label:'Inicio · Cambiar usuario', desc:'Volver a elegir perfil', dot:'#EAE6DF', bg:'transparent' },
+        { href:'Dashboard Oficina.dc.html', label:'Inicio · Panel de oficina', desc:'Proyectos en curso + cargar', dot:'#C9B79A', bg:'transparent' },
+        { href:'Gestion Resumen.dc.html', label:'Gestión de producción', desc:'Seguimiento del jefe', dot:'#4FB870', bg:'transparent' },
+        { href:'Materia Prima.dc.html', label:'Materia prima', desc:'Stock de chapas', dot:'#8B7355', bg:'transparent' },
+        { href:'TV Bloques.dc.html', label:'Monitor TV · Planta', desc:'Pantalla de los operarios', dot:'#21C7D6', bg:'rgba(33,199,214,0.12)' },
+        { href:'Estacion Tarjetas.dc.html', label:'Estación de máquina', desc:'Carga de cantidades', dot:'#E5A52B', bg:'transparent' }
+      ],
+      scaleStr: 'scale(' + this.state.scale + ')',
+      timeStr: pad(n.getHours()) + ':' + pad(n.getMinutes()),
+      dateStr: dias[n.getDay()] + ' ' + n.getDate() + '/' + pad(n.getMonth() + 1) + ' · ' + pad(n.getHours()) + ':' + pad(n.getMinutes()) + ':' + pad(n.getSeconds()),
+      switcher,
+      machines,
+      avisos: (this.state.avisos||[]).map(a=>({ text:a.text })),
+      noAvisos: (this.state.avisos||[]).length===0,
+      ...(function(hay){ return hay ? { avisosBg:'#2A1413', avisosBorder:'rgba(232,69,69,0.6)', avisosTop:'#E84545', avisosAnim:'animation:avisoGlow 1.4s ease-in-out infinite;', avisosTitleAnim:'animation:avisoBlink 1.4s ease-in-out infinite;', avisosIconOpacity:'1', avisosTitleColor:'#FF6B6B' } : { avisosBg:'rgba(255,255,255,0.015)', avisosBorder:'rgba(139,115,85,0.14)', avisosTop:'#3A4442', avisosAnim:'opacity:0.5;filter:grayscale(0.85);', avisosTitleAnim:'', avisosIconOpacity:'0.4', avisosTitleColor:'#6E7E85' }; })((this.state.avisos||[]).length>0),
+      isObras: active === 'obras',
+      isCol: active === 'columnas',
+      isCard: active === 'tarjetas',
+      isRow: active === 'filas',
+      isBlock: active === 'bloques'
+    };
+  }
+}
+</script>
+</body>
+</html>
