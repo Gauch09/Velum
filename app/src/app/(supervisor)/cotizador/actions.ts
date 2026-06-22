@@ -64,6 +64,7 @@ export async function cotizarVanoAction(datos: unknown): Promise<CotizarVanoResu
       },
     }
   } catch (e) {
+    // TODO: normalizar a mensaje genérico antes de exponer esta action a roles más amplios o al cliente final (e.message puede incluir nombres de tablas/variantes).
     return { ok: false, error: e instanceof Error ? e.message : 'Error al cotizar' }
   }
 }

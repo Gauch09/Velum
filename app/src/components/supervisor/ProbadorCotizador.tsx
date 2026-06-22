@@ -69,44 +69,44 @@ export default function ProbadorCotizador({ materiales, disenos }: Props) {
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="bg-gray-900 rounded p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div>
-          <label className={label}>Ancho (m)</label>
-          <input className={numInput} type="number" step="any" value={form.ancho} onChange={e => set('ancho', e.target.value)} />
+          <label htmlFor="ancho" className={label}>Ancho (m)</label>
+          <input id="ancho" className={numInput} type="number" step="any" value={form.ancho} onChange={e => set('ancho', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Alto (m)</label>
-          <input className={numInput} type="number" step="any" value={form.alto} onChange={e => set('alto', e.target.value)} />
+          <label htmlFor="alto" className={label}>Alto (m)</label>
+          <input id="alto" className={numInput} type="number" step="any" value={form.alto} onChange={e => set('alto', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Margen (%)</label>
-          <input className={numInput} type="number" step="any" value={form.margenPct} onChange={e => set('margenPct', e.target.value)} />
+          <label htmlFor="margenPct" className={label}>Margen (%)</label>
+          <input id="margenPct" className={numInput} type="number" step="any" value={form.margenPct} onChange={e => set('margenPct', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Módulo ancho (m)</label>
-          <input className={numInput} type="number" step="any" value={form.modAncho} onChange={e => set('modAncho', e.target.value)} />
+          <label htmlFor="modAncho" className={label}>Módulo ancho (m)</label>
+          <input id="modAncho" className={numInput} type="number" step="any" value={form.modAncho} onChange={e => set('modAncho', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Módulo alto (m)</label>
-          <input className={numInput} type="number" step="any" value={form.modAlto} onChange={e => set('modAlto', e.target.value)} />
+          <label htmlFor="modAlto" className={label}>Módulo alto (m)</label>
+          <input id="modAlto" className={numInput} type="number" step="any" value={form.modAlto} onChange={e => set('modAlto', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Sep. pared (mm)</label>
-          <input className={numInput} type="number" step="any" value={form.sepParedMm} onChange={e => set('sepParedMm', e.target.value)} />
+          <label htmlFor="sepParedMm" className={label}>Sep. pared (mm)</label>
+          <input id="sepParedMm" className={numInput} type="number" step="any" value={form.sepParedMm} onChange={e => set('sepParedMm', e.target.value)} />
         </div>
         <div>
-          <label className={label}>Material</label>
-          <select className={numInput} value={form.material} onChange={e => set('material', e.target.value)}>
+          <label htmlFor="material" className={label}>Material</label>
+          <select id="material" className={numInput} value={form.material} onChange={e => set('material', e.target.value)}>
             {materiales.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div>
-          <label className={label}>Diseño</label>
-          <select className={numInput} value={form.diseno} onChange={e => set('diseno', e.target.value)}>
+          <label htmlFor="diseno" className={label}>Diseño</label>
+          <select id="diseno" className={numInput} value={form.diseno} onChange={e => set('diseno', e.target.value)}>
             {disenos.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
         <div>
-          <label className={label}>Alcance</label>
-          <select className={numInput} value={form.alcance} onChange={e => set('alcance', e.target.value)}>
+          <label htmlFor="alcance" className={label}>Alcance</label>
+          <select id="alcance" className={numInput} value={form.alcance} onChange={e => set('alcance', e.target.value)}>
             {ALCANCES.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>

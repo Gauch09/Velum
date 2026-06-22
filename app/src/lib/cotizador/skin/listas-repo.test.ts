@@ -40,4 +40,8 @@ describe('listarDisenos', () => {
     expect(r).toEqual(['Composite', 'Standard'])
     expect(from).toHaveBeenCalledWith('DisenoKp')
   })
+  it('lanza un error legible si la query falla', async () => {
+    order.mockResolvedValueOnce({ data: null, error: { message: 'boom' } })
+    await expect(listarDisenos()).rejects.toThrow('listarDisenos: boom')
+  })
 })
