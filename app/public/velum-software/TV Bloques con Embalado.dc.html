@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -346,9 +347,24 @@ class Component extends DCLogic {
   componentDidMount() {
     window.addEventListener('resize', this._onResize);
     this._clock = setInterval(() => this.setState({ now: new Date() }), 1000);
-    this._syncObras = () => this.setState({ liveObras: this._readObras(), activeProcs: this._readActiveProcs(), estacion: this._readEstacion(), avisos: this._readAvisos(), maqEstado: this._readMaqEstado() });
+    this._syncObras = async () => {
+      if (!window.VelumAPI) return;
+      try {
+        const res = await Promise.all([
+          VelumAPI.get('obras').catch(()=>[]),
+          VelumAPI.get('estacion').catch(()=>[]),
+          VelumAPI.get('avisos').catch(()=>[]),
+          VelumAPI.get('maquinas-estado').catch(()=>[])
+        ]);
+        const liveObras = {}; (Array.isArray(res[0])?res[0]:[]).forEach(o => { liveObras[o.projectId] = o.pct; });
+        const estacion = Array.isArray(res[1])?res[1]:[];
+        const avisos = Array.isArray(res[2])?res[2]:[];
+        const maqEstado = {}; (Array.isArray(res[3])?res[3]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const activeProcs = {}; estacion.forEach(p => (p.files||[]).forEach(f => (f.procesos||[]).forEach(pr => { activeProcs[pr] = true; })));
+        this.setState({ liveObras, activeProcs, estacion, avisos, maqEstado });
+      } catch (e) {}
+    };
     this._syncObras();
-    window.addEventListener('storage', this._syncObras);
     this._obrasPoll = setInterval(this._syncObras, 2000);
     this._prog = setInterval(() => {
       this.setState(s => {
@@ -372,9 +388,9 @@ class Component extends DCLogic {
     clearInterval(this._obrasPoll);
   }
 
-  _readObras() { try { const r = localStorage.getItem('velum_obras'); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } }
-  _readMaqEstado() { try { const r = localStorage.getItem('velum_maquinas_estado'); const d = r?JSON.parse(r):{}; return (d&&typeof d==='object')?d:{}; } catch (e) { return {}; } }
-  _readAvisos() { try { const r = localStorage.getItem('velum_avisos'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch (e) { return []; } }
+  _readObras() { return this.state.liveObras||{}; }
+  _readMaqEstado() { return this.state.maqEstado||{}; }
+  _readAvisos() { return this.state.avisos||[]; }
   _fileReachable(f, mid){
     const ord=(f.procesos&&f.procesos.length)?f.procesos:['laser'];
     const idx=ord.indexOf(mid);
@@ -389,16 +405,8 @@ class Component extends DCLogic {
     if(idx===1) return Math.floor(prevUnits/lote)>0;
     return Math.floor(prevUnits/paq)>0;
   }
-  _readActiveProcs() {
-    try {
-      const r = localStorage.getItem('velum_estacion_full'); if (!r) return null;
-      const d = JSON.parse(r); if (!Array.isArray(d)) return null;
-      const set = {};
-      d.forEach(p => (p.files||[]).forEach(f => (f.procesos||[]).forEach(pr => { set[pr] = true; })));
-      return set;
-    } catch (e) { return null; }
-  }
-  _readEstacion() { try { const r = localStorage.getItem('velum_estacion_full'); const d = r?JSON.parse(r):[]; return Array.isArray(d)?d:[]; } catch (e) { return []; } }
+  _readActiveProcs() { return this.state.activeProcs||null; }
+  _readEstacion() { return this.state.estacion||[]; }
   _liveObra(o) {
     const NID = { 'CASINO':'casino', 'HOTEL RIVA':'riva', 'TORRE PUERTO':'centro', 'NINO JUNIO':'ninojunio' };
     const live = this.state.liveObras || {};
