@@ -630,8 +630,8 @@ class Component extends DCLogic {
   _doToggleArch(pid){ const ya=(this.state.archivados||[]).indexOf(pid)>=0; this.setState(s=>{ const set=(s.archivados||[]).slice(); const i=set.indexOf(pid); if(i>=0) set.splice(i,1); else set.push(pid); return { archivados:set, detailId: i>=0?s.detailId:null, archModal:{ open:false, pid:null } }; }); if(window.VelumAPI){ if(ya) VelumAPI.del('archivados', pid).catch(()=>{}); else VelumAPI.save('archivados', { projectId:pid, archivedTs:Date.now() }).catch(()=>{}); } }
   _cancelArch(){ this.setState({ archModal:{ open:false, pid:null } }); }
   _fabDays(piezas){
-    var prods=this.state.caps||[];
-    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    var prods=this.state.caps||[]; var self=this;
+    function ench(name){ return self._capMatch(name); }
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
     var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
     var H=8, total=0, matched=false;
@@ -798,14 +798,16 @@ class Component extends DCLogic {
     this._mutate(files => files.concat([{ id:'z'+Date.now(), archivo:'Nueva pieza', pieza:'Nueva pieza', material:'Acero 2,0 mm', ppc:1, objChapas:1, lote:20, chapas:0, retazo:0, fallas:0, pintado:false, procesos:['laser'] }]));
   }
   _delPieza(zid){ this._mutate(files => files.filter(f=>f.id!==zid)); }
-  _setPiezaName(zid, v){ this._mutate(files => files.map(f=>f.id===zid?{...f, pieza:v, archivo:v}:f)); }
+  _setPiezaName(zid, v){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; var nf={...f, pieza:v, archivo:v}; var ench=this._capEnChapa(v); if(ench>0){ nf.ppc=ench; if(nf.objUni!=null) nf.objChapas=Math.max(0, Math.ceil(nf.objUni/ench)); } return nf; })); }
   _toggleProc(zid, procId){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const ps=f.procesos||[]; const has=ps.indexOf(procId)>=0; return {...f, procesos: has?ps.filter(x=>x!==procId):ps.concat([procId])}; })); }
   _togglePintado(zid){ this._mutate(files => files.map(f=>f.id===zid?{...f, pintado:!f.pintado}:f)); }
   _setNum(zid, field, delta, min){ this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; const base = (f[field]!=null?f[field]:0); return {...f, [field]: Math.max(min, Math.round((base+delta)*10)/10)}; })); }
   _setAbs(zid, field, val, min){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=min; v=Math.max(min, Math.round(v*10)/10); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; if(field==='ppc' && v>0 && f.objUni!=null){ return {...f, ppc:v, objChapas: Math.max(0, Math.ceil(f.objUni/v)) }; } return {...f, [field]: v}; })); }
-  _capEnChapa(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && (p.enChapa||0)>0){ best=p.enChapa; } }); return best; }catch(e){ return 0; } }
-  _capEsp(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var best=''; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0 && p.esp!=null && (''+p.esp).trim()!=='') best=(''+p.esp).trim(); }); return best; }catch(e){ return ''; } }
-  _pesoUnit(name){ try{ var d=this.state.caps||[]; var nm=(name||'').toLowerCase(); var pf=function(v){ return parseFloat(String(v==null?'':v).replace(',','.'))||0; }; var D={Acero:7850,Galvanizado:7850,Inoxidable:8000,Aluminio:2700,MDF:750}; var best=0; d.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var a=pf(p.ancho),h=pf(p.alto),e=pf(p.esp); if(a>0&&h>0&&e>0) best=(a/1000)*(h/1000)*(e/1000)*(D[p.material||'Acero']||7850); } }); return best; }catch(e){ return 0; } }
+  _capNorm(s){ return (s==null?'':String(s)).toLowerCase().replace(/[^a-z0-9 ]/gi,' ').replace(/\s+/g,' ').trim(); }
+  _capMatch(name){ var d=this.state.caps||[]; var norm=this._capNorm; var nm=norm(name); if(!nm) return null; var exact=null, fwd=null, fwdLen=-1, rev=null, revLen=Infinity; d.forEach(function(p){ var pn=norm(p&&p.nombre); if(!pn) return; if(pn===nm){ exact=p; return; } if(nm.indexOf(pn)>=0){ if(pn.length>fwdLen){ fwdLen=pn.length; fwd=p; } } else if(pn.indexOf(nm)>=0){ if(pn.length<revLen){ revLen=pn.length; rev=p; } } }); return exact || fwd || rev; }
+  _capEnChapa(name){ try{ var p=this._capMatch(name); return (p && (p.enChapa||0)>0) ? p.enChapa : 0; }catch(e){ return 0; } }
+  _capEsp(name){ try{ var p=this._capMatch(name); return (p && p.esp!=null && (''+p.esp).trim()!=='') ? (''+p.esp).trim() : ''; }catch(e){ return ''; } }
+  _pesoUnit(name){ try{ var p=this._capMatch(name); if(!p) return 0; var pf=function(v){ return parseFloat(String(v==null?'':v).replace(',','.'))||0; }; var D={Acero:7850,Galvanizado:7850,Inoxidable:8000,Aluminio:2700,MDF:750}; var a=pf(p.ancho),h=pf(p.alto),e=pf(p.esp); if(a>0&&h>0&&e>0) return (a/1000)*(h/1000)*(e/1000)*(D[p.material||'Acero']||7850); return 0; }catch(e){ return 0; } }
   _pesoProj(pid){ var t=0; var self=this; this._piezasOf(pid).forEach(function(z){ var nec=(z.objUni!=null)?z.objUni:((z.objChapas||0)*(z.ppc||1)); t+=self._pesoUnit(z.pieza||z.archivo||'')*nec; }); return t; }
   _pesoFmt(t){ return t<=0?'':(t>=1000?(t/1000).toFixed(2).replace('.',',')+' t':Math.round(t).toLocaleString('es-AR')+' kg'); }
   _setNecUnits(zid, val){ var v = parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; v=Math.max(0,v); this._mutate(files => files.map(f=>{ if(f.id!==zid) return f; var ench=this._capEnChapa(f.pieza||f.archivo||''); if(ench>0){ var ppc=ench; return {...f, objUni:v, ppc:ppc, objChapas: Math.max(0, Math.ceil(v/ppc)) }; } return {...f, objUni:v}; })); }
