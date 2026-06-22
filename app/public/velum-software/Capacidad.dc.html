@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="./velum-api.js"></script>
 </head>
 <body>
 <x-dc>
@@ -122,8 +123,16 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1480,&quot;height&quot;:900}}">
 class Component extends DCLogic {
-  constructor(props){ super(props); this.state = { navOpen:false, horas:8, prods:this._load() }; }
-  componentDidMount(){ this._sync=()=>{ try{ const r=localStorage.getItem('velum_capacidades'); if(r){ const d=JSON.parse(r); if(Array.isArray(d)&&d.length) this.setState({prods:d}); } }catch(e){} }; }
+  constructor(props){ super(props); this.state = { navOpen:false, horas:8, prods:[], full:[] }; }
+  componentDidMount(){ this._cargar(); }
+  async _cargar(){
+    let prods=[]; let full=[];
+    try{ prods = await VelumAPI.get('capacidades'); }catch(e){ prods=[]; }
+    if(!Array.isArray(prods)||!prods.length){ const s=this._seed(); for(const p of s){ try{ await VelumAPI.save('capacidades', p); }catch(e){} } prods=s; }
+    try{ full = await VelumAPI.get('estacion'); }catch(e){ full=[]; }
+    if(!Array.isArray(full)) full=[];
+    this.setState({ prods, full });
+  }
   _seed(){
     return [
       { id:'pic150', nombre:'PIC 150', enChapa:135, laser:95, plegado:85, fresado:0, pintura:25, embalado:80 },
@@ -136,14 +145,13 @@ class Component extends DCLogic {
       { id:'msctm', nombre:'MultiSlim Custom', enChapa:3, laser:3, plegado:40, fresado:48, pintura:3, embalado:50 }
     ];
   }
-  _load(){ try{ const r=localStorage.getItem('velum_capacidades'); if(r){ const d=JSON.parse(r); if(Array.isArray(d)&&d.length) return d; } }catch(e){} const s=this._seed(); try{ localStorage.setItem('velum_capacidades', JSON.stringify(s)); }catch(e){} return s; }
-  _save(p){ try{ localStorage.setItem('velum_capacidades', JSON.stringify(p)); }catch(e){} }
-  _set(id, field, val){ var v=parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p,[field]:Math.max(0,v)}:p); this._save(prods); return {prods}; }); }
-  _setStr(id, field, val){ this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p,[field]:val}:p); this._save(prods); return {prods}; }); }
-  _setName(id, val){ this.setState(s=>{ const prods=s.prods.map(p=>p.id===id?{...p, nombre:val}:p); this._save(prods); return {prods}; }); }
+  _persist(prod){ if(window.VelumAPI) VelumAPI.save('capacidades', prod).catch(function(e){}); }
+  _set(id, field, val){ var v=parseFloat(String(val).replace(',','.')); if(isNaN(v)) v=0; this.setState(s=>{ var n=null; const prods=s.prods.map(p=>{ if(p.id===id){ n={...p,[field]:Math.max(0,v)}; return n; } return p; }); if(n) this._persist(n); return {prods}; }); }
+  _setStr(id, field, val){ this.setState(s=>{ var n=null; const prods=s.prods.map(p=>{ if(p.id===id){ n={...p,[field]:val}; return n; } return p; }); if(n) this._persist(n); return {prods}; }); }
+  _setName(id, val){ this.setState(s=>{ var n=null; const prods=s.prods.map(p=>{ if(p.id===id){ n={...p, nombre:val}; return n; } return p; }); if(n) this._persist(n); return {prods}; }); }
   _blank(){ return { id:'p'+Date.now()+Math.floor(Math.random()*1000), nombre:'', enChapa:0, lote:20, paquete:0, laser:0, plegado:0, fresado:0, pintura:0, embalado:0 }; }
-  _insertAt(idx){ this.setState(s=>{ const prods=s.prods.slice(); prods.splice(idx,0,this._blank()); this._save(prods); return {prods}; }); }
-  _del(id){ this.setState(s=>{ const prods=s.prods.filter(p=>p.id!==id); this._save(prods); return {prods}; }); }
+  _insertAt(idx){ const nb=this._blank(); this.setState(s=>{ const prods=s.prods.slice(); prods.splice(idx,0,nb); return {prods}; }); this._persist(nb); }
+  _del(id){ this.setState(s=>({ prods:s.prods.filter(p=>p.id!==id) })); if(window.VelumAPI) VelumAPI.del('capacidades', id).catch(function(e){}); }
   _fmt(n){ return Math.round(n); }
   _density(m){ const D={ 'Acero':7850, 'Galvanizado':7850, 'Inoxidable':8000, 'Aluminio':2700, 'MDF':750 }; return D[m]!=null?D[m]:7850; }
   _peso(p){ const pf=v=>parseFloat(String(v==null?'':v).replace(',','.'))||0; const a=pf(p.ancho), h=pf(p.alto), e=pf(p.esp); if(a<=0||h<=0||e<=0) return 0; return (a/1000)*(h/1000)*(e/1000)*this._density(p.material||'Acero'); }
@@ -160,7 +168,7 @@ class Component extends DCLogic {
     // ░ Carga del proyecto activo vs capacidad ░
     var prodsArr=this.state.prods;
     function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
-    var full=[]; try{ var rr=localStorage.getItem('velum_estacion_full'); if(rr){ var dd=JSON.parse(rr); if(Array.isArray(dd)) full=dd; } }catch(e){}
+    var full=this.state.full||[];
     var maq={ laser:{label:'Láser',color:'#21C7D6',h:0,u:0}, plegado:{label:'Plegadora',color:'#E5A52B',h:0,u:0}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0} };
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
     var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };

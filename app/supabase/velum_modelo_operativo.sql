@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS velum_prod_diaria (
 --    pintura→pintura (u/percha, 10 perchas=3h), embalado→embalado. Fresa/Expansora sin ritmo.
 CREATE TABLE IF NOT EXISTS velum_capacidades (
   id        TEXT PRIMARY KEY,
-  nombre    TEXT NOT NULL UNIQUE,    -- debe coincidir con pieza.pieza (match por nombre)
+  nombre    TEXT NOT NULL,           -- coincide con pieza.pieza (match por substring; sin UNIQUE: la pantalla permite filas en blanco/dup al editar)
   "enChapa" NUMERIC NOT NULL DEFAULT 0,   -- unidades por chapa
   lote      INTEGER NOT NULL DEFAULT 20,
   paquete   INTEGER NOT NULL DEFAULT 0,
