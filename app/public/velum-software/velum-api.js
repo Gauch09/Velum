@@ -52,5 +52,26 @@
     return function () { stop = true; };
   }
 
-  window.VelumAPI = { get: get, save: save, del: del, poll: poll, BASE: BASE };
+  // Matcheo robusto capacidad↔pieza (compartido por todas las pantallas).
+  // Normaliza mayúsculas/tildes/espacios y matchea en ambos sentidos:
+  //   exacto > nombre-de-producto contenido en la pieza (más específico) >
+  //   nombre-de-pieza contenido en el producto (más cercano).
+  function normName(s) {
+    return (s == null ? '' : String(s)).toLowerCase().replace(/[^a-z0-9 ]/gi, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function matchCap(caps, name) {
+    caps = caps || [];
+    var nm = normName(name);
+    if (!nm) return null;
+    var exact = null, fwd = null, fwdLen = -1, rev = null, revLen = Infinity;
+    for (var i = 0; i < caps.length; i++) {
+      var p = caps[i]; var pn = normName(p && p.nombre); if (!pn) continue;
+      if (pn === nm) { exact = p; break; }
+      if (nm.indexOf(pn) >= 0) { if (pn.length > fwdLen) { fwdLen = pn.length; fwd = p; } }
+      else if (pn.indexOf(nm) >= 0) { if (pn.length < revLen) { revLen = pn.length; rev = p; } }
+    }
+    return exact || fwd || rev;
+  }
+
+  window.VelumAPI = { get: get, save: save, del: del, poll: poll, normName: normName, matchCap: matchCap, BASE: BASE };
 })();
