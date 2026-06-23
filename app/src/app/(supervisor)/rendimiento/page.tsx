@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import ExportarCsvButton from '@/components/shared/ExportarCsvButton'
+import FactoresUtilizacion from '@/components/supervisor/FactoresUtilizacion'
 
 export const dynamic = 'force-dynamic'
 
@@ -208,6 +209,8 @@ export default async function RendimientoPage({
             </div>
           )}
         </section>
+
+        <FactoresUtilizacion desde={desde} />
 
       </div>
     </main>
