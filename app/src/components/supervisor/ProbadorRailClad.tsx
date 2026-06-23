@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cotizarRailAction, cotizarCladAction, type RailResult, type CladResult } from '@/app/(supervisor)/cotizador/actions-f2'
+import TablaDesglose from './TablaDesglose'
 
 type Sistema = 'Rail' | 'Clad'
 type Variante = 'MultiSlim Standard' | 'MultiSlim.A'
@@ -133,6 +134,8 @@ function ResultadoF2({ res, sistema }: { res: Extract<RailResult | CladResult, {
         <div className={row}><span className="text-gray-400">Empalles C</span><span className="text-white">{g.empallesC}</span></div>
         {'PIC' in g && <div className={row}><span className="text-gray-400">PIC / brocas</span><span className="text-white">{(g as { PIC: number }).PIC} / {(g as { brocas: number }).brocas}</span></div>}
       </div>
+
+      <TablaDesglose filas={res.desglose} />
 
       <p className="text-gray-500 text-xs italic bg-gray-900 rounded p-3">
         Precios aproximados. La cotización final se confirma tras relevamiento en obra.

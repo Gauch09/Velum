@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { cotizarVanoAction, type CotizarVanoResult } from '@/app/(supervisor)/cotizador/actions'
 import { ALCANCES } from '@/lib/cotizador/skin/probador-input'
+import TablaDesglose from './TablaDesglose'
 
 type Props = { materiales: string[]; disenos: string[] }
 
@@ -165,6 +166,8 @@ function Resultado({ res }: { res: Extract<CotizarVanoResult, { ok: true }> }) {
         <div className={row}><span className="text-gray-400">Empalmes J</span><span className="text-white">{r.geometria.empalmesJ}</span></div>
         <div className={row}><span className="text-gray-400">Brocas / autoperf.</span><span className="text-white">{r.geometria.brocas} / {r.geometria.autoperf}</span></div>
       </div>
+
+      <TablaDesglose filas={res.desglose} />
 
       <p className="text-gray-500 text-xs italic bg-gray-900 rounded p-3">
         Precios aproximados. La cotización final se confirma una vez aceptada, tras el relevamiento en obra, donde se definen cierres, detalles y posibles interferencias no previstas en planos.

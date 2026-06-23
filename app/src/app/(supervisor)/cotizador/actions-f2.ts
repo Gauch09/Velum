@@ -7,6 +7,10 @@ import { cargarSkinRailParams } from '@/lib/cotizador/skin-rail/params-repo'
 import { cotizarRail } from '@/lib/cotizador/rail/cotizarRail'
 import { cotizarClad } from '@/lib/cotizador/clad/cotizarClad'
 import { cotizarSkinRail } from '@/lib/cotizador/skin-rail/cotizarSkinRail'
+import { desgloseMateria as desgloseMatRail, desgloseFab as desgloseFabRail } from '@/lib/cotizador/rail/costos'
+import { desgloseMateria as desgloseMatClad, desgloseFab as desgloseFabClad } from '@/lib/cotizador/clad/costos'
+import { desgloseMateria as desgloseMatSR, desgloseFab as desgloseFabSR } from '@/lib/cotizador/skin-rail/costos'
+import type { DesglosePorComponente } from './actions'
 import { construirSkinInput, ProbadorInputSchema } from '@/lib/cotizador/skin/probador-input'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
@@ -37,7 +41,7 @@ async function autorizarUsuario() {
 }
 
 export type RailResult =
-  | { ok: true; resultado: RailResultado; resumen: { ancho: number; alto: number; variante: string; kp: number; margenPct: number } }
+  | { ok: true; resultado: RailResultado; resumen: { ancho: number; alto: number; variante: string; kp: number; margenPct: number }; desglose: DesglosePorComponente }
   | { ok: false; error: string }
 
 export async function cotizarRailAction(datos: unknown): Promise<RailResult> {
@@ -59,14 +63,22 @@ export async function cotizarRailAction(datos: unknown): Promise<RailResult> {
       familia: { nombre: familia.nombre, densidad: familia.densidad, precioTon: familia.precioTon, precioM2: 0 },
     }
     const resultado = cotizarRail(input, params)
-    return { ok: true, resultado, resumen: { ancho: parsed.data.ancho, alto: parsed.data.alto, variante: parsed.data.variante, kp, margenPct: parsed.data.margenPct } }
+    const mat = desgloseMatRail(input, params, resultado.geometria)
+    const fab = desgloseFabRail(params, resultado.geometria)
+    const desglose: DesglosePorComponente = [
+      { componente: 'Lama MultiSlim', material: mat.lama,     fab: fab.lama     },
+      { componente: 'Omega',          material: mat.omega,    fab: fab.omega    },
+      { componente: 'PIC 150',        material: mat.pic,      fab: fab.pic      },
+      { componente: 'Empalme C',      material: mat.empalleC, fab: fab.empalleC },
+    ]
+    return { ok: true, resultado, resumen: { ancho: parsed.data.ancho, alto: parsed.data.alto, variante: parsed.data.variante, kp, margenPct: parsed.data.margenPct }, desglose }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Error al cotizar Rail' }
   }
 }
 
 export type CladResult =
-  | { ok: true; resultado: CladResultado; resumen: { ancho: number; alto: number; variante: string; kp: number; alcance: string; margenPct: number } }
+  | { ok: true; resultado: CladResultado; resumen: { ancho: number; alto: number; variante: string; kp: number; alcance: string; margenPct: number }; desglose: DesglosePorComponente }
   | { ok: false; error: string }
 
 export async function cotizarCladAction(datos: unknown): Promise<CladResult> {
@@ -89,14 +101,21 @@ export async function cotizarCladAction(datos: unknown): Promise<CladResult> {
       alcance: parsed.data.alcance as 'Pintado' | 'Crudo (sin pintura)',
     }
     const resultado = cotizarClad(input, params)
-    return { ok: true, resultado, resumen: { ancho: parsed.data.ancho, alto: parsed.data.alto, variante: parsed.data.variante, kp, alcance: parsed.data.alcance, margenPct: parsed.data.margenPct } }
+    const mat = desgloseMatClad(input, params, resultado.geometria)
+    const fab = desgloseFabClad(input, params, resultado.geometria)
+    const desglose: DesglosePorComponente = [
+      { componente: 'Lama MultiSlim', material: mat.lama,     fab: fab.lama     },
+      { componente: 'Omega',          material: mat.omega,    fab: fab.omega    },
+      { componente: 'Empalme C',      material: mat.empalleC, fab: fab.empalleC },
+    ]
+    return { ok: true, resultado, resumen: { ancho: parsed.data.ancho, alto: parsed.data.alto, variante: parsed.data.variante, kp, alcance: parsed.data.alcance, margenPct: parsed.data.margenPct }, desglose }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Error al cotizar Clad' }
   }
 }
 
 export type SkinRailResult =
-  | { ok: true; resultado: SkinRailResultado; resumen: { ancho: number; alto: number; material: string; kp: number; alcance: string; margenPct: number } }
+  | { ok: true; resultado: SkinRailResultado; resumen: { ancho: number; alto: number; material: string; kp: number; alcance: string; margenPct: number }; desglose: DesglosePorComponente }
   | { ok: false; error: string }
 
 export async function cotizarSkinRailAction(datos: unknown): Promise<SkinRailResult> {
@@ -111,10 +130,21 @@ export async function cotizarSkinRailAction(datos: unknown): Promise<SkinRailRes
     ])
     const skinInput = construirSkinInput(parsed.data, familia, kp)
     const resultado = cotizarSkinRail(skinInput, params)
+    const mat = desgloseMatSR(skinInput, params, resultado.geometria)
+    const fab = desgloseFabSR(skinInput, params, resultado.geometria)
+    const desglose: DesglosePorComponente = [
+      { componente: 'Panel',      material: mat.panel,    fab: fab.panel    },
+      { componente: 'Costilla',   material: mat.costilla, fab: fab.costilla },
+      { componente: 'PIC 150',    material: mat.mensula,  fab: fab.mensula  },
+      { componente: 'Empalme J',  material: mat.empalleJ, fab: fab.empalleJ },
+      { componente: 'Omega',      material: mat.omega,    fab: fab.omega    },
+      { componente: 'Empalme C',  material: mat.empalleC, fab: fab.empalleC },
+    ]
     return {
       ok: true,
       resultado,
       resumen: { ancho: parsed.data.ancho, alto: parsed.data.alto, material: parsed.data.material, kp, alcance: parsed.data.alcance, margenPct: parsed.data.margenPct },
+      desglose,
     }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Error al cotizar Skin.Rail' }

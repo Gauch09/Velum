@@ -98,3 +98,46 @@ export function costoParantesSkinRail(
   const skinG: SkinGeometria = g
   return costoParantesSkin(i, skinParams, skinG)
 }
+
+export interface DesgloseComponentesSkinRail {
+  panel: number; costilla: number; mensula: number; empalleJ: number
+  omega: number; empalleC: number
+}
+
+export function desgloseMateria(
+  i: SkinRailInput,
+  params: SkinRailParams,
+  g: SkinRailGeometria,
+): DesgloseComponentesSkinRail {
+  const override = i.familia.precioM2
+  const galv = params.galvDensidad * params.galvPrecioTon
+  const galvF = galv / 1000
+  return {
+    panel: override > 0
+      ? g.area * i.kp * override + g.paneles * params.acmAccPorPanel * params.acmAccCosto
+      : g.area * i.kp * (i.espesorMm / 1000) * i.familia.densidad * i.familia.precioTon / 1000,
+    costilla: g.mlCostilla * (params.costillaAreaM2 / 3) * (params.costillaEspesorMm / 1000) * galvF,
+    mensula:  g.mensulasTotal * params.mensulaAreaM2 * (params.mensulaEspesorMm / 1000) * galvF,
+    empalleJ: g.empalmesJ * params.empalmeAreaM2 * (params.empalmeEspesorMm / 1000) * galvF,
+    omega:    g.mlOmega * (params.omegaArea3m / 3) * (params.omegaEspMm / 1000) * galvF,
+    empalleC: g.empallesC * params.empalmeCAreaM2 * (1.6 / 1000) * galvF,
+  }
+}
+
+export function desgloseFab(
+  i: SkinRailInput,
+  params: SkinRailParams,
+  g: SkinRailGeometria,
+): DesgloseComponentesSkinRail {
+  const override = i.familia.precioM2
+  return {
+    panel: override > 0
+      ? (g.area * i.kp / params.areaPlaca) * params.fabPlaca
+      : g.paneles * params.fabPanelSkin,
+    costilla: g.mlCostilla * (params.fabCostilla3000 / 3),
+    mensula:  g.mensulasTotal * params.fabMensula,
+    empalleJ: g.empalmesJ * params.fabEmpalme,
+    omega:    g.mlOmega * params.fabOmegaM,
+    empalleC: g.empallesC * params.fabEmpalleC,
+  }
+}

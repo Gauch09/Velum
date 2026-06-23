@@ -3,9 +3,14 @@
 import { ProbadorInputSchema, construirSkinInput } from '@/lib/cotizador/skin/probador-input'
 import { cargarSkinParams, cargarFamilia, cargarKp } from '@/lib/cotizador/skin/params-repo'
 import { cotizarSkin } from '@/lib/cotizador/skin/cotizarSkin'
+import { desgloseMateria, desgloseFab } from '@/lib/cotizador/skin/costos'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import type { SkinResultado } from '@/lib/cotizador/skin/tipos'
+import type { DesgloseComponentesSkin } from '@/lib/cotizador/skin/costos'
+
+export interface FilaDesglose { componente: string; material: number; fab: number }
+export type DesglosePorComponente = FilaDesglose[]
 
 export interface ResumenVano {
   ancho: number
@@ -20,7 +25,7 @@ export interface ResumenVano {
 }
 
 export type CotizarVanoResult =
-  | { ok: true; resultado: SkinResultado; resumen: ResumenVano }
+  | { ok: true; resultado: SkinResultado; resumen: ResumenVano; desglose: DesglosePorComponente }
   | { ok: false; error: string }
 
 export async function cotizarVanoAction(datos: unknown): Promise<CotizarVanoResult> {
@@ -48,6 +53,14 @@ export async function cotizarVanoAction(datos: unknown): Promise<CotizarVanoResu
     ])
     const input = construirSkinInput(parsed.data, familia, kp)
     const resultado = cotizarSkin(input, params)
+    const mat = desgloseMateria(input, params, resultado.geometria)
+    const fab = desgloseFab(input, params, resultado.geometria)
+    const desglose: DesglosePorComponente = [
+      { componente: 'Panel',        material: mat.panel,    fab: fab.panel    },
+      { componente: 'Costilla',     material: mat.costilla, fab: fab.costilla },
+      { componente: 'PIC 150',      material: mat.mensula,  fab: fab.mensula  },
+      { componente: 'Empalme J',    material: mat.empalme,  fab: fab.empalme  },
+    ]
     return {
       ok: true,
       resultado,
@@ -62,6 +75,7 @@ export async function cotizarVanoAction(datos: unknown): Promise<CotizarVanoResu
         alcance: parsed.data.alcance,
         margenPct: parsed.data.margenPct,
       },
+      desglose,
     }
   } catch (e) {
     // TODO: normalizar a mensaje genérico antes de exponer esta action a roles más amplios o al cliente final (e.message puede incluir nombres de tablas/variantes).

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cotizarSkinRailAction, type SkinRailResult } from '@/app/(supervisor)/cotizador/actions-f2'
+import TablaDesglose from './TablaDesglose'
 import { ALCANCES } from '@/lib/cotizador/skin/probador-input'
 
 type FormState = {
@@ -122,6 +123,8 @@ function ResultadoSkinRail({ res }: { res: Extract<SkinRailResult, { ok: true }>
         <div className={row}><span className="text-gray-400">Omegas / ml</span><span className="text-white">{g.omegas} / {fmt(g.mlOmega)} m</span></div>
         <div className={row}><span className="text-gray-400">Empalles C</span><span className="text-white">{g.empallesC}</span></div>
       </div>
+
+      <TablaDesglose filas={res.desglose} />
 
       <p className="text-gray-500 text-xs italic bg-gray-900 rounded p-3">
         Precios aproximados. La cotización final se confirma tras relevamiento en obra.

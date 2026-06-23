@@ -38,3 +38,26 @@ export function costoTornilleria(p: RailParams, g: RailGeometria): number {
     g.T1       * p.costoT1
   )
 }
+
+export interface DesgloseComponentesRail {
+  lama: number; omega: number; pic: number; empalleC: number
+}
+
+export function desgloseMateria(i: RailInput, p: RailParams, g: RailGeometria): DesgloseComponentesRail {
+  const galvBase = p.galvDensidad * p.galvPrecioTon / 1000
+  return {
+    lama:     g.area * i.kp * (i.espesorMm / 1000) * i.familia.densidad * i.familia.precioTon / 1000,
+    omega:    g.mlOmega * (p.omegaArea3m / 3) * (p.omegaEspMm / 1000) * galvBase,
+    pic:      g.PIC * p.picAreaM2 * (p.picEspMm / 1000) * galvBase,
+    empalleC: g.empallesC * p.empalmeCAreaM2 * (1.6 / 1000) * galvBase,
+  }
+}
+
+export function desgloseFab(p: RailParams, g: RailGeometria): DesgloseComponentesRail {
+  return {
+    lama:     g.lamas * p.fabLama,
+    omega:    g.mlOmega * p.fabOmegaM,
+    pic:      g.PIC * p.fabPIC,
+    empalleC: g.empallesC * p.fabEmpalleC,
+  }
+}
