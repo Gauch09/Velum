@@ -210,7 +210,7 @@ INSERT INTO "CapacidadCentro" (id, pieza, centro, "unidadesPorDia", "actualizado
 INSERT INTO "CapacidadCentro" (id, pieza, centro, "unidadesPorDia", "actualizadoEn") VALUES (gen_random_uuid()::text, 'MultiSlim Custom', 'EMBALADO', 400.0, now()) ON CONFLICT (pieza, centro) DO UPDATE SET "unidadesPorDia" = EXCLUDED."unidadesPorDia";
 
 -- FactorKp
-INSERT INTO "FactorKp" (id, clave, valor, "actualizadoEn") VALUES (gen_random_uuid()::text, 'composite', 1.6, now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, "actualizadoEn" = now();
+INSERT INTO "FactorKp" (id, clave, valor, "actualizadoEn") VALUES (gen_random_uuid()::text, 'composite', 1.5, now()) ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, "actualizadoEn" = now();
 
 -- ---------------------------------------------------------------------------
 -- 4. SEED — Retenciones default (promedios tipicos)
