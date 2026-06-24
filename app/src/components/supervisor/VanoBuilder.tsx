@@ -30,6 +30,8 @@ interface Props {
   materialesLuxsteel: string[]
   disenos: string[]
   margenPct: number
+  caraNombre: string
+  onCaraNombreChange: (n: string) => void
   onAgregar: (input: VanoInput, resultado: VanoResultado, cantidad: number) => void
   accionCotizar: (raw: unknown) => Promise<VanoResultado>
 }
@@ -55,7 +57,7 @@ function alcancesPorSistema(s: Sistema, esACM: boolean, esLuxsteel: boolean) {
   return ALCANCES_ALUMINIO
 }
 
-export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, materialesLuxsteel, disenos, margenPct, onAgregar, accionCotizar }: Props) {
+export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, materialesLuxsteel, disenos, margenPct, caraNombre, onCaraNombreChange, onAgregar, accionCotizar }: Props) {
   const [sistema, setSistema] = useState<Sistema>('Skin')
   const [material, setMaterial] = useState(materialesSkin[0] ?? '')
   const [colorPanel, setColorPanel] = useState(COLORES_ACM[0])
@@ -66,6 +68,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   const [modAncho, setModAncho] = useState('1')
   const [modAlto, setModAlto] = useState('1')
   const [sepPared, setSepPared] = useState('0')
+  const [descripcion, setDescripcion] = useState('')
   const [cantidad, setCantidad] = useState('1')
   const [resultado, setResultado] = useState<VanoResultado | null>(null)
   const [cargando, setCargando] = useState(false)
@@ -144,9 +147,11 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
       modAlto:  usaModulo ? Number(modAlto)  : 1,
       sepParedMm: usaParante ? Number(sepPared) : 0,
       margenPct,
+      descripcion: descripcion.trim() || undefined,
     }
-    onAgregar(input, resultado, Math.max(1, Math.round(Number(cantidad))))
+    onAgregar(input, { ...resultado, descripcion: descripcion.trim() || undefined }, Math.max(1, Math.round(Number(cantidad))))
     setResultado(null)
+    setDescripcion('')
   }
 
   const sel = 'bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-gray-500 w-full'
@@ -154,7 +159,19 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
 
   return (
     <div className="bg-gray-900 rounded-lg p-4 space-y-4">
-      <p className="text-gray-400 text-xs uppercase tracking-wider">Agregar vano</p>
+      <p className="text-gray-400 text-xs uppercase tracking-wider">Agregar paño</p>
+
+      {/* Cara / Lado */}
+      <div>
+        <label className="block text-gray-400 text-xs mb-1">Cara / Lado *</label>
+        <input
+          type="text"
+          value={caraNombre}
+          onChange={e => onCaraNombreChange(e.target.value)}
+          placeholder="ej: Lado Norte, Frente, Esquina…"
+          className={inp}
+        />
+      </div>
 
       {/* Sistema */}
       <div className="flex gap-2">
@@ -255,19 +272,41 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Piezas y materiales</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
                 <span className="text-gray-400">Paneles</span><span className="text-white text-right">{resultado.geometria.paneles}</span>
-                <span className="text-gray-400">Costillas (pzas)</span><span className="text-white text-right">{resultado.geometria.piezasCostilla}</span>
-                <span className="text-gray-400">Ménsulas</span><span className="text-white text-right">{resultado.geometria.mensulasTotal}</span>
+                <span className="text-gray-400">PIC150</span><span className="text-white text-right">{resultado.geometria.mensulasTotal}</span>
+                <span className="text-gray-400">Costilla 3000mm</span><span className="text-white text-right">{resultado.geometria.piezas3000}</span>
+                <span className="text-gray-400">Empalmes J</span><span className="text-white text-right">{resultado.geometria.empalmesJ}</span>
                 <span className="text-gray-400">Brocas</span><span className="text-white text-right">{resultado.geometria.brocas}</span>
                 <span className="text-gray-400">Autoperf.</span><span className="text-white text-right">{resultado.geometria.autoperf}</span>
-                <span className="text-gray-400">Empalmes J</span><span className="text-white text-right">{resultado.geometria.empalmesJ}</span>
                 {resultado.geometria.parantes > 0 && <>
                   <span className="text-gray-400">Parantes</span><span className="text-white text-right">{resultado.geometria.parantes}</span>
                 </>}
               </div>
             </div>
           )}
+          {resultado.compras && (
+            <div className="bg-gray-800/60 rounded p-3">
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Compra de materiales</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
+                {resultado.compras.chapasACM > 0 && <>
+                  <span className="text-gray-400">ACM 5000×1500mm</span><span className="text-white text-right">{resultado.compras.chapasACM} ch.</span>
+                </>}
+                <span className="text-gray-400">Galv 1.6mm 3000×1220</span><span className="text-white text-right">{resultado.compras.chapasGalv16} ch. · {resultado.compras.kgGalv16} kg</span>
+                <span className="text-gray-400">Galv 2.5mm 3000×1220</span><span className="text-white text-right">{resultado.compras.chapasGalv25} ch. · {resultado.compras.kgGalv25} kg</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      <div>
+        <input
+          type="text"
+          value={descripcion}
+          onChange={e => setDescripcion(e.target.value)}
+          placeholder="Descripción del paño (opcional) — ej: Módulo tipo A, Fachada principal…"
+          className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
+        />
+      </div>
 
       <div className="flex gap-2">
         <button

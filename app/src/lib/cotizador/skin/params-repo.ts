@@ -96,6 +96,7 @@ export async function cargarSkinParams(): Promise<SkinParams> {
     autoperfCosto:     p(pm, 'fijacion_autoperf'),
     fresadoCostoM2:    pm['fresado_costo_m2'] ?? 6,
     anodizadoCostoM2:  pm['anodizado_costo_m2'] ?? 38,
+    mensulaSpacingM:   pm['skin_mensula_spacing_mm'] ? pm['skin_mensula_spacing_mm'] / 1000 : 2,
   }
 }
 

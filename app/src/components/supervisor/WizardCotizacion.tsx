@@ -69,8 +69,7 @@ export default function WizardCotizacion({
 
   // Paso 2
   const [vanos, setVanos] = useState<VanoItem[]>([])
-  const [caras, setCaras] = useState<string[]>(['Frente'])
-  const [caraActual, setCaraActual] = useState('Frente')
+  const [caraActual, setCaraActual] = useState('')
 
   // Paso 3
   const [montajeSeleccion, setMontajeSeleccion] = useState<MontajeSeleccion | null>(null)
@@ -102,6 +101,7 @@ export default function WizardCotizacion({
     setVanos(prev => prev.filter(v => v.key !== key))
     setMontajeSeleccion(null)
   }
+
 
   function toggleRetencion(tipo: string) {
     setRetencionesActivas(prev => {
@@ -225,29 +225,6 @@ export default function WizardCotizacion({
       {/* Paso 2: Vanos */}
       {paso === 2 && (
         <div className="space-y-4">
-          {/* Tabs de caras */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-gray-500 text-xs">Cara:</span>
-            {caras.map(c => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCaraActual(c)}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors ${caraActual === c ? 'bg-white text-gray-900 border-white font-semibold' : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300'}`}
-              >{c}</button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                const sugeridas = ['Norte', 'Sur', 'Este', 'Oeste', 'Lateral Izq', 'Lateral Der', 'Posterior', 'Techo']
-                const nueva = sugeridas.find(s => !caras.includes(s)) ?? `Cara ${caras.length + 1}`
-                setCaras(prev => [...prev, nueva])
-                setCaraActual(nueva)
-              }}
-              className="px-3 py-1 text-xs rounded-full border border-dashed border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400"
-            >+ cara</button>
-          </div>
-
           <VanoBuilder
             materialesSkin={materialesSkin}
             materialesLama={materialesLama}
@@ -255,42 +232,61 @@ export default function WizardCotizacion({
             materialesLuxsteel={materialesLuxsteel}
             disenos={disenos}
             margenPct={Number(margen)}
+            caraNombre={caraActual}
+            onCaraNombreChange={setCaraActual}
             onAgregar={agregarVano}
             accionCotizar={accionCotizarVano}
           />
 
           {vanos.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-gray-400 text-xs uppercase tracking-wider">Vanos agregados</p>
-              {caras.filter(c => vanos.some(v => v.cara === c)).map(c => (
-                <div key={c} className="space-y-1.5">
-                  {caras.length > 1 && (
-                    <p className="text-xs text-gray-500 font-medium">{c}</p>
-                  )}
-                  {vanos.filter(v => v.cara === c).map(v => (
-                    <div key={v.key} className="bg-gray-900 rounded px-3 py-2 space-y-0.5">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500 w-14">{v.resultado.sistema}</span>
-                        <span className="text-sm text-white flex-1">
-                          {v.resultado.material}{v.resultado.colorACM ? ` · ${v.resultado.colorACM}` : ''}
-                        </span>
-                        {v.cantidad > 1 && (
-                          <span className="text-xs bg-gray-700 text-gray-300 rounded px-1.5 py-0.5">×{v.cantidad}</span>
-                        )}
-                        <span className="text-sm text-green-400 w-28 text-right">{usd(v.resultado.precioVenta * v.cantidad)}</span>
-                        <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
-                      </div>
-                      <div className="flex gap-4 text-xs text-gray-500 pl-[4.25rem]">
-                        <span>{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
-                        <span>{v.resultado.terminacion}</span>
-                        <span>{usd(v.resultado.precioM2)}/m²</span>
-                      </div>
+            <div className="space-y-2">
+              <p className="text-gray-400 text-xs uppercase tracking-wider">Paños cargados</p>
+              {/* agrupar por cara en orden de aparición */}
+              {Array.from(new Map(vanos.map(v => [v.cara, true])).keys()).map(c => {
+                const vanosC = vanos.filter(v => v.cara === c)
+                const m2Cara = vanosC.reduce((a, v) => a + v.resultado.area * v.cantidad, 0)
+                const precioC = vanosC.reduce((a, v) => a + v.resultado.precioVenta * v.cantidad, 0)
+                return (
+                  <div key={c} className="rounded-lg border border-gray-800 overflow-hidden">
+                    {/* Encabezado de cara */}
+                    <div className="flex items-center justify-between bg-gray-800/60 px-3 py-2">
+                      <span className="text-sm text-white font-semibold">{c || '(sin nombre)'}</span>
+                      <span className="text-xs text-gray-400">{fmt(m2Cara)} m² · <span className="text-green-400">{usd(precioC)}</span></span>
                     </div>
-                  ))}
-                </div>
-              ))}
-              <div className="flex justify-between text-sm border-t border-gray-800 pt-2">
-                <span className="text-gray-400">Total provisión</span>
+                    {/* Paños de esta cara */}
+                    <div className="divide-y divide-gray-800/60">
+                      {vanosC.map(v => (
+                        <div key={v.key} className="px-3 py-2 space-y-0.5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                              {v.resultado.descripcion && (
+                                <p className="text-white text-sm font-medium truncate">{v.resultado.descripcion}</p>
+                              )}
+                              <p className={`text-xs ${v.resultado.descripcion ? 'text-gray-500' : 'text-gray-300'}`}>
+                                <span className="text-gray-600 mr-1">{v.resultado.sistema}</span>
+                                {v.resultado.material}{v.resultado.colorACM ? ` · ${v.resultado.colorACM}` : ''}
+                              </p>
+                            </div>
+                            {v.cantidad > 1 && (
+                              <span className="text-xs bg-gray-700 text-gray-300 rounded px-1.5 py-0.5 shrink-0">×{v.cantidad}</span>
+                            )}
+                            <span className="text-sm text-green-400 w-24 text-right shrink-0">{usd(v.resultado.precioVenta * v.cantidad)}</span>
+                            <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs shrink-0">✕</button>
+                          </div>
+                          <div className="flex gap-3 text-xs text-gray-600">
+                            <span>{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
+                            <span>{fmt(v.resultado.area * v.cantidad)} m²</span>
+                            <span>{v.resultado.terminacion}</span>
+                            <span>{usd(v.resultado.precioM2)}/m²</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+              <div className="flex justify-between text-sm border-t border-gray-800 pt-2 mt-1">
+                <span className="text-gray-400">Total provisión · {fmt(totalM2)} m²</span>
                 <span className="text-green-400 font-semibold">{usd(totalVanos)}</span>
               </div>
             </div>

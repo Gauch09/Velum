@@ -9,24 +9,24 @@ import {
 import { contarSkinRail } from './geometria'
 import { PARAMS_FIXTURE, INPUT_SKINRAIL_30x25 } from './__fixtures__/fixtures'
 
-const g = contarSkinRail(INPUT_SKINRAIL_30x25)
+const g = contarSkinRail(INPUT_SKINRAIL_30x25, 2)
 const close = (a: number, b: number) => expect(Math.abs(a - b) / b).toBeLessThan(1e-6)
 
 describe('costoMaterialSkinRail', () => {
-  it('vano 30x25 Aluminio 1.5mm = 34041.1856408', () => {
-    close(costoMaterialSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 34041.1856408)
+  it('vano 30x25 Aluminio 1.5mm', () => {
+    close(costoMaterialSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 33755.07417880001)
   })
 })
 
 describe('costoFabSkinRail', () => {
-  it('vano 30x25 = 8145.80097913767', () => {
-    close(costoFabSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 8145.80097913767)
+  it('vano 30x25', () => {
+    close(costoFabSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 7925.66266818902)
   })
 })
 
 describe('costoPinturaSkinRail', () => {
-  it('Completo + Estructura = 4659.19956622222', () => {
-    close(costoPinturaSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 4659.19956622222)
+  it('Completo + Estructura', () => {
+    close(costoPinturaSkinRail(INPUT_SKINRAIL_30x25, PARAMS_FIXTURE, g), 4553.981663111112)
   })
 
   it('retorna 0 cuando familia ACM (precioM2 > 0)', () => {
@@ -44,8 +44,8 @@ describe('costoPinturaSkinRail', () => {
 })
 
 describe('costoTornilleriaSkinRail', () => {
-  it('vano 30x25 = 1150.433', () => {
-    close(costoTornilleriaSkinRail(PARAMS_FIXTURE, g), 1150.433)
+  it('vano 30x25 con 403 ménsulas', () => {
+    close(costoTornilleriaSkinRail(PARAMS_FIXTURE, g), 604.771)
   })
 })
 

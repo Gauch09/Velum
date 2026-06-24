@@ -6,16 +6,16 @@ import goldenMetal from './__fixtures__/golden-metal.json'
 const close = (a: number, b: number) => expect(Math.abs(a - b) / b).toBeLessThan(1e-6)
 
 describe('cotizarSkin', () => {
-  it('vano 30x25 Bond 4mm reproduce el Simulador', () => {
+  it('vano 30x25 Bond 4mm ACM + Completo+Estructura', () => {
     const r = cotizarSkin(INPUT_COMPOSITE, PARAMS_FIXTURE)
-    close(r.material, 52012.1895224)
-    close(r.fab, 2560.8869401160027)
-    expect(r.pintura).toBe(0)
-    close(r.tornilleria, 1091.3239999999998)
-    close(r.costoTotal, 55664.40046251601)
-    close(r.costoM2, 74.21920061668801)
-    close(r.precioVenta, 139161.00115629003)
-    close(r.precioM2, 185.54800154172005)
+    close(r.material, 51726.0780604)
+    close(r.fab, 9540.748629167354)
+    close(r.pintura, 818.6917031111113)
+    close(r.tornilleria, 545.6619999999999)
+    close(r.costoTotal, 62631.18039267846)
+    close(r.costoM2, 83.50824052357129)
+    close(r.precioVenta, 156577.95098169617)
+    close(r.precioM2, 208.7706013089282)
   })
 
   it('vano 30x25 Alum 1,5mm (metal, no-override) reproduce el Simulador', () => {
@@ -33,10 +33,10 @@ describe('cotizarSkin', () => {
       alcance: 'Completo + Estructura' as const,
     }
     const r = cotizarSkin(inputMetal, PARAMS_FIXTURE)
-    close(r.material,    goldenMetal.material)
-    close(r.fab,         goldenMetal.fab)
-    close(r.pintura,     goldenMetal.pintura)
-    close(r.costoTotal,  goldenMetal.total)
-    close(r.precioM2,    goldenMetal.precioM2)
+    close(r.material,   goldenMetal.material)
+    close(r.fab,        goldenMetal.fab)
+    close(r.pintura,    goldenMetal.pintura)
+    close(r.costoTotal, goldenMetal.total)
+    close(r.precioM2,   goldenMetal.precioM2)
   })
 })

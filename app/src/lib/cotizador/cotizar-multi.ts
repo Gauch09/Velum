@@ -23,11 +23,12 @@ export interface VanoInput {
   modAlto?: number       // Skin / SkinRail, default 1
   sepParedMm?: number    // Skin / SkinRail, 0 = pegado a pared
   margenPct: number
+  descripcion?: string   // etiqueta libre por paño ("Módulo A", "Acceso principal")
 }
 
 export interface VanoGeometria {
   paneles: number
-  piezasCostilla: number
+  piezas3000: number
   mensulasTotal: number
   brocas: number
   autoperf: number
@@ -52,15 +53,17 @@ export interface VanoResultado {
   precioVenta: number
   precioM2: number
   geometria?: VanoGeometria
+  compras?: import('./skin/tipos').SkinCompras
+  descripcion?: string
 }
 
-function toVanoGeometria(g: { paneles: number; piezasCostilla: number; mensulasTotal: number; brocas: number; autoperf: number; empalmesJ: number; parantes: number }): VanoGeometria {
-  return { paneles: g.paneles, piezasCostilla: g.piezasCostilla, mensulasTotal: g.mensulasTotal, brocas: g.brocas, autoperf: g.autoperf, empalmesJ: g.empalmesJ, parantes: g.parantes }
+function toVanoGeometria(g: { paneles: number; piezas3000: number; mensulasTotal: number; brocas: number; autoperf: number; empalmesJ: number; parantes: number }): VanoGeometria {
+  return { paneles: g.paneles, piezas3000: g.piezas3000, mensulasTotal: g.mensulasTotal, brocas: g.brocas, autoperf: g.autoperf, empalmesJ: g.empalmesJ, parantes: g.parantes }
 }
 
 export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
-  const { sistema, material, colorACM, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1, sepParedMm = 0 } = input
-  const margenPct = input.margenPct / 100  // UI envía %, motor espera fracción (ej. 150 → 1.5)
+  const { sistema, material, colorACM, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1, sepParedMm = 0, descripcion } = input
+  const margenPct = input.margenPct / 100
   const area = ancho * alto
 
   if (sistema === 'Skin') {
@@ -74,7 +77,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria) }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria), compras: r.compras, descripcion }
   }
 
   if (sistema === 'SkinRail') {
@@ -88,17 +91,17 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria) }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria), compras: r.compras, descripcion }
   }
 
   if (sistema === 'Rail') {
     const [params, fam, kp] = await Promise.all([
       cargarRailParams(),
       cargarFamilia(material),
-      cargarKp(material), // Rail: Kp key = nombre del material
+      cargarKp(material),
     ])
     const r = cotizarRail({ ancho, alto, margenPct, kp, espesorMm: fam.espesorMm, familia: fam }, params)
-    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, descripcion }
   }
 
   // Clad
@@ -108,5 +111,5 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
     cargarKp(material),
   ])
   const r = cotizarClad({ ancho, alto, margenPct, kp, espesorMm: fam.espesorMm, familia: fam, alcance: terminacion as AlcanceClad }, params)
-  return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+  return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, descripcion }
 }

@@ -4,8 +4,8 @@ import { contarSkin } from '@/lib/cotizador/skin/geometria'
 const OMEGA_STEP_M = 1.5
 const OMEGA_TRAMO_M = 3.0
 
-export function contarSkinRail(i: SkinRailInput): SkinRailGeometria {
-  const g_skin = contarSkin(i)
+export function contarSkinRail(i: SkinRailInput, mensulaSpacingM: number): SkinRailGeometria {
+  const g_skin = contarSkin(i, mensulaSpacingM)
 
   const omegas = Math.ceil(i.alto / OMEGA_STEP_M)
   const mlOmega = omegas * i.ancho

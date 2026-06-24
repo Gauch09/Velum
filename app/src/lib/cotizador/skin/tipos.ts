@@ -51,17 +51,30 @@ export interface SkinParams {
   autoperfCosto: number     // 0.0285
   fresadoCostoM2: number    // 6.0 u$d/m² — aplica a ACM, MDF, Melamina, madera
   anodizadoCostoM2: number  // 18.0 u$d/m² — costo externo anodizado aluminio
+  mensulaSpacingM: number   // 2.0 — espaciado PIC150 en metros (independiente del módulo de panel)
 }
 
 export interface SkinGeometria {
   area: number; columnas: number; filas: number; paneles: number
-  costillas: number; mlCostilla: number; piezasCostilla: number
+  costillas: number; mlCostilla: number
+  piezasCostilla: number  // total piezas de 3000 mm (ceil(alto/3) × costillas)
+  piezas3000: number      // igual a piezasCostilla — todas las piezas son 3000 mm
+  nivelesMenusula: number // niveles de PIC según espaciado real
   mensulasTotal: number; brocas: number; autoperf: number
   empalmesJ: number; parantes: number
 }
 
+export interface SkinCompras {
+  chapasACM: number      // hojas 5000×1500mm (solo sistemas ACM)
+  chapasGalv16: number   // chapas galv 1.6mm 3000×1220mm (costillas + empalmes J)
+  kgGalv16: number       // kg totales de chapa 1.6mm
+  chapasGalv25: number   // chapas galv 2.5mm 3000×1220mm (ménsulas PIC150)
+  kgGalv25: number       // kg totales de chapa 2.5mm
+}
+
 export interface SkinResultado {
   geometria: SkinGeometria
+  compras: SkinCompras
   material: number; fab: number; pintura: number; tornilleria: number; parantes: number
   costoTotal: number; costoM2: number; precioVenta: number; precioM2: number
 }

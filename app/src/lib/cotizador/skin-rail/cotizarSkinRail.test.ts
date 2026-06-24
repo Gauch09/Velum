@@ -19,12 +19,12 @@ describe('cotizarSkinRail', () => {
     expect(r.geometria.piezasOmegaHorno).toBe(170)
 
     // Costos
-    close(r.material,    34041.1856408)
-    close(r.fab,         8145.80097913767)
-    close(r.pintura,     4659.19956622222)
-    close(r.tornilleria, 1150.433)
+    close(r.material,    33755.07417880001)
+    close(r.fab,         7925.66266818902)
+    close(r.pintura,     4553.981663111112)
+    close(r.tornilleria, 604.771)
     expect(r.parantes).toBe(0)
-    close(r.costoTotal,  47996.61918615992)
-    close(r.costoM2,     63.995492248213)
+    close(r.costoTotal,  46839.48951010014)
+    close(r.costoM2,     62.45265268013352)
   })
 })

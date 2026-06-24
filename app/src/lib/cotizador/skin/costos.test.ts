@@ -3,27 +3,27 @@ import { costoMaterial, costoFab, costoPintura, costoTornilleria, costoParantes 
 import { contarSkin } from './geometria'
 import { PARAMS_FIXTURE, INPUT_COMPOSITE } from './__fixtures__/fixtures'
 
-const g = contarSkin(INPUT_COMPOSITE)
+const g = contarSkin(INPUT_COMPOSITE, 2)
 const close = (a: number, b: number) => expect(Math.abs(a - b) / b).toBeLessThan(1e-6)
 
 describe('costoMaterial', () => {
-  it('rama ACM (Bond 4mm) = 52012.1895224', () => {
-    close(costoMaterial(INPUT_COMPOSITE, PARAMS_FIXTURE, g), 52012.1895224)
+  it('rama ACM (Bond 4mm)', () => {
+    close(costoMaterial(INPUT_COMPOSITE, PARAMS_FIXTURE, g), 51726.0780604)
   })
 })
 describe('costoFab', () => {
-  it('rama ACM (Bond 4mm) = 2560.8869401160027', () => {
-    close(costoFab(INPUT_COMPOSITE, PARAMS_FIXTURE, g), 2560.8869401160027)
+  it('rama ACM (Bond 4mm) incluye fresado', () => {
+    close(costoFab(INPUT_COMPOSITE, PARAMS_FIXTURE, g), 9540.748629167354)
   })
 })
 describe('costoPintura', () => {
-  it('pintura = 0 cuando override ACM', () => {
-    expect(costoPintura(INPUT_COMPOSITE, PARAMS_FIXTURE, g)).toBe(0)
+  it('ACM + Completo+Estructura pinta la estructura', () => {
+    close(costoPintura(INPUT_COMPOSITE, PARAMS_FIXTURE, g), 818.6917031111113)
   })
 })
 describe('costoTornilleria', () => {
-  it('tornilleria = 1091.324', () => {
-    close(costoTornilleria(PARAMS_FIXTURE, g), 1091.3239999999998)
+  it('403 ménsulas → 806 brocas + 1612 autoperf', () => {
+    close(costoTornilleria(PARAMS_FIXTURE, g), 545.6619999999999)
   })
 })
 describe('costoParantes', () => {

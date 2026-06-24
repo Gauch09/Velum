@@ -24,6 +24,7 @@ export interface SkinRailGeometria extends SkinGeometria {
 
 export interface SkinRailResultado {
   geometria: SkinRailGeometria
+  compras: import('@/lib/cotizador/skin/tipos').SkinCompras
   material: number
   fab: number
   pintura: number

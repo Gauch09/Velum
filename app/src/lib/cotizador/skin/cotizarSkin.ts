@@ -1,9 +1,10 @@
 import type { SkinInput, SkinParams, SkinResultado } from './tipos'
 import { contarSkin } from './geometria'
-import { costoMaterial, costoFab, costoPintura, costoTornilleria, costoParantes } from './costos'
+import { costoMaterial, costoFab, costoPintura, costoTornilleria, costoParantes, calcularCompras } from './costos'
 
 export function cotizarSkin(i: SkinInput, p: SkinParams): SkinResultado {
-  const geometria = contarSkin(i)
+  const geometria = contarSkin(i, p.mensulaSpacingM)
+  const compras = calcularCompras(i, p, geometria)
   const material = costoMaterial(i, p, geometria)
   const fab = costoFab(i, p, geometria)
   const pintura = costoPintura(i, p, geometria)
@@ -13,5 +14,5 @@ export function cotizarSkin(i: SkinInput, p: SkinParams): SkinResultado {
   const costoM2 = costoTotal / geometria.area
   const precioVenta = costoTotal * (1 + i.margenPct)
   const precioM2 = precioVenta / geometria.area
-  return { geometria, material, fab, pintura, tornilleria, parantes, costoTotal, costoM2, precioVenta, precioM2 }
+  return { geometria, compras, material, fab, pintura, tornilleria, parantes, costoTotal, costoM2, precioVenta, precioM2 }
 }

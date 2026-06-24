@@ -169,6 +169,15 @@ function Resultado({ res }: { res: Extract<CotizarVanoResult, { ok: true }> }) {
 
       <TablaDesglose filas={res.desglose} />
 
+      <div className={card}>
+        <h2 className="text-white text-sm font-semibold mb-2">Compra de materiales</h2>
+        {r.compras.chapasACM > 0 && (
+          <div className={row}><span className="text-gray-400">ACM 5000×1500mm</span><span className="text-white">{r.compras.chapasACM} chapas</span></div>
+        )}
+        <div className={row}><span className="text-gray-400">Galv 1.6mm 3000×1220</span><span className="text-white">{r.compras.chapasGalv16} ch. · {r.compras.kgGalv16} kg</span></div>
+        <div className={row}><span className="text-gray-400">Galv 2.5mm 3000×1220</span><span className="text-white">{r.compras.chapasGalv25} ch. · {r.compras.kgGalv25} kg</span></div>
+      </div>
+
       <p className="text-gray-500 text-xs italic bg-gray-900 rounded p-3">
         Precios aproximados. La cotización final se confirma una vez aceptada, tras el relevamiento en obra, donde se definen cierres, detalles y posibles interferencias no previstas en planos.
       </p>

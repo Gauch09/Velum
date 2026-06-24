@@ -1,4 +1,20 @@
-import type { SkinInput, SkinParams, SkinGeometria } from './tipos'
+import type { SkinInput, SkinParams, SkinGeometria, SkinCompras } from './tipos'
+
+const GALV_SHEET_M2 = 3.0 * 1.22  // chapa estándar 3000×1220mm
+
+export function calcularCompras(i: SkinInput, p: SkinParams, g: SkinGeometria, extraGalv16M2 = 0): SkinCompras {
+  const chapasACM = i.familia.precioM2 > 0 ? Math.ceil(g.area * i.kp / p.areaPlaca) : 0
+
+  const areaGalv16 = g.piezas3000 * p.costillaAreaM2 + g.empalmesJ * p.empalmeAreaM2 + extraGalv16M2
+  const chapasGalv16 = Math.ceil(areaGalv16 / GALV_SHEET_M2)
+  const kgGalv16 = Math.round(chapasGalv16 * GALV_SHEET_M2 * (p.costillaEspesorMm / 1000) * p.galvDensidad)
+
+  const areaGalv25 = g.mensulasTotal * p.mensulaAreaM2
+  const chapasGalv25 = Math.ceil(areaGalv25 / GALV_SHEET_M2)
+  const kgGalv25 = Math.round(chapasGalv25 * GALV_SHEET_M2 * (p.mensulaEspesorMm / 1000) * p.galvDensidad)
+
+  return { chapasACM, chapasGalv16, kgGalv16, chapasGalv25, kgGalv25 }
+}
 
 export function costoMaterial(i: SkinInput, p: SkinParams, g: SkinGeometria): number {
   const override = i.familia.precioM2
