@@ -93,7 +93,9 @@ export default async function CotizacionPage({ params }: Props) {
             {(cot.vanos ?? []).map((v: any) => (
               <div key={v.id} className="flex items-center gap-3 text-sm">
                 <span className="text-gray-500 w-14">{v.sistema}</span>
-                <span className="text-white flex-1">{v.material} — {v.terminacion}</span>
+                <span className="text-white flex-1">
+                  {v.material}{v.colorACM ? ` · ${v.colorACM}` : ''} — {v.terminacion}
+                </span>
                 <span className="text-gray-400 text-xs">{fmt(v.ancho)}×{fmt(v.alto)} m</span>
                 <span className="text-green-400 w-28 text-right">{usd(v.precio)}</span>
               </div>

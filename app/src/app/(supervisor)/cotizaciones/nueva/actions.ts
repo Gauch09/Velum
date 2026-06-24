@@ -100,13 +100,14 @@ export async function actionCalcularMontaje(raw: unknown) {
 }
 
 export async function actionListarListas() {
-  const { listarMaterialesSkin, listarDisenos } = await import('@/lib/cotizador/skin/listas-repo')
+  const { listarMaterialesSkin, listarDisenos, listarMaterialesACM } = await import('@/lib/cotizador/skin/listas-repo')
   const { createSupabaseAdminClient } = await import('@/lib/supabase-admin')
   const sb = createSupabaseAdminClient() as any
 
-  const [todosMateriales, disenos] = await Promise.all([
+  const [todosMateriales, disenos, materialesACM] = await Promise.all([
     listarMaterialesSkin(),
     listarDisenos(),
+    listarMaterialesACM(),
   ])
 
   // Separar lamas (MultiSlim*) del resto
@@ -122,6 +123,7 @@ export async function actionListarListas() {
   return {
     materialesSkin,
     materialesLama,
+    materialesACM,
     disenos,
     tcDefault: Number(tcRow?.valor ?? 1460),
     mediosElevacion,

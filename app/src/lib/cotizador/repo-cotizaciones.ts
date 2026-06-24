@@ -62,6 +62,7 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
       cotizacionId: cot.id,
       sistema: v.sistema,
       material: v.material,
+      colorACM: v.colorACM ?? null,
       terminacion: v.terminacion,
       ancho: v.ancho,
       alto: v.alto,

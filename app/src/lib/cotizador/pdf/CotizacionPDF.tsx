@@ -100,6 +100,7 @@ export interface CotizacionData {
   vanos: Array<{
     sistema:    string
     material:   string
+    colorACM?:  string | null
     terminacion:string
     ancho:      number
     alto:       number
@@ -193,7 +194,7 @@ export function CotizacionPDF({ cot }: { cot: CotizacionData }) {
             return (
               <View key={i} style={rowStyle}>
                 <Text style={[s.tableCell, s.colSistema]}>{v.sistema}</Text>
-                <Text style={[s.tableCell, s.colMaterial]}>{v.material}</Text>
+                <Text style={[s.tableCell, s.colMaterial]}>{v.material}{v.colorACM ? ` · ${v.colorACM}` : ''}</Text>
                 <Text style={[s.tableCell, s.colTerminacion]}>{v.terminacion}</Text>
                 <Text style={[s.tableCell, s.colDim]}>{fmt(v.ancho)} × {fmt(v.alto)}</Text>
                 <Text style={[s.tableCell, s.colM2]}>{fmt(area)}</Text>

@@ -5,9 +5,18 @@ import type { VanoInput, VanoResultado, Sistema } from '@/lib/cotizador/cotizar-
 import type { AlcanceTerminacion } from '@/lib/cotizador/skin/tipos'
 import type { AlcanceClad } from '@/lib/cotizador/clad/tipos'
 
+const COLORES_ACM = [
+  'Dorado KR309',
+  'Gris anodizado KR200',
+  'Gris Silver KR201',
+  'Negro KR150',
+  'Blanco KR101',
+]
+
 interface Props {
   materialesSkin: string[]
   materialesLama: string[]
+  materialesACM: string[]
   disenos: string[]
   margenPct: number
   onAgregar: (input: VanoInput, resultado: VanoResultado) => void
@@ -27,9 +36,10 @@ function alcancesPorSistema(s: Sistema) {
   return ALCANCES_SKIN
 }
 
-export default function VanoBuilder({ materialesSkin, materialesLama, disenos, margenPct, onAgregar, accionCotizar }: Props) {
+export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, disenos, margenPct, onAgregar, accionCotizar }: Props) {
   const [sistema, setSistema] = useState<Sistema>('Skin')
   const [material, setMaterial] = useState(materialesSkin[0] ?? '')
+  const [colorACM, setColorACM] = useState(COLORES_ACM[0])
   const [diseno, setDiseno] = useState(disenos[0] ?? '')
   const [terminacion, setTerminacion] = useState<string>(ALCANCES_SKIN[2])
   const [ancho, setAncho] = useState('30')
@@ -50,6 +60,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, disenos, m
   }
 
   const materiales = (sistema === 'Rail' || sistema === 'Clad') ? materialesLama : materialesSkin
+  const esACM = materialesACM.includes(material)
   const alcances = alcancesPorSistema(sistema)
   const necesitaDiseno = sistema === 'Skin' || sistema === 'SkinRail'
 
@@ -60,6 +71,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, disenos, m
       const input: VanoInput = {
         sistema,
         material,
+        colorACM: esACM ? colorACM : undefined,
         diseno: necesitaDiseno ? diseno : undefined,
         terminacion,
         ancho: Number(ancho),
@@ -78,7 +90,8 @@ export default function VanoBuilder({ materialesSkin, materialesLama, disenos, m
   function agregar() {
     if (!resultado) return
     const input: VanoInput = {
-      sistema, material, diseno: necesitaDiseno ? diseno : undefined,
+      sistema, material, colorACM: esACM ? colorACM : undefined,
+      diseno: necesitaDiseno ? diseno : undefined,
       terminacion, ancho: Number(ancho), alto: Number(alto), margenPct,
     }
     onAgregar(input, resultado)
@@ -113,6 +126,14 @@ export default function VanoBuilder({ materialesSkin, materialesLama, disenos, m
             {materiales.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
+        {esACM && (
+          <div>
+            <label className="block text-gray-500 text-xs mb-1">Color ACM</label>
+            <select value={colorACM} onChange={e => { setColorACM(e.target.value); setResultado(null) }} className={sel}>
+              {COLORES_ACM.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        )}
         {necesitaDiseno && (
           <div>
             <label className="block text-gray-500 text-xs mb-1">Diseño</label>

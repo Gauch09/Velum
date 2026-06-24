@@ -21,6 +21,7 @@ interface Props {
   clientes: ClienteRow[]
   materialesSkin: string[]
   materialesLama: string[]
+  materialesACM: string[]
   disenos: string[]
   tcDefault: number
   retencionesPct: RetencionesPct
@@ -43,6 +44,7 @@ export default function WizardCotizacion({
   clientes: clientesIniciales,
   materialesSkin,
   materialesLama,
+  materialesACM,
   disenos,
   tcDefault,
   retencionesPct,
@@ -222,6 +224,7 @@ export default function WizardCotizacion({
           <VanoBuilder
             materialesSkin={materialesSkin}
             materialesLama={materialesLama}
+            materialesACM={materialesACM}
             disenos={disenos}
             margenPct={Number(margen)}
             onAgregar={agregarVano}

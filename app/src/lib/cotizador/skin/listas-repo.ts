@@ -10,6 +10,17 @@ export async function listarMaterialesSkin(): Promise<string[]> {
   return (data ?? []).map((r: { material: string }) => r.material)
 }
 
+export async function listarMaterialesACM(): Promise<string[]> {
+  const supabase = createSupabaseAdminClient() as any
+  const { data, error } = await supabase
+    .from('MaterialVariante')
+    .select('material, MaterialFamilia!inner(precioM2)')
+    .gt('MaterialFamilia.precioM2', 0)
+    .order('material')
+  if (error) throw new Error(`listarMaterialesACM: ${error.message}`)
+  return (data ?? []).map((r: { material: string }) => r.material)
+}
+
 export async function listarDisenos(): Promise<string[]> {
   const supabase = createSupabaseAdminClient() as any
   const { data, error } = await supabase

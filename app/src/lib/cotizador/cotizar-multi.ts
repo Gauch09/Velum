@@ -14,6 +14,7 @@ export type Sistema = 'Skin' | 'Rail' | 'Clad' | 'SkinRail'
 export interface VanoInput {
   sistema: Sistema
   material: string
+  colorACM?: string      // solo para materiales ACM (Bond 4mm)
   diseno?: string        // Skin / SkinRail
   terminacion: string
   ancho: number
@@ -26,6 +27,7 @@ export interface VanoInput {
 export interface VanoResultado {
   sistema: Sistema
   material: string
+  colorACM?: string
   terminacion: string
   ancho: number
   alto: number
@@ -41,7 +43,7 @@ export interface VanoResultado {
 }
 
 export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
-  const { sistema, material, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1 } = input
+  const { sistema, material, colorACM, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1 } = input
   const margenPct = input.margenPct / 100  // UI envía %, motor espera fracción (ej. 150 → 1.5)
   const area = ancho * alto
 
@@ -56,7 +58,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
   }
 
   if (sistema === 'SkinRail') {
@@ -70,7 +72,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
   }
 
   if (sistema === 'Rail') {
@@ -80,7 +82,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       cargarKp(material), // Rail: Kp key = nombre del material
     ])
     const r = cotizarRail({ ancho, alto, margenPct, kp, espesorMm: fam.espesorMm, familia: fam }, params)
-    return { sistema, material, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
   }
 
   // Clad
@@ -90,5 +92,5 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
     cargarKp(material),
   ])
   const r = cotizarClad({ ancho, alto, margenPct, kp, espesorMm: fam.espesorMm, familia: fam, alcance: terminacion as AlcanceClad }, params)
-  return { sistema, material, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+  return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
 }
