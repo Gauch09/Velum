@@ -142,6 +142,7 @@ export async function leerCotizacion(id: string) {
       *,
       cliente:Cliente(*, contactos:Contacto(*)),
       vanos:CotizacionVano(*),
+      montaje:MontajeObra(*, medio:MedioElevacion(nombre, alturaMaxM)),
       condiciones:CondicionesComerciales(*, retenciones:Retencion(*))
     `)
     .eq('id', id)

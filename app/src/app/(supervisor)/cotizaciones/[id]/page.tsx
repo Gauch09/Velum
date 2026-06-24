@@ -89,6 +89,61 @@ export default async function CotizacionPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Montaje */}
+        {cot.montaje && (
+          <div className="bg-gray-900 rounded-lg p-4">
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Montaje e instalación</p>
+            <div className="text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Elevación</span>
+                <span className="text-white">{cot.montaje.medio?.nombre ?? '—'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Operarios</span>
+                <span className="text-white">{cot.montaje.nOperarios}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Días estimados</span>
+                <span className="text-white">{cot.montaje.diasObra}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Ing. H&S presencial</span>
+                <span className="text-white">{cot.montaje.hsPresencial ? 'Sí' : 'No'}</span>
+              </div>
+              <div className="border-t border-gray-800 pt-2 mt-1 space-y-1">
+                <div className="flex justify-between text-gray-400">
+                  <span>Costo elevación</span>
+                  <span>{usd(cot.montaje.costoElevacion)}</span>
+                </div>
+                <div className="flex justify-between text-gray-400">
+                  <span>Costo operarios</span>
+                  <span>{usd(cot.montaje.costoOperarios)}</span>
+                </div>
+                {cot.montaje.costoHS > 0 && (
+                  <div className="flex justify-between text-gray-400">
+                    <span>H&S</span>
+                    <span>{usd(cot.montaje.costoHS)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold pt-1">
+                  <span className="text-gray-300">Precio montaje</span>
+                  <span className="text-green-400">{usd(cot.montaje.precioVenta)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Total obra */}
+        {cot.montaje && (
+          <div className="bg-gray-900 rounded-lg p-4">
+            <div className="flex justify-between text-base font-semibold">
+              <span className="text-white">Total obra (provisión + montaje)</span>
+              <span className="text-green-400">{usd((cot.totalProducto ?? 0) + (cot.totalMontaje ?? 0))}</span>
+            </div>
+          </div>
+        )}
+
         {/* Condiciones */}
         {cot.condiciones && (
           <div className="bg-gray-900 rounded-lg p-4">
