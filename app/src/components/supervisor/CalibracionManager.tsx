@@ -30,7 +30,7 @@ const GRUPOS: { titulo: string; claves: string[] }[] = [
   },
   {
     titulo: 'Sistema Skin — panel ACM',
-    claves: ['acm_area_placa', 'acm_fab_placa', 'acm_acc_panel', 'acm_acc_costo', 'parante_base',
+    claves: ['acm_area_placa', 'acm_fab_placa', 'acm_acc_panel', 'acm_acc_costo', 'fresado_costo_m2', 'parante_base',
              'skin_costilla_area', 'skin_costilla_espesor', 'skin_mensula_area', 'skin_mensula_espesor',
              'skin_empalme_area', 'skin_empalme_espesor'],
   },

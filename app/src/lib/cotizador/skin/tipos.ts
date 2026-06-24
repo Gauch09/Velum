@@ -48,6 +48,7 @@ export interface SkinParams {
   piezasHorneada: number    // 100
   brocaCosto: number        // 0.62
   autoperfCosto: number     // 0.0285
+  fresadoCostoM2: number    // 6.0 u$d/m² — aplica a ACM, MDF, Melamina, madera
 }
 
 export interface SkinGeometria {

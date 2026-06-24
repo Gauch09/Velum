@@ -19,7 +19,7 @@ export const PARAMS_FIXTURE: SkinRailParams = {
   paranteBase: 0,
   polvo: 14, cobertura: 9, sobreaplic: 1.3,
   costoHorneada: 27.5, piezasHorneada: 100,
-  brocaCosto: 0.62, autoperfCosto: 0.0285,
+  brocaCosto: 0.62, autoperfCosto: 0.0285, fresadoCostoM2: 6,
   // --- Omega extra ---
   omegaArea3m:     0.57,
   omegaEspMm:      1.6,

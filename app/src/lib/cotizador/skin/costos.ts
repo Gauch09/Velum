@@ -17,10 +17,11 @@ export function costoFab(i: SkinInput, p: SkinParams, g: SkinGeometria): number 
   const panel = override > 0
     ? (g.area * i.kp / p.areaPlaca) * p.fabPlaca
     : g.paneles * p.fabPanelSkin
+  const fresado = override > 0 ? g.area * i.kp * p.fresadoCostoM2 : 0
   const costilla = g.mlCostilla * (p.fabCostilla3000 / 3)
   const mensula = g.mensulasTotal * p.fabMensula
   const empalme = g.empalmesJ * p.fabEmpalme
-  return panel + costilla + mensula + empalme
+  return panel + fresado + costilla + mensula + empalme
 }
 
 export function costoPintura(i: SkinInput, p: SkinParams, g: SkinGeometria): number {
@@ -59,10 +60,11 @@ export function desgloseMateria(i: SkinInput, p: SkinParams, g: SkinGeometria): 
 
 export function desgloseFab(i: SkinInput, p: SkinParams, g: SkinGeometria): DesgloseComponentesSkin {
   const override = i.familia.precioM2
+  const fresado = override > 0 ? g.area * i.kp * p.fresadoCostoM2 : 0
   return {
-    panel: override > 0
+    panel: (override > 0
       ? (g.area * i.kp / p.areaPlaca) * p.fabPlaca
-      : g.paneles * p.fabPanelSkin,
+      : g.paneles * p.fabPanelSkin) + fresado,
     costilla: g.mlCostilla * (p.fabCostilla3000 / 3),
     mensula:  g.mensulasTotal * p.fabMensula,
     empalme:  g.empalmesJ * p.fabEmpalme,

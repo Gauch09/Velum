@@ -94,6 +94,7 @@ export async function cargarSkinParams(): Promise<SkinParams> {
     piezasHorneada:    p(pm, 'pintura_horneada_piezas'),
     brocaCosto:        p(pm, 'fijacion_broca'),
     autoperfCosto:     p(pm, 'fijacion_autoperf'),
+    fresadoCostoM2:    pm['fresado_costo_m2'] ?? 6,
   }
 }
 
