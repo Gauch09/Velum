@@ -11,7 +11,7 @@ export const PARAMS_FIXTURE: SkinParams = {
   fabMensula: 0.5462489105425525, fabEmpalme: 0.5935479114662887,
   paranteBase: 0,
   polvo: 14, cobertura: 9, sobreaplic: 1.3, costoHorneada: 27.5, piezasHorneada: 100,
-  brocaCosto: 0.62, autoperfCosto: 0.0285, fresadoCostoM2: 6, anodizadoCostoM2: 18,
+  brocaCosto: 0.62, autoperfCosto: 0.0285, fresadoCostoM2: 6, anodizadoCostoM2: 38,
 }
 
 export const INPUT_COMPOSITE: SkinInput = {
