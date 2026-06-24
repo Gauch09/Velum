@@ -24,8 +24,8 @@ interface Props {
 }
 
 const SISTEMAS: Sistema[] = ['Skin', 'Rail', 'Clad', 'SkinRail']
-// Aluminio/acero: nunca crudo, puede ser anodizado
-const ALCANCES_ALUMINIO: AlcanceTerminacion[] = ['Completo (solo panel)', 'Completo + Estructura', 'Anodizado']
+// Aluminio/acero: pintado siempre incluye estructura; o anodizado (solo panel, sin estructura)
+const ALCANCES_ALUMINIO: AlcanceTerminacion[] = ['Completo + Estructura', 'Anodizado']
 // ACM: viene pintado de fábrica, sin anodizado
 const ALCANCES_ACM: AlcanceTerminacion[] = ['Completo (solo panel)', 'Completo + Estructura']
 const ALCANCES_CLAD: AlcanceClad[] = ['Pintado', 'Crudo (sin pintura)']
