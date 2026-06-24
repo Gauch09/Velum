@@ -1,13 +1,14 @@
 import Link from 'next/link'
-import { listarParametros, listarMediosElevacion } from '@/lib/cotizador/calibracion-repo'
+import { listarParametros, listarMediosElevacion, listarFamilias } from '@/lib/cotizador/calibracion-repo'
 import CalibracionManager from '@/components/supervisor/CalibracionManager'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CalibracionPage() {
-  const [parametros, medios] = await Promise.all([
+  const [parametros, medios, familias] = await Promise.all([
     listarParametros(),
     listarMediosElevacion(),
+    listarFamilias(),
   ])
   return (
     <main className="min-h-screen bg-gray-950 p-6">
@@ -16,7 +17,7 @@ export default async function CalibracionPage() {
           ← Volver a planta
         </Link>
         <h1 className="text-white text-2xl font-bold mb-8">Calibración del cotizador</h1>
-        <CalibracionManager parametros={parametros} medios={medios} />
+        <CalibracionManager parametros={parametros} medios={medios} familias={familias} />
       </div>
     </main>
   )

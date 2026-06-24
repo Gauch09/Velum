@@ -45,3 +45,30 @@ export async function actualizarMedioElevacion(id: string, costoDia: number, alt
     .eq('id', id)
   if (error) throw new Error(`actualizarMedioElevacion: ${error.message}`)
 }
+
+export interface MaterialFamiliaRow {
+  id: string
+  nombre: string
+  densidad: number
+  precioTon: number
+  precioM2: number
+}
+
+export async function listarFamilias(): Promise<MaterialFamiliaRow[]> {
+  const supabase = createSupabaseAdminClient() as any
+  const { data, error } = await supabase
+    .from('MaterialFamilia')
+    .select('id, nombre, densidad, "precioTon", "precioM2"')
+    .order('nombre')
+  if (error) throw new Error(`listarFamilias: ${error.message}`)
+  return data ?? []
+}
+
+export async function actualizarFamilia(id: string, precioTon: number, precioM2: number, densidad: number): Promise<void> {
+  const supabase = createSupabaseAdminClient() as any
+  const { error } = await supabase
+    .from('MaterialFamilia')
+    .update({ precioTon, precioM2, densidad, actualizadoEn: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw new Error(`actualizarFamilia: ${error.message}`)
+}

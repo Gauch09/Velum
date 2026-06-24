@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { actualizarParametro, actualizarMedioElevacion } from '@/lib/cotizador/calibracion-repo'
+import { actualizarParametro, actualizarMedioElevacion, actualizarFamilia } from '@/lib/cotizador/calibracion-repo'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 
@@ -62,6 +62,37 @@ export async function guardarMedioElevacion(_state: unknown, formData: FormData)
   })
   if (!parsed.success) return { error: 'Datos inválidos' }
   await actualizarMedioElevacion(parsed.data.id, parsed.data.costoDia, parsed.data.alturaMaxM)
+  revalidatePath('/calibracion')
+  return { ok: true }
+}
+
+export async function guardarFamilia(_state: unknown, formData: FormData) {
+  const supabase = createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sin autorización' }
+
+  const admin = createSupabaseAdminClient()
+  const { data: usuario } = await admin
+    .from('Usuario')
+    .select('rol')
+    .eq('email', user.email!)
+    .single() as { data: { rol: string } | null; error: unknown }
+  if (!usuario || usuario.rol === 'OPERARIO') return { error: 'Sin autorización' }
+
+  const schema = z.object({
+    id:        z.string().min(1),
+    precioTon: z.coerce.number().min(0),
+    precioM2:  z.coerce.number().min(0),
+    densidad:  z.coerce.number().positive(),
+  })
+  const parsed = schema.safeParse({
+    id:        formData.get('id'),
+    precioTon: formData.get('precioTon'),
+    precioM2:  formData.get('precioM2'),
+    densidad:  formData.get('densidad'),
+  })
+  if (!parsed.success) return { error: 'Datos inválidos' }
+  await actualizarFamilia(parsed.data.id, parsed.data.precioTon, parsed.data.precioM2, parsed.data.densidad)
   revalidatePath('/calibracion')
   return { ok: true }
 }
