@@ -4,8 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ClienteForm from './ClienteForm'
 import VanoBuilder from './VanoBuilder'
+import MontajeStep, { type MontajeSeleccion } from './MontajeStep'
 import type { ClienteRow } from '@/lib/cotizador/repo-clientes'
 import type { VanoInput, VanoResultado } from '@/lib/cotizador/cotizar-multi'
+import type { MedioElevacion } from '@/lib/cotizador/montaje/params-repo'
+import type { MontajeResultado } from '@/lib/cotizador/montaje/calcularMontaje'
 
 interface RetencionesPct {
   iva: number
@@ -21,8 +24,10 @@ interface Props {
   disenos: string[]
   tcDefault: number
   retencionesPct: RetencionesPct
+  mediosElevacion: MedioElevacion[]
   accionCrearCliente: (raw: unknown) => Promise<ClienteRow>
   accionCotizarVano: (raw: unknown) => Promise<VanoResultado>
+  accionCalcularMontaje: (raw: unknown) => Promise<MontajeResultado>
   accionCrearCotizacion: (raw: unknown) => Promise<{ id: string; numero: string }>
 }
 
@@ -31,6 +36,8 @@ type VanoItem = { input: VanoInput; resultado: VanoResultado; key: number }
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
 const RETENCIONES_TIPOS = ['IVA', 'GANANCIAS', 'IIBB', 'SUSS']
+const PASOS = ['Cliente', 'Vanos', 'Montaje', 'Condiciones'] as const
+type Paso = 1 | 2 | 3 | 4
 
 export default function WizardCotizacion({
   clientes: clientesIniciales,
@@ -39,12 +46,14 @@ export default function WizardCotizacion({
   disenos,
   tcDefault,
   retencionesPct,
+  mediosElevacion,
   accionCrearCliente,
   accionCotizarVano,
+  accionCalcularMontaje,
   accionCrearCotizacion,
 }: Props) {
   const router = useRouter()
-  const [paso, setPaso] = useState<1 | 2 | 3>(1)
+  const [paso, setPaso] = useState<Paso>(1)
   const [clientes, setClientes] = useState<ClienteRow[]>(clientesIniciales)
   const [mostrarNuevoCliente, setMostrarNuevoCliente] = useState(false)
 
@@ -58,27 +67,35 @@ export default function WizardCotizacion({
   const [vanos, setVanos] = useState<VanoItem[]>([])
 
   // Paso 3
+  const [montajeSeleccion, setMontajeSeleccion] = useState<MontajeSeleccion | null>(null)
+
+  // Paso 4
   const [formaPago, setFormaPago] = useState('30 días factura')
   const [retencionesActivas, setRetencionesActivas] = useState<Set<string>>(new Set())
   const [retencionesCustom, setRetencionesCustom] = useState<Record<string, string>>({
-    IVA: String(retencionesPct.iva),
+    IVA:       String(retencionesPct.iva),
     GANANCIAS: String(retencionesPct.ganancias),
-    IIBB: String(retencionesPct.iibb),
-    SUSS: String(retencionesPct.suss),
+    IIBB:      String(retencionesPct.iibb),
+    SUSS:      String(retencionesPct.suss),
   })
 
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const totalVanos = vanos.reduce((acc, v) => acc + v.resultado.precioVenta, 0)
+  const totalM2 = vanos.reduce((acc, v) => acc + v.resultado.area, 0)
+  const totalMontaje = montajeSeleccion?.resultado.precioVenta ?? 0
+  const totalObra = totalVanos + totalMontaje
+
   function agregarVano(input: VanoInput, resultado: VanoResultado) {
     setVanos(prev => [...prev, { input, resultado, key: Date.now() }])
+    setMontajeSeleccion(null) // resetear montaje si cambian los vanos
   }
 
   function quitarVano(key: number) {
     setVanos(prev => prev.filter(v => v.key !== key))
+    setMontajeSeleccion(null)
   }
-
-  const totalVanos = vanos.reduce((acc, v) => acc + v.resultado.precioVenta, 0)
 
   function toggleRetencion(tipo: string) {
     setRetencionesActivas(prev => {
@@ -97,12 +114,21 @@ export default function WizardCotizacion({
         tipo,
         porcentaje: Number(retencionesCustom[tipo] ?? 0),
       }))
+      const montajePayload = montajeSeleccion ? {
+        medioElevacionId:      montajeSeleccion.medioElevacionId,
+        nOperarios:            montajeSeleccion.nOperarios,
+        hsPresencial:          montajeSeleccion.hsPresencial,
+        margenPct:             Number(margen) / 100,
+        resultado:             montajeSeleccion.resultado,
+      } : null
+
       const result = await accionCrearCotizacion({
         clienteId,
         ubicacionObra: ubicacionObra || null,
         tcUsado: Number(tc),
         margenPct: Number(margen),
         vanos: vanos.map(v => v.resultado),
+        montaje: montajePayload,
         condiciones: { formaPagoProducto: formaPago, retenciones },
       })
       router.push(`/cotizaciones/${result.id}`)
@@ -117,18 +143,22 @@ export default function WizardCotizacion({
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Breadcrumb de pasos */}
+      {/* Pasos */}
       <div className="flex gap-1 text-xs">
-        {([1, 2, 3] as const).map(p => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => { if (p < paso || (p === 2 && clienteId)) setPaso(p) }}
-            className={`flex-1 py-1.5 rounded text-center ${paso === p ? 'bg-white text-gray-900 font-semibold' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}
-          >
-            {p === 1 ? 'Cliente' : p === 2 ? 'Vanos' : 'Condiciones'}
-          </button>
-        ))}
+        {PASOS.map((nombre, i) => {
+          const p = (i + 1) as Paso
+          const clickable = p < paso || (p === 2 && !!clienteId) || (p === 3 && vanos.length > 0)
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => { if (clickable) setPaso(p) }}
+              className={`flex-1 py-1.5 rounded text-center ${paso === p ? 'bg-white text-gray-900 font-semibold' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}
+            >
+              {nombre}
+            </button>
+          )
+        })}
       </div>
 
       {/* Paso 1: Cliente */}
@@ -197,7 +227,6 @@ export default function WizardCotizacion({
             onAgregar={agregarVano}
             accionCotizar={accionCotizarVano}
           />
-
           {vanos.length > 0 && (
             <div className="space-y-2">
               <p className="text-gray-400 text-xs uppercase tracking-wider">Vanos agregados</p>
@@ -216,7 +245,6 @@ export default function WizardCotizacion({
               </div>
             </div>
           )}
-
           <div className="flex gap-3">
             <button type="button" onClick={() => setPaso(1)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
             <button
@@ -225,14 +253,37 @@ export default function WizardCotizacion({
               onClick={() => setPaso(3)}
               className="flex-1 bg-white text-gray-900 text-sm font-semibold py-2 rounded hover:bg-gray-100 disabled:opacity-40"
             >
+              Siguiente: Montaje
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Paso 3: Montaje */}
+      {paso === 3 && (
+        <div className="space-y-4">
+          <MontajeStep
+            totalM2={totalM2}
+            margenPct={Number(margen)}
+            mediosElevacion={mediosElevacion}
+            accionCalcular={accionCalcularMontaje}
+            onChange={setMontajeSeleccion}
+          />
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setPaso(2)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
+            <button
+              type="button"
+              onClick={() => setPaso(4)}
+              className="flex-1 bg-white text-gray-900 text-sm font-semibold py-2 rounded hover:bg-gray-100"
+            >
               Siguiente: Condiciones
             </button>
           </div>
         </div>
       )}
 
-      {/* Paso 3: Condiciones comerciales */}
-      {paso === 3 && (
+      {/* Paso 4: Condiciones comerciales */}
+      {paso === 4 && (
         <div className="space-y-4">
           <div>
             <label className={label}>Forma de pago</label>
@@ -248,15 +299,10 @@ export default function WizardCotizacion({
                 return (
                   <div key={tipo} className={`rounded border p-3 ${activo ? 'border-blue-500 bg-gray-800' : 'border-gray-700 bg-gray-900'}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="checkbox"
-                        checked={activo}
-                        onChange={() => toggleRetencion(tipo)}
-                        className="accent-blue-500"
-                      />
+                      <input type="checkbox" checked={activo} onChange={() => toggleRetencion(tipo)} className="accent-blue-500" />
                       <span className="text-white text-sm">{tipo}</span>
                     </div>
-                    {activo && (
+                    {activo ? (
                       <input
                         type="number"
                         step="0.1"
@@ -264,8 +310,7 @@ export default function WizardCotizacion({
                         onChange={e => setRetencionesCustom(prev => ({ ...prev, [tipo]: e.target.value }))}
                         className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs"
                       />
-                    )}
-                    {!activo && (
+                    ) : (
                       <span className="text-gray-600 text-xs">Default: {retencionesPct[llave]}%</span>
                     )}
                   </div>
@@ -283,22 +328,28 @@ export default function WizardCotizacion({
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Vanos</span>
-              <span className="text-white">{vanos.length}</span>
+              <span className="text-white">{vanos.length} ({fmt(totalM2)} m²)</span>
             </div>
             <div className="flex justify-between text-gray-400">
-              <span>TC</span>
-              <span className="text-white">$ {tc}</span>
+              <span>Provisión</span>
+              <span className="text-white">{usd(totalVanos)}</span>
             </div>
+            {totalMontaje > 0 && (
+              <div className="flex justify-between text-gray-400">
+                <span>Montaje</span>
+                <span className="text-white">{usd(totalMontaje)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-300 font-semibold border-t border-gray-800 pt-2 mt-2">
-              <span>Total provisión</span>
-              <span className="text-green-400">{usd(totalVanos)}</span>
+              <span>Total obra</span>
+              <span className="text-green-400">{usd(totalObra)}</span>
             </div>
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <div className="flex gap-3">
-            <button type="button" onClick={() => setPaso(2)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
+            <button type="button" onClick={() => setPaso(3)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
             <button
               type="button"
               disabled={guardando}

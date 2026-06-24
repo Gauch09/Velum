@@ -1,5 +1,14 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 import type { VanoResultado } from './cotizar-multi'
+import type { MontajeResultado } from './montaje/calcularMontaje'
+
+export interface MontajeInput {
+  medioElevacionId: string
+  nOperarios: number
+  hsPresencial: boolean
+  margenPct: number  // fracción
+  resultado: MontajeResultado
+}
 
 export interface NuevaCotizacionInput {
   clienteId: string
@@ -7,6 +16,7 @@ export interface NuevaCotizacionInput {
   tcUsado: number
   margenPct: number
   vanos: VanoResultado[]
+  montaje: MontajeInput | null
   condiciones: {
     formaPagoProducto: string
     retenciones: Array<{ tipo: string; porcentaje: number }>
@@ -27,6 +37,9 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
   const numero = await siguienteNumero(sb)
   const totalProducto = input.vanos.reduce((acc, v) => acc + v.precioVenta, 0)
 
+  const totalMontaje = input.montaje?.resultado.precioVenta ?? 0
+  const alcance = input.montaje ? 'PROVISION_MONTAJE' : 'PROVISION'
+
   const cotId = crypto.randomUUID()
   const { data: cot, error: e1 } = await sb.from('Cotizacion').insert([{
     id: cotId,
@@ -34,10 +47,10 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
     clienteId: input.clienteId,
     version: 1,
     estado: 'BORRADOR',
-    alcance: 'PROVISION',
+    alcance,
     margenPct: input.margenPct,
     totalProducto,
-    totalMontaje: 0,
+    totalMontaje,
     tcUsado: input.tcUsado,
     ubicacionObra: input.ubicacionObra,
   }]).select().single()
@@ -69,6 +82,25 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
     variosPct: 10,
   }]).select().single()
   if (e3) throw new Error(`crearCondiciones: ${e3.message}`)
+
+  if (input.montaje) {
+    const m = input.montaje
+    const { error: em } = await sb.from('MontajeObra').insert([{
+      id: crypto.randomUUID(),
+      cotizacionId: cot.id,
+      medioElevacionId: m.medioElevacionId,
+      nOperarios: m.nOperarios,
+      diasObra: m.resultado.diasObra,
+      hsPresencial: m.hsPresencial,
+      costoElevacion: m.resultado.costoElevacion,
+      costoOperarios: m.resultado.costoOperarios,
+      costoHS: m.resultado.costoHS,
+      costoTotal: m.resultado.costoTotal,
+      margenPct: m.margenPct,
+      precioVenta: m.resultado.precioVenta,
+    }])
+    if (em) throw new Error(`crearMontaje: ${em.message}`)
+  }
 
   if (input.condiciones.retenciones.length > 0) {
     const retRows = input.condiciones.retenciones.map(r => ({

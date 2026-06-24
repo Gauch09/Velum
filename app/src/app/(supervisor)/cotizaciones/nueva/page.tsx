@@ -1,4 +1,11 @@
-import { actionCrearCliente, actionCotizarVano, actionCrearCotizacion, actionListarListas, actionListarRetencionesPct } from './actions'
+import {
+  actionCrearCliente,
+  actionCotizarVano,
+  actionCalcularMontaje,
+  actionCrearCotizacion,
+  actionListarListas,
+  actionListarRetencionesPct,
+} from './actions'
 import { listarClientes } from '@/lib/cotizador/repo-clientes'
 import WizardCotizacion from '@/components/supervisor/WizardCotizacion'
 
@@ -13,7 +20,7 @@ export default async function NuevaCotizacionPage() {
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-2xl mx-auto mb-8">
         <h1 className="text-2xl font-semibold text-white">Nueva cotización</h1>
-        <p className="text-gray-500 text-sm mt-1">Completá los tres pasos para emitir la cotización.</p>
+        <p className="text-gray-500 text-sm mt-1">Completá los cuatro pasos para emitir la cotización.</p>
       </div>
       <WizardCotizacion
         clientes={clientes}
@@ -22,8 +29,10 @@ export default async function NuevaCotizacionPage() {
         disenos={listas.disenos}
         tcDefault={listas.tcDefault}
         retencionesPct={retenciones}
+        mediosElevacion={listas.mediosElevacion}
         accionCrearCliente={actionCrearCliente}
         accionCotizarVano={actionCotizarVano}
+        accionCalcularMontaje={actionCalcularMontaje}
         accionCrearCotizacion={actionCrearCotizacion}
       />
     </div>
