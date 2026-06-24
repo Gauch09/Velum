@@ -40,7 +40,17 @@ export default async function CotizacionPage({ params }: Props) {
             <h1 className="text-2xl font-semibold mt-1">{cot.cliente?.razonSocial}</h1>
             {cot.ubicacionObra && <p className="text-gray-500 text-sm">{cot.ubicacionObra}</p>}
           </div>
-          <Link href="/cotizaciones" className="text-gray-500 text-sm hover:text-white">← Volver</Link>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/cotizaciones/${cot.id}/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white"
+            >
+              Descargar PDF
+            </a>
+            <Link href="/cotizaciones" className="text-gray-500 text-sm hover:text-white">← Volver</Link>
+          </div>
         </div>
 
         {/* Cliente */}
