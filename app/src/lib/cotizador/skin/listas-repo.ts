@@ -12,10 +12,18 @@ export async function listarMaterialesSkin(): Promise<string[]> {
 
 export async function listarMaterialesACM(): Promise<string[]> {
   const supabase = createSupabaseAdminClient() as any
+  // Familias con precioM2 > 0 (panel prefabricado: ACM, Luxsteel, etc.)
+  const { data: fams, error: errF } = await supabase
+    .from('MaterialFamilia')
+    .select('nombre')
+    .gt('precioM2', 0)
+  if (errF) throw new Error(`listarMaterialesACM: ${errF.message}`)
+  const nombres = (fams ?? []).map((f: { nombre: string }) => f.nombre)
+  if (nombres.length === 0) return []
   const { data, error } = await supabase
     .from('MaterialVariante')
-    .select('material, MaterialFamilia!inner(precioM2)')
-    .gt('MaterialFamilia.precioM2', 0)
+    .select('material')
+    .in('familia', nombres)
     .order('material')
   if (error) throw new Error(`listarMaterialesACM: ${error.message}`)
   return (data ?? []).map((r: { material: string }) => r.material)
@@ -25,8 +33,8 @@ export async function listarMaterialesLuxsteel(): Promise<string[]> {
   const supabase = createSupabaseAdminClient() as any
   const { data, error } = await supabase
     .from('MaterialVariante')
-    .select('material, MaterialFamilia!inner(nombre)')
-    .eq('MaterialFamilia.nombre', 'Luxsteel')
+    .select('material')
+    .eq('familia', 'Luxsteel')
     .order('material')
   if (error) throw new Error(`listarMaterialesLuxsteel: ${error.message}`)
   return (data ?? []).map((r: { material: string }) => r.material)
