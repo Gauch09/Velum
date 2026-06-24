@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { actualizarParametro } from '@/lib/cotizador/calibracion-repo'
+import { actualizarParametro, actualizarMedioElevacion } from '@/lib/cotizador/calibracion-repo'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 
@@ -32,6 +32,36 @@ export async function guardarParametro(_state: unknown, formData: FormData) {
   })
   if (!parsed.success) return { error: 'Datos inválidos' }
   await actualizarParametro(parsed.data.clave, parsed.data.valor)
+  revalidatePath('/calibracion')
+  return { ok: true }
+}
+
+export async function guardarMedioElevacion(_state: unknown, formData: FormData) {
+  const supabase = createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sin autorización' }
+
+  const admin = createSupabaseAdminClient()
+  const { data: usuario } = await admin
+    .from('Usuario')
+    .select('rol')
+    .eq('email', user.email!)
+    .single() as { data: { rol: string } | null; error: unknown }
+
+  if (!usuario || usuario.rol === 'OPERARIO') return { error: 'Sin autorización' }
+
+  const schema = z.object({
+    id:         z.string().min(1),
+    costoDia:   z.coerce.number().positive(),
+    alturaMaxM: z.coerce.number().positive(),
+  })
+  const parsed = schema.safeParse({
+    id:         formData.get('id'),
+    costoDia:   formData.get('costoDia'),
+    alturaMaxM: formData.get('alturaMaxM'),
+  })
+  if (!parsed.success) return { error: 'Datos inválidos' }
+  await actualizarMedioElevacion(parsed.data.id, parsed.data.costoDia, parsed.data.alturaMaxM)
   revalidatePath('/calibracion')
   return { ok: true }
 }
