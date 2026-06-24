@@ -33,7 +33,7 @@ interface Props {
   accionCrearCotizacion: (raw: unknown) => Promise<{ id: string; numero: string }>
 }
 
-type VanoItem = { input: VanoInput; resultado: VanoResultado; key: number }
+type VanoItem = { input: VanoInput; resultado: VanoResultado; cantidad: number; key: number }
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
@@ -86,13 +86,13 @@ export default function WizardCotizacion({
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const totalVanos = vanos.reduce((acc, v) => acc + v.resultado.precioVenta, 0)
-  const totalM2 = vanos.reduce((acc, v) => acc + v.resultado.area, 0)
+  const totalVanos = vanos.reduce((acc, v) => acc + v.resultado.precioVenta * v.cantidad, 0)
+  const totalM2 = vanos.reduce((acc, v) => acc + v.resultado.area * v.cantidad, 0)
   const totalMontaje = montajeSeleccion?.resultado.precioVenta ?? 0
   const totalObra = totalVanos + totalMontaje
 
-  function agregarVano(input: VanoInput, resultado: VanoResultado) {
-    setVanos(prev => [...prev, { input, resultado, key: Date.now() }])
+  function agregarVano(input: VanoInput, resultado: VanoResultado, cantidad: number) {
+    setVanos(prev => [...prev, { input, resultado, cantidad, key: Date.now() }])
     setMontajeSeleccion(null) // resetear montaje si cambian los vanos
   }
 
@@ -131,7 +131,7 @@ export default function WizardCotizacion({
         ubicacionObra: ubicacionObra || null,
         tcUsado: Number(tc),
         margenPct: Number(margen),
-        vanos: vanos.map(v => v.resultado),
+        vanos: vanos.flatMap(v => Array.from({ length: v.cantidad }, () => v.resultado)),
         montaje: montajePayload,
         condiciones: { formaPagoProducto: formaPago, retenciones },
       })
@@ -237,14 +237,23 @@ export default function WizardCotizacion({
             <div className="space-y-2">
               <p className="text-gray-400 text-xs uppercase tracking-wider">Vanos agregados</p>
               {vanos.map(v => (
-                <div key={v.key} className="flex items-center gap-3 bg-gray-900 rounded px-3 py-2">
-                  <span className="text-xs text-gray-500 w-14">{v.resultado.sistema}</span>
-                  <span className="text-sm text-white flex-1">
-                    {v.resultado.material}{v.resultado.colorACM ? ` · ${v.resultado.colorACM}` : ''}
-                  </span>
-                  <span className="text-xs text-gray-400">{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
-                  <span className="text-sm text-green-400 w-28 text-right">{usd(v.resultado.precioVenta)}</span>
-                  <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
+                <div key={v.key} className="bg-gray-900 rounded px-3 py-2 space-y-0.5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 w-14">{v.resultado.sistema}</span>
+                    <span className="text-sm text-white flex-1">
+                      {v.resultado.material}{v.resultado.colorACM ? ` · ${v.resultado.colorACM}` : ''}
+                    </span>
+                    {v.cantidad > 1 && (
+                      <span className="text-xs bg-gray-700 text-gray-300 rounded px-1.5 py-0.5">×{v.cantidad}</span>
+                    )}
+                    <span className="text-sm text-green-400 w-28 text-right">{usd(v.resultado.precioVenta * v.cantidad)}</span>
+                    <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
+                  </div>
+                  <div className="flex gap-4 text-xs text-gray-500 pl-[4.25rem]">
+                    <span>{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
+                    <span>{v.resultado.terminacion}</span>
+                    <span>{usd(v.resultado.precioM2)}/m²</span>
+                  </div>
                 </div>
               ))}
               <div className="flex justify-between text-sm border-t border-gray-800 pt-2">

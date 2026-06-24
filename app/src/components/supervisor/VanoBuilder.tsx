@@ -30,7 +30,7 @@ interface Props {
   materialesLuxsteel: string[]
   disenos: string[]
   margenPct: number
-  onAgregar: (input: VanoInput, resultado: VanoResultado) => void
+  onAgregar: (input: VanoInput, resultado: VanoResultado, cantidad: number) => void
   accionCotizar: (raw: unknown) => Promise<VanoResultado>
 }
 
@@ -66,6 +66,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   const [modAncho, setModAncho] = useState('1')
   const [modAlto, setModAlto] = useState('1')
   const [sepPared, setSepPared] = useState('0')
+  const [cantidad, setCantidad] = useState('1')
   const [resultado, setResultado] = useState<VanoResultado | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,7 +145,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
       sepParedMm: usaParante ? Number(sepPared) : 0,
       margenPct,
     }
-    onAgregar(input, resultado)
+    onAgregar(input, resultado, Math.max(1, Math.round(Number(cantidad))))
     setResultado(null)
   }
 
@@ -224,6 +225,11 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
             <input value={sepPared} onChange={e => { setSepPared(e.target.value); setResultado(null) }} type="number" step="50" min="0" className={inp} />
           </div>
         )}
+      </div>
+
+      <div>
+        <label className="block text-gray-500 text-xs mb-1">Cantidad</label>
+        <input value={cantidad} onChange={e => setCantidad(e.target.value)} type="number" min="1" step="1" className={inp} />
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
