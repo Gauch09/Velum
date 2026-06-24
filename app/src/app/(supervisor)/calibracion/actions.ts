@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { actualizarParametro, actualizarMedioElevacion, actualizarFamilia, actualizarDisenoKp } from '@/lib/cotizador/calibracion-repo'
+import { actualizarParametro, actualizarMedioElevacion, actualizarFamilia, actualizarDisenoKp, actualizarCapacidad } from '@/lib/cotizador/calibracion-repo'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { createSupabaseAdminClient } from '@/lib/supabase-admin'
 
@@ -117,6 +117,33 @@ export async function guardarDisenoKp(_state: unknown, formData: FormData) {
   const parsed = schema.safeParse({ id: formData.get('id'), kp: formData.get('kp') })
   if (!parsed.success) return { error: 'Datos inválidos' }
   await actualizarDisenoKp(parsed.data.id, parsed.data.kp)
+  revalidatePath('/calibracion')
+  return { ok: true }
+}
+
+export async function guardarCapacidad(_state: unknown, formData: FormData) {
+  const supabase = createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Sin autorización' }
+
+  const admin = createSupabaseAdminClient()
+  const { data: usuario } = await admin
+    .from('Usuario')
+    .select('rol')
+    .eq('email', user.email!)
+    .single() as { data: { rol: string } | null; error: unknown }
+  if (!usuario || usuario.rol === 'OPERARIO') return { error: 'Sin autorización' }
+
+  const schema = z.object({
+    id:             z.string().min(1),
+    unidadesPorDia: z.coerce.number().min(0),
+  })
+  const parsed = schema.safeParse({
+    id:             formData.get('id'),
+    unidadesPorDia: formData.get('unidadesPorDia'),
+  })
+  if (!parsed.success) return { error: 'Datos inválidos' }
+  await actualizarCapacidad(parsed.data.id, parsed.data.unidadesPorDia)
   revalidatePath('/calibracion')
   return { ok: true }
 }

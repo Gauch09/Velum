@@ -64,6 +64,33 @@ export async function listarFamilias(): Promise<MaterialFamiliaRow[]> {
   return data ?? []
 }
 
+export interface CapacidadRow {
+  id: string
+  pieza: string
+  centro: string
+  unidadesPorDia: number
+}
+
+export async function listarCapacidades(): Promise<CapacidadRow[]> {
+  const supabase = createSupabaseAdminClient() as any
+  const { data, error } = await supabase
+    .from('CapacidadCentro')
+    .select('id, pieza, centro, "unidadesPorDia"')
+    .order('pieza')
+    .order('centro')
+  if (error) throw new Error(`listarCapacidades: ${error.message}`)
+  return data ?? []
+}
+
+export async function actualizarCapacidad(id: string, unidadesPorDia: number): Promise<void> {
+  const supabase = createSupabaseAdminClient() as any
+  const { error } = await supabase
+    .from('CapacidadCentro')
+    .update({ unidadesPorDia, actualizadoEn: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw new Error(`actualizarCapacidad: ${error.message}`)
+}
+
 export interface DisenoKpRow {
   id: string
   diseno: string

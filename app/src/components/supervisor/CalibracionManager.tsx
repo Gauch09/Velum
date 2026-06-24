@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { guardarParametro, guardarMedioElevacion, guardarFamilia, guardarDisenoKp } from '@/app/(supervisor)/calibracion/actions'
+import { guardarParametro, guardarMedioElevacion, guardarFamilia, guardarDisenoKp, guardarCapacidad } from '@/app/(supervisor)/calibracion/actions'
 import type { ParametroRow } from '@/lib/cotizador/parametros'
-import type { MedioElevacionRow, MaterialFamiliaRow, DisenoKpRow } from '@/lib/cotizador/calibracion-repo'
+import type { MedioElevacionRow, MaterialFamiliaRow, DisenoKpRow, CapacidadRow } from '@/lib/cotizador/calibracion-repo'
 
 type Props = {
   parametros: ParametroRow[]
   medios: MedioElevacionRow[]
   familias: MaterialFamiliaRow[]
   disenoKp: DisenoKpRow[]
+  capacidades: CapacidadRow[]
 }
 
 // Agrupación de claves por sección
@@ -84,7 +85,7 @@ function ParamRow({ p, guardando, error, onSubmit }: {
   )
 }
 
-export default function CalibracionManager({ parametros, medios, familias, disenoKp }: Props) {
+export default function CalibracionManager({ parametros, medios, familias, disenoKp, capacidades }: Props) {
   const [guardando, setGuardando] = useState<string | null>(null)
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [ok, setOk] = useState<string | null>(null)
@@ -103,6 +104,24 @@ export default function CalibracionManager({ parametros, medios, familias, disen
       } else {
         setOk(clave)
         setTimeout(() => setOk(null), 2000)
+      }
+    } finally {
+      setGuardando(null)
+    }
+  }
+
+  async function handleCapacidad(e: React.FormEvent<HTMLFormElement>, id: string) {
+    e.preventDefault()
+    setGuardando(id)
+    setOk(null)
+    setErrores(prev => { const n = { ...prev }; delete n[id]; return n })
+    try {
+      const result = await guardarCapacidad(null, new FormData(e.currentTarget))
+      if (result && 'error' in result) {
+        setErrores(prev => ({ ...prev, [id]: result.error as string }))
+      } else {
+        setOk(id)
+        setTimeout(() => setOk(null), 1500)
       }
     } finally {
       setGuardando(null)
@@ -197,6 +216,60 @@ export default function CalibracionManager({ parametros, medios, familias, disen
           </div>
         )
       })}
+
+      {/* Capacidades de máquina */}
+      {capacidades.length > 0 && (() => {
+        // Agrupar por pieza
+        const piezas = Array.from(new Set(capacidades.map(c => c.pieza)))
+        const centros = Array.from(new Set(capacidades.map(c => c.centro))).sort()
+        const byKey = Object.fromEntries(capacidades.map(c => [`${c.pieza}|${c.centro}`, c]))
+        return (
+          <div>
+            {sectionTitle('Capacidades de máquina (pz/día)')}
+            <div className="bg-gray-900 rounded overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-800">
+                <div className="flex-1 text-gray-500 text-xs uppercase tracking-wider">Pieza</div>
+                {centros.map(c => (
+                  <div key={c} className="w-24 text-gray-500 text-xs uppercase tracking-wider text-right">{c}</div>
+                ))}
+              </div>
+              {/* Filas por pieza */}
+              {piezas.map(pieza => (
+                <div key={pieza} className="border-b border-gray-800 last:border-0">
+                  <div className="flex items-center gap-1 px-3 py-2">
+                    <div className="flex-1 text-white text-sm">{pieza}</div>
+                    {centros.map(centro => {
+                      const cap = byKey[`${pieza}|${centro}`]
+                      if (!cap) return <div key={centro} className="w-24" />
+                      return (
+                        <form key={centro} onSubmit={e => handleCapacidad(e, cap.id)} className="w-24 flex gap-1 justify-end">
+                          <input type="hidden" name="id" value={cap.id} />
+                          <input
+                            name="unidadesPorDia"
+                            type="number"
+                            step="1"
+                            min="0"
+                            defaultValue={cap.unidadesPorDia}
+                            onBlur={e => e.currentTarget.form?.requestSubmit()}
+                            className={`w-16 bg-gray-800 border text-white rounded px-2 py-1 text-xs text-right focus:outline-none focus:border-gray-500 ${
+                              ok === cap.id ? 'border-green-700' : 'border-gray-700'
+                            }`}
+                          />
+                        </form>
+                      )
+                    })}
+                  </div>
+                  {centros.some(c => errores[byKey[`${pieza}|${c}`]?.id ?? '']) && (
+                    <p className="text-red-400 text-xs px-3 pb-2">Error al guardar</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-gray-600 text-xs mt-1 px-1">Los valores se guardan automáticamente al salir del campo.</p>
+          </div>
+        )
+      })()}
 
       {/* Kp por diseño */}
       {disenoKp.length > 0 && (
