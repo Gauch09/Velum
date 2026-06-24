@@ -21,6 +21,7 @@ export interface VanoInput {
   alto: number
   modAncho?: number      // Skin / SkinRail, default 1
   modAlto?: number       // Skin / SkinRail, default 1
+  sepParedMm?: number    // Skin / SkinRail, 0 = pegado a pared
   margenPct: number
 }
 
@@ -43,7 +44,7 @@ export interface VanoResultado {
 }
 
 export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
-  const { sistema, material, colorACM, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1 } = input
+  const { sistema, material, colorACM, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1, sepParedMm = 0 } = input
   const margenPct = input.margenPct / 100  // UI envía %, motor espera fracción (ej. 150 → 1.5)
   const area = ancho * alto
 
@@ -54,7 +55,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       cargarKp(diseno ?? 'Standard'),
     ])
     const r = cotizarSkin({
-      ancho, alto, modAncho, modAlto, sepParedMm: 0, margenPct,
+      ancho, alto, modAncho, modAlto, sepParedMm, margenPct,
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
@@ -68,7 +69,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       cargarKp(diseno ?? 'Standard'),
     ])
     const r = cotizarSkinRail({
-      ancho, alto, modAncho, modAlto, sepParedMm: 0, margenPct,
+      ancho, alto, modAncho, modAlto, sepParedMm, margenPct,
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)

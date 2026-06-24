@@ -48,6 +48,9 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   const [terminacion, setTerminacion] = useState<string>(ALCANCES_ALUMINIO[0])
   const [ancho, setAncho] = useState('30')
   const [alto, setAlto] = useState('25')
+  const [modAncho, setModAncho] = useState('1')
+  const [modAlto, setModAlto] = useState('1')
+  const [sepPared, setSepPared] = useState('0')
   const [resultado, setResultado] = useState<VanoResultado | null>(null)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +82,8 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   const esACM = materialesACM.includes(material)
   const alcances = alcancesPorSistema(sistema, esACM)
   const necesitaDiseno = sistema === 'Skin' || sistema === 'SkinRail'
+  const usaModulo = sistema === 'Skin' || sistema === 'SkinRail'  // Rail/Clad: módulo fijo por sistema
+  const usaParante = sistema === 'Skin' || sistema === 'SkinRail'
 
   async function calcular() {
     setCargando(true)
@@ -92,6 +97,9 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
         terminacion,
         ancho: Number(ancho),
         alto: Number(alto),
+        modAncho: usaModulo ? Number(modAncho) : 1,
+        modAlto:  usaModulo ? Number(modAlto)  : 1,
+        sepParedMm: usaParante ? Number(sepPared) : 0,
         margenPct,
       }
       const r = await accionCotizar(input)
@@ -108,7 +116,11 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
     const input: VanoInput = {
       sistema, material, colorACM: esACM ? colorACM : undefined,
       diseno: necesitaDiseno ? diseno : undefined,
-      terminacion, ancho: Number(ancho), alto: Number(alto), margenPct,
+      terminacion, ancho: Number(ancho), alto: Number(alto),
+      modAncho: usaModulo ? Number(modAncho) : 1,
+      modAlto:  usaModulo ? Number(modAlto)  : 1,
+      sepParedMm: usaParante ? Number(sepPared) : 0,
+      margenPct,
     }
     onAgregar(input, resultado)
     setResultado(null)
@@ -172,6 +184,24 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
           <label className="block text-gray-500 text-xs mb-1">Alto (m)</label>
           <input value={alto} onChange={e => { setAlto(e.target.value); setResultado(null) }} type="number" step="0.1" className={inp} />
         </div>
+        {usaModulo && (
+          <>
+            <div>
+              <label className="block text-gray-500 text-xs mb-1">Módulo panel — ancho (m)</label>
+              <input value={modAncho} onChange={e => { setModAncho(e.target.value); setResultado(null) }} type="number" step="0.05" min="0.1" className={inp} />
+            </div>
+            <div>
+              <label className="block text-gray-500 text-xs mb-1">Módulo panel — alto (m)</label>
+              <input value={modAlto} onChange={e => { setModAlto(e.target.value); setResultado(null) }} type="number" step="0.05" min="0.1" className={inp} />
+            </div>
+          </>
+        )}
+        {usaParante && (
+          <div>
+            <label className="block text-gray-500 text-xs mb-1">Separación de pared (mm · 0 = pegado)</label>
+            <input value={sepPared} onChange={e => { setSepPared(e.target.value); setResultado(null) }} type="number" step="50" min="0" className={inp} />
+          </div>
+        )}
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
