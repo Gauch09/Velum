@@ -821,7 +821,7 @@ class Component extends DCLogic {
     var base=new Date(); base.setHours(0,0,0,0); var start=base.getTime(), end=start+86400000;
     var recs=hist.filter(function(x){ return x.ts>=start && x.ts<end; });
     var defs=[ {id:'laser',unit:'LEAPION',name:'Leapion',field:'laser'}, {id:'laser',unit:'BODOR',name:'Bodor',field:'laser'}, {id:'punzon',unit:null,name:'Punzonadora',field:'fresado'}, {id:'plegadora',unit:'DERATECH',name:'Deratech',field:'plegado'}, {id:'plegadora',unit:'HUAXIA',name:'Huaxia',field:'plegado'}, {id:'pintura',unit:null,name:'Pintura',field:'pintura'}, {id:'embalado',unit:null,name:'Embalado',field:'embalado'} ];
-    function rate(field, machine, pieza){ if(!field) return 0; var nm=(pieza||'').toLowerCase(); var rr=0; caps.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0){ var v=p[field]||0; if(v>0) rr=v; } }); if(rr<=0) return 0; return machine==='pintura'? rr*10/3 : rr; }
+    function rate(field, machine, pieza){ if(!field) return 0; var p=(window.VelumAPI&&VelumAPI.matchCap)?VelumAPI.matchCap(caps,pieza):null; var rr=p?(p[field]||0):0; if(rr<=0) return 0; return machine==='pintura'? rr*10/3 : rr; }
     var totUsed=0, totCap=0, top=null;
     defs.forEach(function(def){ var mr=recs.filter(function(x){ return x.machineId===def.id && (def.unit? x.unit===def.unit : true); }); var usedH=0; mr.forEach(function(x){ var p=x.pieces||x.delta||0; var rt=rate(def.field,def.id,x.pieza); if(rt>0) usedH+=p/rt; }); var capH=8; var pct=Math.round(usedH/capH*100); totUsed+=usedH; totCap+=capH; if(!top||pct>top.pct) top={name:def.name,pct:pct}; });
     var gen=totCap>0?Math.round(totUsed/totCap*100):0;
@@ -842,7 +842,7 @@ class Component extends DCLogic {
 
   _fabDays(piezas){
     var prods=Array.isArray(this.state.caps)?this.state.caps:[];
-    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prods.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    function ench(name){ return (window.VelumAPI&&VelumAPI.matchCap)?VelumAPI.matchCap(prods,name):null; }
     var procMap={ laser:'laser', plegadora:'plegado', punzon:'punzonado', pintura:'pintura' };
     var rateField={ laser:'laser', plegado:'plegado', punzonado:'fresado', pintura:'pintura', embalado:'embalado' };
     var H=8, total=0, matched=false;

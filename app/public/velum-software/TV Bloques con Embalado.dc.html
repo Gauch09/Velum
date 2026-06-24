@@ -354,37 +354,27 @@ class Component extends DCLogic {
           VelumAPI.get('obras').catch(()=>[]),
           VelumAPI.get('estacion').catch(()=>[]),
           VelumAPI.get('avisos').catch(()=>[]),
-          VelumAPI.get('maquinas-estado').catch(()=>[])
+          VelumAPI.get('maquinas-estado').catch(()=>[]),
+          VelumAPI.get('proyectos').catch(()=>[])
         ]);
         const liveObras = {}; (Array.isArray(res[0])?res[0]:[]).forEach(o => { liveObras[o.projectId] = o.pct; });
         const estacion = Array.isArray(res[1])?res[1]:[];
         const avisos = Array.isArray(res[2])?res[2]:[];
         const maqEstado = {}; (Array.isArray(res[3])?res[3]:[]).forEach(m => { maqEstado[m.key] = { motivo:m.motivo, maquina:m.maquina, ts:m.ts }; });
+        const custom = Array.isArray(res[4])?res[4]:[];
         const activeProcs = {}; estacion.forEach(p => (p.files||[]).forEach(f => (f.procesos||[]).forEach(pr => { activeProcs[pr] = true; })));
-        this.setState({ liveObras, activeProcs, estacion, avisos, maqEstado });
+        this.setState({ liveObras, activeProcs, estacion, avisos, maqEstado, custom });
       } catch (e) {}
     };
     this._syncObras();
     this._obrasPoll = setInterval(this._syncObras, 2000);
-    this._prog = setInterval(() => {
-      this.setState(s => {
-        const ms = s.machines.map(m => {
-          const c = m.current;
-          if (c.hechas < c.total && Math.random() < 0.5) {
-            return { ...m, current: { ...c, hechas: c.hechas + 1 } };
-          }
-          return m;
-        });
-        return { machines: ms };
-      });
-    }, 4000);
+    // (animación demo _prog removida: el avance por máquina ahora es real desde estacion)
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this._onResize);
     window.removeEventListener('storage', this._syncObras);
     clearInterval(this._clock);
-    clearInterval(this._prog);
     clearInterval(this._obrasPoll);
   }
 
@@ -407,6 +397,9 @@ class Component extends DCLogic {
   }
   _readActiveProcs() { return this.state.activeProcs||null; }
   _readEstacion() { return this.state.estacion||[]; }
+  _progOf(f, mid){ var ord=(f.procesos&&f.procesos.length)?f.procesos:['laser']; if(f.prog && f.prog[mid]!=null) return f.prog[mid]; return (mid===ord[0])?(f.chapas||0):0; }
+  _capOf(f, mid){ var ord=(f.procesos&&f.procesos.length)?f.procesos:['laser']; var idx=ord.indexOf(mid); if(idx<=0) return f.objChapas||0; var prev=ord[idx-1]; return Math.min(f.objChapas||0, this._progOf(f, prev)); }
+  _machineJob(m){ var self=this; var est=this.state.estacion||[]; var custom=this.state.custom||[]; var rank={ALTA:0,MEDIA:1,NORMAL:2}; var cands=[]; est.forEach(function(p){ var cu=null; for(var i=0;i<custom.length;i++){ if(custom[i].id===p.id){ cu=custom[i]; break; } } cu=cu||{}; (p.files||[]).forEach(function(f){ var ord=(f.procesos&&f.procesos.length)?f.procesos:['laser']; if(ord.indexOf(m.id)<0) return; if(!self._fileReachable(f, m.id)) return; var prog=self._progOf(f, m.id); var cap=self._capOf(f, m.id); if(prog>=cap) return; cands.push({ p:p, cu:cu, f:f, prog:prog, cap:cap, urg:(cu.urgencia||'NORMAL'), dl:(cu.deadlineDays!=null?cu.deadlineDays:999) }); }); }); if(!cands.length) return null; cands.sort(function(a,b){ var d=(rank[a.urg]==null?2:rank[a.urg])-(rank[b.urg]==null?2:rank[b.urg]); if(d!==0) return d; return a.dl-b.dl; }); var c=cands[0]; var f=c.f; return { pieza:(f.pieza||f.archivo||'Pieza'), archivo:(f.archivo||f.pieza||''), proyecto:(c.cu.name||c.p.name||c.p.id), hechas:c.prog, total:(f.objChapas||c.cap||0), unidad:'chapas', loteSize:Math.max(1,(f.lote||20)), material:(f.material||''), operario:'', prioridad:c.urg, diasRest:(c.dl===999?0:c.dl), obs:'' }; }
   _liveObra(o) {
     const NID = { 'CASINO':'casino', 'HOTEL RIVA':'riva', 'TORRE PUERTO':'centro', 'NINO JUNIO':'ninojunio' };
     const live = this.state.liveObras || {};
@@ -440,18 +433,19 @@ class Component extends DCLogic {
     const pad = x => (x < 10 ? '0' + x : '' + x);
 
     const machines = this.state.machines.map(m => {
-      const c = m.current;
+      const c = this._machineJob(m) || { pieza:'—', archivo:'', proyecto:'', hechas:0, total:0, unidad:'', loteSize:1, material:'', operario:'', prioridad:'NORMAL', diasRest:0, obs:'' };
       const est = this.state.estacion || [];
       let dynObras = null;
       let reachableActiva = false;
       if (est.length) {
         const NID = { 'casino':'CASINO', 'riva':'HOTEL RIVA', 'centro':'TORRE PUERTO', 'ninojunio':'NINO JUNIO' };
         const lv = this.state.liveObras || {};
+        const _cust = this.state.custom || [];
         dynObras = est.filter(p => (p.files||[]).some(f => this._fileReachable(f, m.id)))
-          .map(p => { const pid=p.id; const pctv = lv[pid]!=null ? lv[pid] : 0; return { proyecto: (NID[pid]||p.name||pid), pct: pctv, urg: 'NORMAL' }; });
+          .map(p => { const pid=p.id; const pctv = lv[pid]!=null ? lv[pid] : 0; const _cu=_cust.find(x=>x.id===pid)||{}; return { proyecto: (_cu.name||NID[pid]||p.name||pid), pct: pctv, urg: (_cu.urgencia||'NORMAL') }; });
         reachableActiva = dynObras.length > 0;
       }
-      const activa = est.length ? reachableActiva : m.activa;
+      const activa = est.length ? (c.total>0) : m.activa;
       const _me = this._readMaqEstado(); let _fueraMot=''; const _unitsMap={ laser:['LEAPION','BODOR'], plegadora:['DERATECH','HUAXIA'] }; const _munits=_unitsMap[m.id]||null; let _fueraUnits=[];
       if(_munits){ _munits.forEach(u=>{ if(_me[m.id+'|'+u]){ _fueraUnits.push(u); if(!_fueraMot) _fueraMot=_me[m.id+'|'+u].motivo||''; } }); }
       else if(_me[m.id]){ _fueraUnits.push(''); _fueraMot=_me[m.id].motivo||''; }
@@ -460,9 +454,10 @@ class Component extends DCLogic {
       const _parcial = _fueraUnits.length>0 && !_fuera;
       const _parcialTxt = _parcial ? (_fueraUnits.join(', ')+' fuera de servicio'+(_fueraMot?(' · '+_fueraMot):'')) : '';
       const obrasSrc = dynObras != null ? dynObras : (m.obras || []);
-      const pct = Math.max(0, Math.min(100, Math.round(c.hechas / c.total * 100)));
-      const lotesTot = Math.ceil(c.total / c.loteSize);
-      const lotesHechos = Math.floor(c.hechas / c.loteSize);
+      const _ct = c.total||0; const _ls = c.loteSize||1;
+      const pct = _ct>0 ? Math.max(0, Math.min(100, Math.round(c.hechas / _ct * 100))) : 0;
+      const lotesTot = _ct>0 ? Math.ceil(_ct / _ls) : 0;
+      const lotesHechos = _ct>0 ? Math.floor(c.hechas / _ls) : 0;
       const pips = [];
       for (let i = 0; i < lotesTot; i++) pips.push({ bg: i < lotesHechos ? m.color : 'rgba(255,255,255,0.12)' });
 

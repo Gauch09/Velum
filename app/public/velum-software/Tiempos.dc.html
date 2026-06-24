@@ -138,7 +138,7 @@ class Component extends DCLogic {
   renderVals(){
     const H=this.state.horas;
     var prodsArr=Array.isArray(this.state.caps)?this.state.caps:[];
-    function ench(name){ var nm=(name||'').toLowerCase(); var f=null; prodsArr.forEach(function(p){ var pn=(p.nombre||'').toLowerCase().trim(); if(pn && nm.indexOf(pn)>=0) f=p; }); return f; }
+    function ench(name){ return (window.VelumAPI&&VelumAPI.matchCap)?VelumAPI.matchCap(prodsArr,name):null; }
     var full=Array.isArray(this.state.full)?this.state.full:[];
     var maq={ laser:{label:'Láser (×2)',color:'#21C7D6',h:0,u:0,n:2}, plegado:{label:'Plegadora (×2)',color:'#E5A52B',h:0,u:0,n:2}, punzonado:{label:'Punzonadora',color:'#3E7CE0',h:0,u:0,n:1}, pintura:{label:'Pintura',color:'#E76A95',h:0,u:0,n:1}, embalado:{label:'Embalado',color:'#C9B79A',h:0,u:0,n:1} };
     var _est=(this.state.maqEstado&&typeof this.state.maqEstado==='object')?this.state.maqEstado:{};
