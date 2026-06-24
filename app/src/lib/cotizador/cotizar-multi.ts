@@ -25,6 +25,16 @@ export interface VanoInput {
   margenPct: number
 }
 
+export interface VanoGeometria {
+  paneles: number
+  piezasCostilla: number
+  mensulasTotal: number
+  brocas: number
+  autoperf: number
+  empalmesJ: number
+  parantes: number
+}
+
 export interface VanoResultado {
   sistema: Sistema
   material: string
@@ -41,6 +51,11 @@ export interface VanoResultado {
   costoM2: number
   precioVenta: number
   precioM2: number
+  geometria?: VanoGeometria
+}
+
+function toVanoGeometria(g: { paneles: number; piezasCostilla: number; mensulasTotal: number; brocas: number; autoperf: number; empalmesJ: number; parantes: number }): VanoGeometria {
+  return { paneles: g.paneles, piezasCostilla: g.piezasCostilla, mensulasTotal: g.mensulasTotal, brocas: g.brocas, autoperf: g.autoperf, empalmesJ: g.empalmesJ, parantes: g.parantes }
 }
 
 export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
@@ -59,7 +74,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria) }
   }
 
   if (sistema === 'SkinRail') {
@@ -73,7 +88,7 @@ export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
       kp, espesorMm: fam.espesorMm, familia: fam,
       alcance: terminacion as AlcanceTerminacion,
     }, params)
-    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2 }
+    return { sistema, material, colorACM, terminacion, ancho, alto, area, costoMaterial: r.material, costoFab: r.fab, costoPintura: r.pintura, costoTornilleria: r.tornilleria, costoTotal: r.costoTotal, costoM2: r.costoM2, precioVenta: r.precioVenta, precioM2: r.precioM2, geometria: toVanoGeometria(r.geometria) }
   }
 
   if (sistema === 'Rail') {

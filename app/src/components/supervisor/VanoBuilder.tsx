@@ -235,19 +235,37 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
       {resultado && (
-        <div className="bg-gray-800 rounded p-3 space-y-1 text-sm">
-          <div className="flex justify-between text-gray-400">
-            <span>Área</span><span className="text-white">{fmt(resultado.area)} m²</span>
+        <div className="space-y-2">
+          <div className="bg-gray-800 rounded p-3 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Área</span><span className="text-white">{fmt(resultado.area)} m²</span>
+            </div>
+            <div className="flex justify-between text-gray-400">
+              <span>Costo total</span><span className="text-white">{usd(resultado.costoTotal)}</span>
+            </div>
+            <div className="flex justify-between text-gray-300 font-semibold border-t border-gray-700 pt-1 mt-1">
+              <span>Precio venta</span><span className="text-green-400">{usd(resultado.precioVenta)}</span>
+            </div>
+            <div className="flex justify-between text-gray-400 text-xs">
+              <span>Precio / m²</span><span>{usd(resultado.precioM2)}/m²</span>
+            </div>
           </div>
-          <div className="flex justify-between text-gray-400">
-            <span>Costo total</span><span className="text-white">{usd(resultado.costoTotal)}</span>
-          </div>
-          <div className="flex justify-between text-gray-300 font-semibold border-t border-gray-700 pt-1 mt-1">
-            <span>Precio venta</span><span className="text-green-400">{usd(resultado.precioVenta)}</span>
-          </div>
-          <div className="flex justify-between text-gray-400 text-xs">
-            <span>Precio / m²</span><span>{usd(resultado.precioM2)}/m²</span>
-          </div>
+          {resultado.geometria && (
+            <div className="bg-gray-800/60 rounded p-3">
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Piezas y materiales</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
+                <span className="text-gray-400">Paneles</span><span className="text-white text-right">{resultado.geometria.paneles}</span>
+                <span className="text-gray-400">Costillas (pzas)</span><span className="text-white text-right">{resultado.geometria.piezasCostilla}</span>
+                <span className="text-gray-400">Ménsulas</span><span className="text-white text-right">{resultado.geometria.mensulasTotal}</span>
+                <span className="text-gray-400">Brocas</span><span className="text-white text-right">{resultado.geometria.brocas}</span>
+                <span className="text-gray-400">Autoperf.</span><span className="text-white text-right">{resultado.geometria.autoperf}</span>
+                <span className="text-gray-400">Empalmes J</span><span className="text-white text-right">{resultado.geometria.empalmesJ}</span>
+                {resultado.geometria.parantes > 0 && <>
+                  <span className="text-gray-400">Parantes</span><span className="text-white text-right">{resultado.geometria.parantes}</span>
+                </>}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
