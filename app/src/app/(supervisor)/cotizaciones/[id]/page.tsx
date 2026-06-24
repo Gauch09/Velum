@@ -48,7 +48,7 @@ export default async function CotizacionPage({ params }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <a
-              href={`/cotizaciones/${cot.id}/pdf`}
+              href={`/api/cotizaciones/${cot.id}/pdf`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white"
