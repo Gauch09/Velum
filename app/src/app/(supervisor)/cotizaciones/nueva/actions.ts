@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 import { validarCuit } from '@/lib/cotizador/validar-cuit'
 import { crearCliente, listarClientes } from '@/lib/cotizador/repo-clientes'
 import {
@@ -29,10 +30,13 @@ const ClienteSchema = z.object({
 
 export async function actionCrearCliente(raw: unknown) {
   const { cliente, contacto } = z.object({ cliente: ClienteSchema, contacto: ContactoSchema }).parse(raw)
-  return crearCliente(
+  const result = await crearCliente(
     { ...cliente, domicilioFiscal: cliente.domicilioFiscal ?? null, jurisdiccionIibb: cliente.jurisdiccionIibb ?? null },
     { ...contacto, cargo: contacto.cargo, telefono: contacto.telefono },
   )
+  revalidatePath('/cotizaciones/nueva')
+  revalidatePath('/clientes')
+  return result
 }
 
 export async function actionListarClientes() {

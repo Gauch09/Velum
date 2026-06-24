@@ -41,7 +41,8 @@ export interface VanoResultado {
 }
 
 export async function cotizarVano(input: VanoInput): Promise<VanoResultado> {
-  const { sistema, material, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1, margenPct } = input
+  const { sistema, material, diseno, terminacion, ancho, alto, modAncho = 1, modAlto = 1 } = input
+  const margenPct = input.margenPct / 100  // UI envía %, motor espera fracción (ej. 150 → 1.5)
   const area = ancho * alto
 
   if (sistema === 'Skin') {

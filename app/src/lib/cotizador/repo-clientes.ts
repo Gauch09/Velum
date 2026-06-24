@@ -31,11 +31,12 @@ export async function crearCliente(
   contacto: ContactoInput
 ): Promise<ClienteRow> {
   const sb = createSupabaseAdminClient() as any
+  const clienteId = crypto.randomUUID()
   const { data: cl, error: e1 } = await sb
-    .from('Cliente').insert([cliente]).select().single()
+    .from('Cliente').insert([{ id: clienteId, ...cliente }]).select().single()
   if (e1) throw new Error(`crearCliente: ${e1.message}`)
   const { error: e2 } = await sb
-    .from('Contacto').insert([{ ...contacto, clienteId: cl.id }])
+    .from('Contacto').insert([{ id: crypto.randomUUID(), ...contacto, clienteId: cl.id }])
   if (e2) throw new Error(`crearContacto: ${e2.message}`)
   return cl
 }

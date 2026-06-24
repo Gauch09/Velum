@@ -27,7 +27,9 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
   const numero = await siguienteNumero(sb)
   const totalProducto = input.vanos.reduce((acc, v) => acc + v.precioVenta, 0)
 
+  const cotId = crypto.randomUUID()
   const { data: cot, error: e1 } = await sb.from('Cotizacion').insert([{
+    id: cotId,
     numero,
     clienteId: input.clienteId,
     version: 1,
@@ -43,6 +45,7 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
 
   if (input.vanos.length > 0) {
     const vanoRows = input.vanos.map(v => ({
+      id: crypto.randomUUID(),
       cotizacionId: cot.id,
       sistema: v.sistema,
       material: v.material,
@@ -57,7 +60,9 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
     if (e2) throw new Error(`crearVanos: ${e2.message}`)
   }
 
+  const condId = crypto.randomUUID()
   const { data: cond, error: e3 } = await sb.from('CondicionesComerciales').insert([{
+    id: condId,
     cotizacionId: cot.id,
     formaPagoProducto: input.condiciones.formaPagoProducto,
     modoPagoMontaje: 'INCLUIDO_PAQUETE',
@@ -67,6 +72,7 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
 
   if (input.condiciones.retenciones.length > 0) {
     const retRows = input.condiciones.retenciones.map(r => ({
+      id: crypto.randomUUID(),
       condicionId: cond.id,
       tipo: r.tipo,
       porcentaje: r.porcentaje,
