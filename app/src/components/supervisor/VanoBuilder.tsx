@@ -13,10 +13,21 @@ const COLORES_ACM = [
   'Blanco KR101',
 ]
 
+const COLORES_LUXSTEEL = [
+  'Zinc Claro',
+  'Zinc Intermedio',
+  'Zinc Oscuro',
+  'Madera Claro',
+  'Madera Intermedio',
+  'Madera Oscuro',
+  'Corten',
+]
+
 interface Props {
   materialesSkin: string[]
   materialesLama: string[]
   materialesACM: string[]
+  materialesLuxsteel: string[]
   disenos: string[]
   margenPct: number
   onAgregar: (input: VanoInput, resultado: VanoResultado) => void
@@ -26,24 +37,28 @@ interface Props {
 const SISTEMAS: Sistema[] = ['Skin', 'Rail', 'Clad', 'SkinRail']
 // Aluminio/acero: pintado siempre incluye estructura; o anodizado (solo panel, sin estructura)
 const ALCANCES_ALUMINIO: AlcanceTerminacion[] = ['Completo + Estructura', 'Anodizado']
-// ACM: viene pintado de fábrica, sin anodizado
-const ALCANCES_ACM: AlcanceTerminacion[] = ['Completo (solo panel)', 'Completo + Estructura']
+// ACM: panel pintado de fábrica, estructura siempre pintada
+const ALCANCES_ACM: AlcanceTerminacion[] = ['Completo + Estructura']
+// Luxsteel: panel con color de fábrica, estructura opcional
+const ALCANCES_LUXSTEEL: AlcanceTerminacion[] = ['Crudo (sin pintura)', 'Completo + Estructura']
 const ALCANCES_CLAD: AlcanceClad[] = ['Pintado', 'Crudo (sin pintura)']
 const ALCANCES_RAIL: AlcanceTerminacion[] = ['Crudo (sin pintura)', 'Completo (solo panel)', 'Completo + Estructura']
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
 
-function alcancesPorSistema(s: Sistema, esACM: boolean) {
+function alcancesPorSistema(s: Sistema, esACM: boolean, esLuxsteel: boolean) {
   if (s === 'Clad') return ALCANCES_CLAD
   if (s === 'Rail') return ALCANCES_RAIL
-  return esACM ? ALCANCES_ACM : ALCANCES_ALUMINIO
+  if (esLuxsteel) return ALCANCES_LUXSTEEL
+  if (esACM) return ALCANCES_ACM
+  return ALCANCES_ALUMINIO
 }
 
-export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, disenos, margenPct, onAgregar, accionCotizar }: Props) {
+export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, materialesLuxsteel, disenos, margenPct, onAgregar, accionCotizar }: Props) {
   const [sistema, setSistema] = useState<Sistema>('Skin')
   const [material, setMaterial] = useState(materialesSkin[0] ?? '')
-  const [colorACM, setColorACM] = useState(COLORES_ACM[0])
+  const [colorPanel, setColorPanel] = useState(COLORES_ACM[0])
   const [diseno, setDiseno] = useState(disenos[0] ?? '')
   const [terminacion, setTerminacion] = useState<string>(ALCANCES_ALUMINIO[0])
   const [ancho, setAncho] = useState('30')
@@ -63,7 +78,8 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
     if (esSkin) setMaterial(nuevoMaterial)
     if (esLama) setMaterial(nuevoMaterial)
     const nuevoEsACM = materialesACM.includes(nuevoMaterial)
-    const nuevosAlcances = alcancesPorSistema(s, nuevoEsACM)
+    const nuevoEsLuxsteel = materialesLuxsteel.includes(nuevoMaterial)
+    const nuevosAlcances = alcancesPorSistema(s, nuevoEsACM, nuevoEsLuxsteel)
     setTerminacion(nuevosAlcances[0])
     setResultado(null)
   }
@@ -71,16 +87,22 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   function handleMaterial(m: string) {
     setMaterial(m)
     const nuevoEsACM = materialesACM.includes(m)
-    const nuevosAlcances = alcancesPorSistema(sistema, nuevoEsACM)
+    const nuevoEsLuxsteel = materialesLuxsteel.includes(m)
+    const nuevosAlcances = alcancesPorSistema(sistema, nuevoEsACM, nuevoEsLuxsteel)
     if (!(nuevosAlcances as string[]).includes(terminacion)) {
       setTerminacion(nuevosAlcances[0])
     }
+    if (nuevoEsLuxsteel) setColorPanel(COLORES_LUXSTEEL[0])
+    else if (nuevoEsACM) setColorPanel(COLORES_ACM[0])
     setResultado(null)
   }
 
   const materiales = (sistema === 'Rail' || sistema === 'Clad') ? materialesLama : materialesSkin
-  const esACM = materialesACM.includes(material)
-  const alcances = alcancesPorSistema(sistema, esACM)
+  const esLuxsteel = materialesLuxsteel.includes(material)
+  const esACM = materialesACM.includes(material) && !esLuxsteel
+  const tieneColorPanel = esACM || esLuxsteel
+  const coloresPanel = esLuxsteel ? COLORES_LUXSTEEL : COLORES_ACM
+  const alcances = alcancesPorSistema(sistema, esACM, esLuxsteel)
   const necesitaDiseno = sistema === 'Skin' || sistema === 'SkinRail'
   const usaModulo = sistema === 'Skin' || sistema === 'SkinRail'  // Rail/Clad: módulo fijo por sistema
   const usaParante = sistema === 'Skin' || sistema === 'SkinRail'
@@ -92,7 +114,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
       const input: VanoInput = {
         sistema,
         material,
-        colorACM: esACM ? colorACM : undefined,
+        colorACM: tieneColorPanel ? colorPanel : undefined,
         diseno: necesitaDiseno ? diseno : undefined,
         terminacion,
         ancho: Number(ancho),
@@ -114,7 +136,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   function agregar() {
     if (!resultado) return
     const input: VanoInput = {
-      sistema, material, colorACM: esACM ? colorACM : undefined,
+      sistema, material, colorACM: tieneColorPanel ? colorPanel : undefined,
       diseno: necesitaDiseno ? diseno : undefined,
       terminacion, ancho: Number(ancho), alto: Number(alto),
       modAncho: usaModulo ? Number(modAncho) : 1,
@@ -154,11 +176,11 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
             {materiales.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        {esACM && (
+        {tieneColorPanel && (
           <div>
-            <label className="block text-gray-500 text-xs mb-1">Color ACM</label>
-            <select value={colorACM} onChange={e => { setColorACM(e.target.value); setResultado(null) }} className={sel}>
-              {COLORES_ACM.map(c => <option key={c} value={c}>{c}</option>)}
+            <label className="block text-gray-500 text-xs mb-1">Color</label>
+            <select value={colorPanel} onChange={e => { setColorPanel(e.target.value); setResultado(null) }} className={sel}>
+              {coloresPanel.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         )}

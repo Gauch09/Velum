@@ -22,6 +22,7 @@ interface Props {
   materialesSkin: string[]
   materialesLama: string[]
   materialesACM: string[]
+  materialesLuxsteel: string[]
   disenos: string[]
   tcDefault: number
   retencionesPct: RetencionesPct
@@ -45,6 +46,7 @@ export default function WizardCotizacion({
   materialesSkin,
   materialesLama,
   materialesACM,
+  materialesLuxsteel,
   disenos,
   tcDefault,
   retencionesPct,
@@ -225,6 +227,7 @@ export default function WizardCotizacion({
             materialesSkin={materialesSkin}
             materialesLama={materialesLama}
             materialesACM={materialesACM}
+            materialesLuxsteel={materialesLuxsteel}
             disenos={disenos}
             margenPct={Number(margen)}
             onAgregar={agregarVano}

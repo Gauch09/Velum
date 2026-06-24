@@ -21,6 +21,17 @@ export async function listarMaterialesACM(): Promise<string[]> {
   return (data ?? []).map((r: { material: string }) => r.material)
 }
 
+export async function listarMaterialesLuxsteel(): Promise<string[]> {
+  const supabase = createSupabaseAdminClient() as any
+  const { data, error } = await supabase
+    .from('MaterialVariante')
+    .select('material, MaterialFamilia!inner(nombre)')
+    .eq('MaterialFamilia.nombre', 'Luxsteel')
+    .order('material')
+  if (error) throw new Error(`listarMaterialesLuxsteel: ${error.message}`)
+  return (data ?? []).map((r: { material: string }) => r.material)
+}
+
 export async function listarDisenos(): Promise<string[]> {
   const supabase = createSupabaseAdminClient() as any
   const { data, error } = await supabase

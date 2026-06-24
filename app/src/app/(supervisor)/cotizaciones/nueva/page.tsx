@@ -27,6 +27,7 @@ export default async function NuevaCotizacionPage() {
         materialesSkin={listas.materialesSkin}
         materialesLama={listas.materialesLama}
         materialesACM={listas.materialesACM}
+        materialesLuxsteel={listas.materialesLuxsteel}
         disenos={listas.disenos}
         tcDefault={listas.tcDefault}
         retencionesPct={retenciones}

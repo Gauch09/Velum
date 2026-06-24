@@ -47,12 +47,14 @@ export async function actionCotizarVano(raw: unknown) {
   const schema = z.object({
     sistema:    z.enum(['Skin', 'Rail', 'Clad', 'SkinRail']),
     material:   z.string().min(1),
+    colorACM:   z.string().optional(),
     diseno:     z.string().optional(),
     terminacion:z.string().min(1),
     ancho:      z.number().positive(),
     alto:       z.number().positive(),
     modAncho:   z.number().optional(),
     modAlto:    z.number().optional(),
+    sepParedMm: z.number().optional(),
     margenPct:  z.number().min(0),
   })
   return cotizarVano(schema.parse(raw) as VanoInput)
@@ -100,14 +102,15 @@ export async function actionCalcularMontaje(raw: unknown) {
 }
 
 export async function actionListarListas() {
-  const { listarMaterialesSkin, listarDisenos, listarMaterialesACM } = await import('@/lib/cotizador/skin/listas-repo')
+  const { listarMaterialesSkin, listarDisenos, listarMaterialesACM, listarMaterialesLuxsteel } = await import('@/lib/cotizador/skin/listas-repo')
   const { createSupabaseAdminClient } = await import('@/lib/supabase-admin')
   const sb = createSupabaseAdminClient() as any
 
-  const [todosMateriales, disenos, materialesACM] = await Promise.all([
+  const [todosMateriales, disenos, materialesACM, materialesLuxsteel] = await Promise.all([
     listarMaterialesSkin(),
     listarDisenos(),
     listarMaterialesACM(),
+    listarMaterialesLuxsteel(),
   ])
 
   // Separar lamas (MultiSlim*) del resto
@@ -124,6 +127,7 @@ export async function actionListarListas() {
     materialesSkin,
     materialesLama,
     materialesACM,
+    materialesLuxsteel,
     disenos,
     tcDefault: Number(tcRow?.valor ?? 1460),
     mediosElevacion,
