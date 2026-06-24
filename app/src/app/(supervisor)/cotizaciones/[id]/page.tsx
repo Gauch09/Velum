@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { leerCotizacion } from '@/lib/cotizador/repo-cotizaciones'
+import CambiarEstadoButtons from '@/components/supervisor/CambiarEstadoButtons'
+import type { EstadoCotizacion } from '@/app/(supervisor)/cotizaciones/[id]/actions'
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
@@ -31,11 +33,15 @@ export default async function CotizacionPage({ params }: Props) {
         {/* Encabezado */}
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-gray-500 font-mono text-sm">{cot.numero}</span>
               <span className={`text-xs px-2 py-0.5 rounded ${ESTADO_COLOR[cot.estado] ?? 'text-gray-400 bg-gray-800'}`}>
                 {cot.estado}
               </span>
+              <CambiarEstadoButtons
+                cotizacionId={cot.id}
+                estadoActual={cot.estado as EstadoCotizacion}
+              />
             </div>
             <h1 className="text-2xl font-semibold mt-1">{cot.cliente?.razonSocial}</h1>
             {cot.ubicacionObra && <p className="text-gray-500 text-sm">{cot.ubicacionObra}</p>}
