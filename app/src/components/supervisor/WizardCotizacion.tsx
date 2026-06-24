@@ -1,0 +1,315 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import ClienteForm from './ClienteForm'
+import VanoBuilder from './VanoBuilder'
+import type { ClienteRow } from '@/lib/cotizador/repo-clientes'
+import type { VanoInput, VanoResultado } from '@/lib/cotizador/cotizar-multi'
+
+interface RetencionesPct {
+  iva: number
+  ganancias: number
+  iibb: number
+  suss: number
+}
+
+interface Props {
+  clientes: ClienteRow[]
+  materialesSkin: string[]
+  materialesLama: string[]
+  disenos: string[]
+  tcDefault: number
+  retencionesPct: RetencionesPct
+  accionCrearCliente: (raw: unknown) => Promise<ClienteRow>
+  accionCotizarVano: (raw: unknown) => Promise<VanoResultado>
+  accionCrearCotizacion: (raw: unknown) => Promise<{ id: string; numero: string }>
+}
+
+type VanoItem = { input: VanoInput; resultado: VanoResultado; key: number }
+
+const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
+const usd = (n: number) => `u$d ${fmt(n)}`
+const RETENCIONES_TIPOS = ['IVA', 'GANANCIAS', 'IIBB', 'SUSS']
+
+export default function WizardCotizacion({
+  clientes: clientesIniciales,
+  materialesSkin,
+  materialesLama,
+  disenos,
+  tcDefault,
+  retencionesPct,
+  accionCrearCliente,
+  accionCotizarVano,
+  accionCrearCotizacion,
+}: Props) {
+  const router = useRouter()
+  const [paso, setPaso] = useState<1 | 2 | 3>(1)
+  const [clientes, setClientes] = useState<ClienteRow[]>(clientesIniciales)
+  const [mostrarNuevoCliente, setMostrarNuevoCliente] = useState(false)
+
+  // Paso 1
+  const [clienteId, setClienteId] = useState(clientesIniciales[0]?.id ?? '')
+  const [ubicacionObra, setUbicacionObra] = useState('')
+  const [tc, setTc] = useState(String(tcDefault))
+  const [margen, setMargen] = useState('150')
+
+  // Paso 2
+  const [vanos, setVanos] = useState<VanoItem[]>([])
+
+  // Paso 3
+  const [formaPago, setFormaPago] = useState('30 días factura')
+  const [retencionesActivas, setRetencionesActivas] = useState<Set<string>>(new Set())
+  const [retencionesCustom, setRetencionesCustom] = useState<Record<string, string>>({
+    IVA: String(retencionesPct.iva),
+    GANANCIAS: String(retencionesPct.ganancias),
+    IIBB: String(retencionesPct.iibb),
+    SUSS: String(retencionesPct.suss),
+  })
+
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function agregarVano(input: VanoInput, resultado: VanoResultado) {
+    setVanos(prev => [...prev, { input, resultado, key: Date.now() }])
+  }
+
+  function quitarVano(key: number) {
+    setVanos(prev => prev.filter(v => v.key !== key))
+  }
+
+  const totalVanos = vanos.reduce((acc, v) => acc + v.resultado.precioVenta, 0)
+
+  function toggleRetencion(tipo: string) {
+    setRetencionesActivas(prev => {
+      const s = new Set(prev)
+      if (s.has(tipo)) s.delete(tipo)
+      else s.add(tipo)
+      return s
+    })
+  }
+
+  async function emitir() {
+    setGuardando(true)
+    setError(null)
+    try {
+      const retenciones = Array.from(retencionesActivas).map(tipo => ({
+        tipo,
+        porcentaje: Number(retencionesCustom[tipo] ?? 0),
+      }))
+      const result = await accionCrearCotizacion({
+        clienteId,
+        ubicacionObra: ubicacionObra || null,
+        tcUsado: Number(tc),
+        margenPct: Number(margen),
+        vanos: vanos.map(v => v.resultado),
+        condiciones: { formaPagoProducto: formaPago, retenciones },
+      })
+      router.push(`/cotizaciones/${result.id}`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al emitir')
+      setGuardando(false)
+    }
+  }
+
+  const inp = 'w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-gray-500'
+  const label = 'block text-gray-400 text-xs mb-1'
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Breadcrumb de pasos */}
+      <div className="flex gap-1 text-xs">
+        {([1, 2, 3] as const).map(p => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => { if (p < paso || (p === 2 && clienteId)) setPaso(p) }}
+            className={`flex-1 py-1.5 rounded text-center ${paso === p ? 'bg-white text-gray-900 font-semibold' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}
+          >
+            {p === 1 ? 'Cliente' : p === 2 ? 'Vanos' : 'Condiciones'}
+          </button>
+        ))}
+      </div>
+
+      {/* Paso 1: Cliente */}
+      {paso === 1 && (
+        <div className="space-y-4">
+          <div>
+            <label className={label}>Cliente *</label>
+            <select value={clienteId} onChange={e => setClienteId(e.target.value)} className={inp}>
+              {clientes.map(c => <option key={c.id} value={c.id}>{c.razonSocial}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMostrarNuevoCliente(v => !v)}
+            className="text-sm text-blue-400 hover:text-blue-300"
+          >
+            {mostrarNuevoCliente ? 'Cancelar nuevo cliente' : '+ Nuevo cliente'}
+          </button>
+          {mostrarNuevoCliente && (
+            <div className="bg-gray-900 rounded-lg p-4">
+              <ClienteForm
+                accion={accionCrearCliente}
+                submitLabel="Crear y seleccionar"
+                onCreado={cl => {
+                  setClientes(prev => [...prev, cl])
+                  setClienteId(cl.id)
+                  setMostrarNuevoCliente(false)
+                }}
+                onCancel={() => setMostrarNuevoCliente(false)}
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="col-span-2">
+              <label className={label}>Ubicación obra</label>
+              <input value={ubicacionObra} onChange={e => setUbicacionObra(e.target.value)} placeholder="Av. Aconquija 1500, Tucumán" className={inp} />
+            </div>
+            <div>
+              <label className={label}>Tipo de cambio ($/u$d)</label>
+              <input value={tc} onChange={e => setTc(e.target.value)} type="number" className={inp} />
+            </div>
+            <div>
+              <label className={label}>Margen (%)</label>
+              <input value={margen} onChange={e => setMargen(e.target.value)} type="number" className={inp} />
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={!clienteId}
+            onClick={() => setPaso(2)}
+            className="w-full bg-white text-gray-900 text-sm font-semibold py-2 rounded hover:bg-gray-100 disabled:opacity-40"
+          >
+            Siguiente: Vanos
+          </button>
+        </div>
+      )}
+
+      {/* Paso 2: Vanos */}
+      {paso === 2 && (
+        <div className="space-y-4">
+          <VanoBuilder
+            materialesSkin={materialesSkin}
+            materialesLama={materialesLama}
+            disenos={disenos}
+            margenPct={Number(margen)}
+            onAgregar={agregarVano}
+            accionCotizar={accionCotizarVano}
+          />
+
+          {vanos.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-gray-400 text-xs uppercase tracking-wider">Vanos agregados</p>
+              {vanos.map(v => (
+                <div key={v.key} className="flex items-center gap-3 bg-gray-900 rounded px-3 py-2">
+                  <span className="text-xs text-gray-500 w-14">{v.resultado.sistema}</span>
+                  <span className="text-sm text-white flex-1">{v.resultado.material}</span>
+                  <span className="text-xs text-gray-400">{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
+                  <span className="text-sm text-green-400 w-28 text-right">{usd(v.resultado.precioVenta)}</span>
+                  <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
+                </div>
+              ))}
+              <div className="flex justify-between text-sm border-t border-gray-800 pt-2">
+                <span className="text-gray-400">Total provisión</span>
+                <span className="text-green-400 font-semibold">{usd(totalVanos)}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setPaso(1)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
+            <button
+              type="button"
+              disabled={vanos.length === 0}
+              onClick={() => setPaso(3)}
+              className="flex-1 bg-white text-gray-900 text-sm font-semibold py-2 rounded hover:bg-gray-100 disabled:opacity-40"
+            >
+              Siguiente: Condiciones
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Paso 3: Condiciones comerciales */}
+      {paso === 3 && (
+        <div className="space-y-4">
+          <div>
+            <label className={label}>Forma de pago</label>
+            <input value={formaPago} onChange={e => setFormaPago(e.target.value)} placeholder="30 días factura" className={inp} />
+          </div>
+
+          <div>
+            <p className={label}>Retenciones aplicables</p>
+            <div className="grid grid-cols-2 gap-2">
+              {RETENCIONES_TIPOS.map(tipo => {
+                const activo = retencionesActivas.has(tipo)
+                const llave = tipo.toLowerCase() as keyof RetencionesPct
+                return (
+                  <div key={tipo} className={`rounded border p-3 ${activo ? 'border-blue-500 bg-gray-800' : 'border-gray-700 bg-gray-900'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="checkbox"
+                        checked={activo}
+                        onChange={() => toggleRetencion(tipo)}
+                        className="accent-blue-500"
+                      />
+                      <span className="text-white text-sm">{tipo}</span>
+                    </div>
+                    {activo && (
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={retencionesCustom[tipo] ?? String(retencionesPct[llave] ?? 0)}
+                        onChange={e => setRetencionesCustom(prev => ({ ...prev, [tipo]: e.target.value }))}
+                        className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-xs"
+                      />
+                    )}
+                    {!activo && (
+                      <span className="text-gray-600 text-xs">Default: {retencionesPct[llave]}%</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Resumen */}
+          <div className="bg-gray-900 rounded-lg p-4 space-y-1 text-sm">
+            <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Resumen</p>
+            <div className="flex justify-between text-gray-400">
+              <span>Cliente</span>
+              <span className="text-white">{clientes.find(c => c.id === clienteId)?.razonSocial ?? '—'}</span>
+            </div>
+            <div className="flex justify-between text-gray-400">
+              <span>Vanos</span>
+              <span className="text-white">{vanos.length}</span>
+            </div>
+            <div className="flex justify-between text-gray-400">
+              <span>TC</span>
+              <span className="text-white">$ {tc}</span>
+            </div>
+            <div className="flex justify-between text-gray-300 font-semibold border-t border-gray-800 pt-2 mt-2">
+              <span>Total provisión</span>
+              <span className="text-green-400">{usd(totalVanos)}</span>
+            </div>
+          </div>
+
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setPaso(2)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
+            <button
+              type="button"
+              disabled={guardando}
+              onClick={emitir}
+              className="flex-1 bg-white text-gray-900 text-sm font-semibold py-2 rounded hover:bg-gray-100 disabled:opacity-40"
+            >
+              {guardando ? 'Guardando…' : 'Emitir cotización'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
