@@ -236,7 +236,9 @@ export default function WizardCotizacion({
               {vanos.map(v => (
                 <div key={v.key} className="flex items-center gap-3 bg-gray-900 rounded px-3 py-2">
                   <span className="text-xs text-gray-500 w-14">{v.resultado.sistema}</span>
-                  <span className="text-sm text-white flex-1">{v.resultado.material}</span>
+                  <span className="text-sm text-white flex-1">
+                    {v.resultado.material}{v.resultado.colorACM ? ` · ${v.resultado.colorACM}` : ''}
+                  </span>
                   <span className="text-xs text-gray-400">{fmt(v.resultado.ancho)}×{fmt(v.resultado.alto)} m</span>
                   <span className="text-sm text-green-400 w-28 text-right">{usd(v.resultado.precioVenta)}</span>
                   <button type="button" onClick={() => quitarVano(v.key)} className="text-gray-600 hover:text-red-400 text-xs">✕</button>
