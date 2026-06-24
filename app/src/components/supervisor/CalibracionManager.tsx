@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { guardarParametro, guardarMedioElevacion, guardarFamilia } from '@/app/(supervisor)/calibracion/actions'
+import { guardarParametro, guardarMedioElevacion, guardarFamilia, guardarDisenoKp } from '@/app/(supervisor)/calibracion/actions'
 import type { ParametroRow } from '@/lib/cotizador/parametros'
-import type { MedioElevacionRow, MaterialFamiliaRow } from '@/lib/cotizador/calibracion-repo'
+import type { MedioElevacionRow, MaterialFamiliaRow, DisenoKpRow } from '@/lib/cotizador/calibracion-repo'
 
 type Props = {
   parametros: ParametroRow[]
   medios: MedioElevacionRow[]
   familias: MaterialFamiliaRow[]
+  disenoKp: DisenoKpRow[]
 }
 
 // Agrupación de claves por sección
@@ -83,7 +84,7 @@ function ParamRow({ p, guardando, error, onSubmit }: {
   )
 }
 
-export default function CalibracionManager({ parametros, medios, familias }: Props) {
+export default function CalibracionManager({ parametros, medios, familias, disenoKp }: Props) {
   const [guardando, setGuardando] = useState<string | null>(null)
   const [errores, setErrores] = useState<Record<string, string>>({})
   const [ok, setOk] = useState<string | null>(null)
@@ -101,6 +102,24 @@ export default function CalibracionManager({ parametros, medios, familias }: Pro
         setErrores(prev => ({ ...prev, [clave]: result.error as string }))
       } else {
         setOk(clave)
+        setTimeout(() => setOk(null), 2000)
+      }
+    } finally {
+      setGuardando(null)
+    }
+  }
+
+  async function handleDisenoKp(e: React.FormEvent<HTMLFormElement>, id: string) {
+    e.preventDefault()
+    setGuardando(id)
+    setOk(null)
+    setErrores(prev => { const n = { ...prev }; delete n[id]; return n })
+    try {
+      const result = await guardarDisenoKp(null, new FormData(e.currentTarget))
+      if (result && 'error' in result) {
+        setErrores(prev => ({ ...prev, [id]: result.error as string }))
+      } else {
+        setOk(id)
         setTimeout(() => setOk(null), 2000)
       }
     } finally {
@@ -178,6 +197,42 @@ export default function CalibracionManager({ parametros, medios, familias }: Pro
           </div>
         )
       })}
+
+      {/* Kp por diseño */}
+      {disenoKp.length > 0 && (
+        <div>
+          {sectionTitle('Kp por diseño')}
+          <div className="space-y-1">
+            {disenoKp.map(d => (
+              <div key={d.id}>
+                <form onSubmit={e => handleDisenoKp(e, d.id)} className="flex items-center gap-3 bg-gray-900 rounded px-3 py-2.5">
+                  <input type="hidden" name="id" value={d.id} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-sm">{d.diseno}</div>
+                    <div className="text-gray-600 text-xs font-mono">factor de consumo de material</div>
+                  </div>
+                  <input
+                    name="kp"
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    defaultValue={d.kp}
+                    className="w-24 bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-sm text-right focus:outline-none focus:border-gray-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={guardando === d.id}
+                    className="text-xs border border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white rounded px-3 py-1 disabled:opacity-40 w-20"
+                  >
+                    {guardando === d.id ? '…' : ok === d.id ? '✓' : 'Guardar'}
+                  </button>
+                </form>
+                {errores[d.id] && <p className="text-red-400 text-xs px-3 pt-1">{errores[d.id]}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Precios de material */}
       {familias.length > 0 && (

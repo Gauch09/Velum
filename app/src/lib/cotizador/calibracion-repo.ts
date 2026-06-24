@@ -64,6 +64,31 @@ export async function listarFamilias(): Promise<MaterialFamiliaRow[]> {
   return data ?? []
 }
 
+export interface DisenoKpRow {
+  id: string
+  diseno: string
+  kp: number
+}
+
+export async function listarDisenoKp(): Promise<DisenoKpRow[]> {
+  const supabase = createSupabaseAdminClient() as any
+  const { data, error } = await supabase
+    .from('DisenoKp')
+    .select('id, diseno, kp')
+    .order('diseno')
+  if (error) throw new Error(`listarDisenoKp: ${error.message}`)
+  return data ?? []
+}
+
+export async function actualizarDisenoKp(id: string, kp: number): Promise<void> {
+  const supabase = createSupabaseAdminClient() as any
+  const { error } = await supabase
+    .from('DisenoKp')
+    .update({ kp, actualizadoEn: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw new Error(`actualizarDisenoKp: ${error.message}`)
+}
+
 export async function actualizarFamilia(id: string, precioTon: number, precioM2: number, densidad: number): Promise<void> {
   const supabase = createSupabaseAdminClient() as any
   const { error } = await supabase
