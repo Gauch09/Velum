@@ -2,6 +2,7 @@ export type AlcanceTerminacion =
   | 'Crudo (sin pintura)'
   | 'Completo (solo panel)'
   | 'Completo + Estructura'
+  | 'Anodizado'
 
 export interface SkinInput {
   ancho: number
@@ -49,6 +50,7 @@ export interface SkinParams {
   brocaCosto: number        // 0.62
   autoperfCosto: number     // 0.0285
   fresadoCostoM2: number    // 6.0 u$d/m² — aplica a ACM, MDF, Melamina, madera
+  anodizadoCostoM2: number  // 18.0 u$d/m² — costo externo anodizado aluminio
 }
 
 export interface SkinGeometria {

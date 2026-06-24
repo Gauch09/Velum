@@ -28,6 +28,12 @@ export function costoPintura(i: SkinInput, p: SkinParams, g: SkinGeometria): num
   if (i.alcance === 'Crudo (sin pintura)') return 0
   const esACM = i.familia.precioM2 > 0
   const conEstructura = i.alcance === 'Completo + Estructura'
+
+  // Anodizado: proceso externo, se cobra por m² de superficie tratada (ambas caras del panel)
+  if (i.alcance === 'Anodizado') {
+    return g.area * i.kp * 2 * p.anodizadoCostoM2
+  }
+
   // ACM viene pintado de fábrica: el panel no se pinta, la estructura sí cuando aplica
   if (esACM && !conEstructura) return 0
   const sup = esACM

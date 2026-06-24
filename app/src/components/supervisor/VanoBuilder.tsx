@@ -24,16 +24,20 @@ interface Props {
 }
 
 const SISTEMAS: Sistema[] = ['Skin', 'Rail', 'Clad', 'SkinRail']
-const ALCANCES_SKIN: AlcanceTerminacion[] = ['Crudo (sin pintura)', 'Completo (solo panel)', 'Completo + Estructura']
+// Aluminio/acero: nunca crudo, puede ser anodizado
+const ALCANCES_ALUMINIO: AlcanceTerminacion[] = ['Completo (solo panel)', 'Completo + Estructura', 'Anodizado']
+// ACM: viene pintado de fábrica, sin anodizado
+const ALCANCES_ACM: AlcanceTerminacion[] = ['Completo (solo panel)', 'Completo + Estructura']
 const ALCANCES_CLAD: AlcanceClad[] = ['Pintado', 'Crudo (sin pintura)']
 const ALCANCES_RAIL: AlcanceTerminacion[] = ['Crudo (sin pintura)', 'Completo (solo panel)', 'Completo + Estructura']
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
 
-function alcancesPorSistema(s: Sistema) {
+function alcancesPorSistema(s: Sistema, esACM: boolean) {
   if (s === 'Clad') return ALCANCES_CLAD
-  return ALCANCES_SKIN
+  if (s === 'Rail') return ALCANCES_RAIL
+  return esACM ? ALCANCES_ACM : ALCANCES_ALUMINIO
 }
 
 export default function VanoBuilder({ materialesSkin, materialesLama, materialesACM, disenos, margenPct, onAgregar, accionCotizar }: Props) {
@@ -41,7 +45,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
   const [material, setMaterial] = useState(materialesSkin[0] ?? '')
   const [colorACM, setColorACM] = useState(COLORES_ACM[0])
   const [diseno, setDiseno] = useState(disenos[0] ?? '')
-  const [terminacion, setTerminacion] = useState<string>(ALCANCES_SKIN[2])
+  const [terminacion, setTerminacion] = useState<string>(ALCANCES_ALUMINIO[0])
   const [ancho, setAncho] = useState('30')
   const [alto, setAlto] = useState('25')
   const [resultado, setResultado] = useState<VanoResultado | null>(null)
@@ -52,16 +56,28 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
     setSistema(s)
     const esSkin = s === 'Skin' || s === 'SkinRail'
     const esLama = s === 'Rail' || s === 'Clad'
-    if (esSkin) setMaterial(materialesSkin[0] ?? '')
-    if (esLama) setMaterial(materialesLama[0] ?? '')
-    const alcances = alcancesPorSistema(s)
-    setTerminacion(alcances[alcances.length - 1])
+    const nuevoMaterial = esSkin ? (materialesSkin[0] ?? '') : (materialesLama[0] ?? '')
+    if (esSkin) setMaterial(nuevoMaterial)
+    if (esLama) setMaterial(nuevoMaterial)
+    const nuevoEsACM = materialesACM.includes(nuevoMaterial)
+    const nuevosAlcances = alcancesPorSistema(s, nuevoEsACM)
+    setTerminacion(nuevosAlcances[0])
+    setResultado(null)
+  }
+
+  function handleMaterial(m: string) {
+    setMaterial(m)
+    const nuevoEsACM = materialesACM.includes(m)
+    const nuevosAlcances = alcancesPorSistema(sistema, nuevoEsACM)
+    if (!(nuevosAlcances as string[]).includes(terminacion)) {
+      setTerminacion(nuevosAlcances[0])
+    }
     setResultado(null)
   }
 
   const materiales = (sistema === 'Rail' || sistema === 'Clad') ? materialesLama : materialesSkin
   const esACM = materialesACM.includes(material)
-  const alcances = alcancesPorSistema(sistema)
+  const alcances = alcancesPorSistema(sistema, esACM)
   const necesitaDiseno = sistema === 'Skin' || sistema === 'SkinRail'
 
   async function calcular() {
@@ -122,7 +138,7 @@ export default function VanoBuilder({ materialesSkin, materialesLama, materiales
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-gray-500 text-xs mb-1">Material</label>
-          <select value={material} onChange={e => { setMaterial(e.target.value); setResultado(null) }} className={sel}>
+          <select value={material} onChange={e => handleMaterial(e.target.value)} className={sel}>
             {materiales.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>

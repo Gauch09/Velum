@@ -64,7 +64,8 @@ async function main() {
     polvo: P['pintura_polvo'], cobertura: P['pintura_cobertura'], sobreaplic: P['pintura_sobreaplic'],
     costoHorneada: P['pintura_horneada_costo'], piezasHorneada: P['pintura_horneada_piezas'],
     brocaCosto: P['fijacion_broca'], autoperfCosto: P['fijacion_autoperf'],
-    fresadoCostoM2: P['fresado_costo_m2'] ?? 6,
+    fresadoCostoM2:   P['fresado_costo_m2'] ?? 6,
+    anodizadoCostoM2: P['anodizado_costo_m2'] ?? 18,
   }
 
   const input: SkinInput = {
