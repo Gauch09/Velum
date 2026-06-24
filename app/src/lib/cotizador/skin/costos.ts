@@ -25,11 +25,17 @@ export function costoFab(i: SkinInput, p: SkinParams, g: SkinGeometria): number 
 }
 
 export function costoPintura(i: SkinInput, p: SkinParams, g: SkinGeometria): number {
-  if (i.familia.precioM2 > 0) return 0
   if (i.alcance === 'Crudo (sin pintura)') return 0
-  const estructura = i.alcance === 'Completo + Estructura'
-  const sup = g.area * 2 + (estructura ? g.piezasCostilla * p.costillaAreaM2 * 2 + g.mensulasTotal * p.mensulaAreaM2 * 2 : 0)
-  const piezasHorno = g.paneles + (estructura ? g.piezasCostilla + g.mensulasTotal : 0)
+  const esACM = i.familia.precioM2 > 0
+  const conEstructura = i.alcance === 'Completo + Estructura'
+  // ACM viene pintado de fábrica: el panel no se pinta, la estructura sí cuando aplica
+  if (esACM && !conEstructura) return 0
+  const sup = esACM
+    ? g.piezasCostilla * p.costillaAreaM2 * 2 + g.mensulasTotal * p.mensulaAreaM2 * 2
+    : g.area * 2 + (conEstructura ? g.piezasCostilla * p.costillaAreaM2 * 2 + g.mensulasTotal * p.mensulaAreaM2 * 2 : 0)
+  const piezasHorno = esACM
+    ? g.piezasCostilla + g.mensulasTotal
+    : g.paneles + (conEstructura ? g.piezasCostilla + g.mensulasTotal : 0)
   return sup * p.polvo / p.cobertura * p.sobreaplic + piezasHorno / p.piezasHorneada * p.costoHorneada
 }
 
