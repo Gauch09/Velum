@@ -59,6 +59,16 @@ describe('generarBOM — Compras', () => {
     expect(consol?.cantidad).toBe(5)
     expect(consol?.unidad).toBe('chapa')
   })
+
+  it('galvanizado: redondea al total, no por paño (23+23 / chapa 46 = 1 chapa, no 2)', () => {
+    const vanos: VanoBOM[] = [
+      { cara: 'A', sistema: 'Skin', geometria: geom(), compras: compras({ kgGalv16: 23 }) },
+      { cara: 'B', sistema: 'Skin', geometria: geom(), compras: compras({ kgGalv16: 23 }) },
+    ]
+    const bom = generarBOM(vanos, { kgPorChapaGalv16: 46, kgPorChapaGalv25: 72 })
+    const consol = bom.find(l => l.area === 'COMPRAS' && l.cara === null && l.unidad === 'chapa' && l.insumo.includes('1.6'))
+    expect(consol?.cantidad).toBe(1) // total: ceil(46/46)=1 ; por-paño daría ceil(23/46)*2=2
+  })
 })
 
 describe('generarBOM — bordes', () => {
