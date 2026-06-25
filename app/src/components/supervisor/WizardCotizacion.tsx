@@ -315,6 +315,25 @@ export default function WizardCotizacion({
             accionCalcular={accionCalcularMontaje}
             onChange={setMontajeSeleccion}
           />
+
+          {/* Total obra: provisión + montaje, se actualiza al calcular */}
+          <div className="bg-gray-900 rounded-lg p-4 space-y-1 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>Provisión · {fmt(totalM2)} m²</span>
+              <span className="text-white">{usd(totalVanos)}</span>
+            </div>
+            <div className="flex justify-between text-gray-400">
+              <span>Montaje</span>
+              <span className={totalMontaje > 0 ? 'text-white' : 'text-gray-600'}>
+                {totalMontaje > 0 ? usd(totalMontaje) : 'sin calcular'}
+              </span>
+            </div>
+            <div className="flex justify-between text-gray-300 font-semibold border-t border-gray-800 pt-2 mt-1">
+              <span>Total obra</span>
+              <span className="text-green-400">{usd(totalObra)}</span>
+            </div>
+          </div>
+
           <div className="flex gap-3">
             <button type="button" onClick={() => setPaso(2)} className="px-4 text-gray-400 text-sm hover:text-white">Atrás</button>
             <button

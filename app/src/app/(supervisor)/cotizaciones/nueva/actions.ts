@@ -67,6 +67,13 @@ export async function actionCrearCotizacion(raw: unknown) {
     tcUsado:       z.number().positive(),
     margenPct:     z.number().min(0),
     vanos:         z.array(z.any()).min(1),
+    montaje: z.object({
+      medioElevacionId: z.string().min(1),
+      nOperarios:       z.number().int().min(1),
+      hsPresencial:     z.boolean(),
+      margenPct:        z.number().min(0),
+      resultado:        z.any(),
+    }).nullable().optional(),
     condiciones: z.object({
       formaPagoProducto: z.string().min(2),
       retenciones: z.array(z.object({

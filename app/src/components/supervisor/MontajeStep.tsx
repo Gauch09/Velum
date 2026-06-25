@@ -24,7 +24,7 @@ const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 
 const usd = (n: number) => `u$d ${fmt(n)}`
 
 export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accionCalcular, onChange }: Props) {
-  const [conMontaje, setConMontaje] = useState(false)
+  const [conMontaje, setConMontaje] = useState(true)
   const [medioId, setMedioId] = useState(mediosElevacion[0]?.id ?? '')
   const [nOperarios, setNOperarios] = useState('3')
   const [hsPresencial, setHsPresencial] = useState(false)
@@ -34,12 +34,16 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
 
   const medioSeleccionado = mediosElevacion.find(m => m.id === medioId)
 
+  // Al cambiar cualquier parámetro, el cálculo previo deja de ser válido:
+  // limpiamos el resultado local y avisamos al wizard que ya no hay montaje seleccionado.
+  function invalidar() {
+    setResultado(null)
+    onChange(null)
+  }
+
   function handleToggle(val: boolean) {
     setConMontaje(val)
-    if (!val) {
-      setResultado(null)
-      onChange(null)
-    }
+    if (!val) invalidar()
   }
 
   async function calcular() {
@@ -98,7 +102,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
               <label className="block text-gray-500 text-xs mb-1">Medio de elevación</label>
               <select
                 value={medioId}
-                onChange={e => { setMedioId(e.target.value); setResultado(null) }}
+                onChange={e => { setMedioId(e.target.value); invalidar() }}
                 className={sel}
               >
                 {mediosElevacion.map(m => (
@@ -116,7 +120,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
                 min="1"
                 max="20"
                 value={nOperarios}
-                onChange={e => { setNOperarios(e.target.value); setResultado(null) }}
+                onChange={e => { setNOperarios(e.target.value); invalidar() }}
                 className={sel}
               />
             </div>
@@ -126,7 +130,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
                 <input
                   type="checkbox"
                   checked={hsPresencial}
-                  onChange={e => { setHsPresencial(e.target.checked); setResultado(null) }}
+                  onChange={e => { setHsPresencial(e.target.checked); invalidar() }}
                   className="accent-blue-500 w-4 h-4"
                 />
                 <span className="text-gray-300 text-sm">Ing. H&S presencial</span>
