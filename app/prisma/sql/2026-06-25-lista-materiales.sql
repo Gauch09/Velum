@@ -5,9 +5,10 @@ alter table "CotizacionVano"
   add column if not exists "compras"   jsonb;
 
 -- Lista de Materiales (BOM): un snapshot por cotización
+-- IDs son text (Prisma String @default(cuid())), no uuid.
 create table if not exists "ListaMateriales" (
-  "id"           uuid primary key,
-  "cotizacionId" uuid not null unique references "Cotizacion"("id") on delete cascade,
+  "id"           text primary key,
+  "cotizacionId" text not null unique references "Cotizacion"("id") on delete cascade,
   "estado"       text not null default 'EN_REVISION',  -- EN_REVISION | LIBERADA
   "createdAt"    timestamptz not null default now(),
   "liberadaAt"   timestamptz
@@ -15,8 +16,8 @@ create table if not exists "ListaMateriales" (
 
 -- Líneas del BOM (editables)
 create table if not exists "LineaMateriales" (
-  "id"           uuid primary key,
-  "listaId"      uuid not null references "ListaMateriales"("id") on delete cascade,
+  "id"           text primary key,
+  "listaId"      text   not null references "ListaMateriales"("id") on delete cascade,
   "area"         text   not null,           -- COMPRAS | PRODUCCION
   "cara"         text,                       -- nombre de cara, NULL = consolidado de obra
   "insumo"       text   not null,
