@@ -95,7 +95,7 @@ export async function actionLeerTipoCambio() {
 
 export async function actionCalcularMontaje(raw: unknown) {
   const schema = z.object({
-    medioElevacionCostoDia: z.number().positive(),
+    medioElevacionCostoMes: z.number().positive(),
     nOperarios:  z.number().int().min(1),
     totalM2:     z.number().positive(),
     hsPresencial: z.boolean(),

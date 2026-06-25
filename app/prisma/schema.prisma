@@ -416,6 +416,7 @@ model MedioElevacion {
   nombre      String  @unique
   alturaMaxM  Float
   costoDia    Float?
+  costoMes    Float?
 }
 
 model CatalogoRenglonMontaje {

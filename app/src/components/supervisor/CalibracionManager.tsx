@@ -407,12 +407,12 @@ export default function CalibracionManager({ parametros, medios, familias, disen
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-500 text-xs w-20 text-right">Costo/día (u$d)</span>
+                      <span className="text-gray-500 text-xs w-20 text-right">Costo/mes (u$d)</span>
                       <input
-                        name="costoDia"
+                        name="costoMes"
                         type="number"
                         step="0.01"
-                        defaultValue={m.costoDia}
+                        defaultValue={m.costoMes}
                         className="w-28 bg-gray-800 border border-gray-700 text-white rounded px-2 py-1 text-sm text-right focus:outline-none focus:border-gray-500"
                       />
                     </div>

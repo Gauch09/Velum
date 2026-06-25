@@ -24,24 +24,24 @@ export interface MedioElevacionRow {
   id: string
   nombre: string
   alturaMaxM: number
-  costoDia: number
+  costoMes: number
 }
 
 export async function listarMediosElevacion(): Promise<MedioElevacionRow[]> {
   const supabase = createSupabaseAdminClient() as any
   const { data, error } = await supabase
     .from('MedioElevacion')
-    .select('id, nombre, "alturaMaxM", "costoDia"')
+    .select('id, nombre, "alturaMaxM", "costoMes"')
     .order('nombre')
   if (error) throw new Error(`listarMediosElevacion: ${error.message}`)
   return data ?? []
 }
 
-export async function actualizarMedioElevacion(id: string, costoDia: number, alturaMaxM: number): Promise<void> {
+export async function actualizarMedioElevacion(id: string, costoMes: number, alturaMaxM: number): Promise<void> {
   const supabase = createSupabaseAdminClient() as any
   const { error } = await supabase
     .from('MedioElevacion')
-    .update({ costoDia, alturaMaxM })
+    .update({ costoMes, alturaMaxM })
     .eq('id', id)
   if (error) throw new Error(`actualizarMedioElevacion: ${error.message}`)
 }
