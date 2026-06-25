@@ -22,7 +22,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     return new NextResponse(buffer as any, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${cot.numero}.pdf"`,
+        'Content-Disposition': `attachment; filename="${cot.numero}.pdf"`,
       },
     })
   } catch (err: any) {
