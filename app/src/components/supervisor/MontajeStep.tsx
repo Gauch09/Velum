@@ -6,7 +6,7 @@ import type { MontajeResultado } from '@/lib/cotizador/montaje/calcularMontaje'
 
 export interface MontajeSeleccion {
   medioElevacionId: string
-  medioElevacionCostoDia: number
+  medioElevacionCostoMes: number
   nOperarios: number
   hsPresencial: boolean
   resultado: MontajeResultado
@@ -52,7 +52,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
     setError(null)
     try {
       const r = await accionCalcular({
-        medioElevacionCostoDia: medioSeleccionado.costoDia,
+        medioElevacionCostoMes: medioSeleccionado.costoMes,
         nOperarios: Number(nOperarios),
         totalM2,
         hsPresencial,
@@ -61,7 +61,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
       setResultado(r)
       onChange({
         medioElevacionId: medioId,
-        medioElevacionCostoDia: medioSeleccionado.costoDia,
+        medioElevacionCostoMes: medioSeleccionado.costoMes,
         nOperarios: Number(nOperarios),
         hsPresencial,
         resultado: r,
@@ -107,7 +107,7 @@ export default function MontajeStep({ totalM2, margenPct, mediosElevacion, accio
               >
                 {mediosElevacion.map(m => (
                   <option key={m.id} value={m.id}>
-                    {m.nombre} — u$d {fmt(m.costoDia)}/día (hasta {m.alturaMaxM} m)
+                    {m.nombre} — u$d {fmt(m.costoMes)}/mes (hasta {m.alturaMaxM} m)
                   </option>
                 ))}
               </select>

@@ -52,16 +52,16 @@ export async function guardarMedioElevacion(_state: unknown, formData: FormData)
 
   const schema = z.object({
     id:         z.string().min(1),
-    costoDia:   z.coerce.number().positive(),
+    costoMes:   z.coerce.number().positive(),
     alturaMaxM: z.coerce.number().positive(),
   })
   const parsed = schema.safeParse({
     id:         formData.get('id'),
-    costoDia:   formData.get('costoDia'),
+    costoMes:   formData.get('costoMes'),
     alturaMaxM: formData.get('alturaMaxM'),
   })
   if (!parsed.success) return { error: 'Datos inválidos' }
-  await actualizarMedioElevacion(parsed.data.id, parsed.data.costoDia, parsed.data.alturaMaxM)
+  await actualizarMedioElevacion(parsed.data.id, parsed.data.costoMes, parsed.data.alturaMaxM)
   revalidatePath('/calibracion')
   return { ok: true }
 }

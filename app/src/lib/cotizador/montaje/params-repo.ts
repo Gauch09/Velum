@@ -5,14 +5,14 @@ export interface MedioElevacion {
   id: string
   nombre: string
   alturaMaxM: number
-  costoDia: number
+  costoMes: number
 }
 
 export async function listarMediosElevacion(): Promise<MedioElevacion[]> {
   const sb = createSupabaseAdminClient() as any
   const { data, error } = await sb
     .from('MedioElevacion')
-    .select('id, nombre, "alturaMaxM", "costoDia"')
+    .select('id, nombre, "alturaMaxM", "costoMes"')
     .order('nombre')
   if (error) throw new Error(`listarMediosElevacion: ${error.message}`)
   return data ?? []

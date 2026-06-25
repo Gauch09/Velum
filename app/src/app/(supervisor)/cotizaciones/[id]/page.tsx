@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { leerCotizacion } from '@/lib/cotizador/repo-cotizaciones'
 import CambiarEstadoButtons from '@/components/supervisor/CambiarEstadoButtons'
 import type { EstadoCotizacion } from '@/app/(supervisor)/cotizaciones/[id]/actions'
+import { generarBOM, BOM_CONFIG_DEFAULT, type VanoBOM } from '@/lib/cotizador/generar-bom'
 
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const usd = (n: number) => `u$d ${fmt(n)}`
@@ -26,6 +27,13 @@ export default async function CotizacionPage({ params }: Props) {
   }
 
   const contactoPrincipal = cot.cliente?.contactos?.[0]
+
+  const vanosBOM: VanoBOM[] = (cot.vanos ?? []).map((v: any) => ({
+    cara: v.cara ?? null, sistema: v.sistema, geometria: v.geometria ?? null, compras: v.compras ?? null,
+  }))
+  const preliminar = generarBOM(vanosBOM, BOM_CONFIG_DEFAULT)
+  const prelimCompras = preliminar.filter(l => l.area === 'COMPRAS' && l.cara === null)
+  const prelimProd = preliminar.filter(l => l.area === 'PRODUCCION' && l.cara === null)
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -106,6 +114,38 @@ export default async function CotizacionPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Despiece preliminar */}
+        {preliminar.length > 0 && (
+          <div className="bg-gray-900 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-gray-500 text-xs uppercase tracking-wider">Despiece preliminar</p>
+              {cot.estado === 'ACEPTADA' && (
+                <Link href={`/cotizaciones/${cot.id}/materiales`} className="text-sm text-blue-400 hover:text-blue-300">
+                  Lista de materiales ▸
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-500 text-xs mb-1">A comprar (estimado)</p>
+                {prelimCompras.map((l, i) => (
+                  <div key={i} className="flex justify-between text-gray-300">
+                    <span>{l.insumo}</span><span>{fmt(l.cantidad)} {l.unidad}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs mb-1">A producir</p>
+                {prelimProd.map((l, i) => (
+                  <div key={i} className="flex justify-between text-gray-300">
+                    <span>{l.insumo}</span><span>{fmt(l.cantidad)} {l.unidad}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Montaje */}
         {cot.montaje && (
