@@ -57,7 +57,7 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
   if (e1) throw new Error(`crearCotizacion: ${e1.message}`)
 
   if (input.vanos.length > 0) {
-    const vanoRows = input.vanos.map(v => ({
+    const vanoRows = input.vanos.map((v: any) => ({
       id: crypto.randomUUID(),
       cotizacionId: cot.id,
       sistema: v.sistema,
@@ -69,6 +69,9 @@ export async function crearCotizacion(input: NuevaCotizacionInput) {
       costoFab: v.costoFab,
       costoMaterial: v.costoMaterial,
       precio: v.precioVenta,
+      cara: v.cara ?? null,
+      geometria: v.geometria ?? null,
+      compras: v.compras ?? null,
     }))
     const { error: e2 } = await sb.from('CotizacionVano').insert(vanoRows)
     if (e2) throw new Error(`crearVanos: ${e2.message}`)
