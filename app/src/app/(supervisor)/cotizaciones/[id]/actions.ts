@@ -34,6 +34,17 @@ export async function cambiarEstado(id: string, nuevoEstado: EstadoCotizacion) {
     .eq('id', id)
   if (errUpd) return { error: errUpd.message }
 
+  if (nuevoEstado === 'ACEPTADA') {
+    try {
+      const { generarSnapshot } = await import('@/lib/cotizador/repo-materiales')
+      await generarSnapshot(id)
+    } catch (err) {
+      console.error('[cambiarEstado] generarSnapshot falló:', err)
+      // No bloquea la aceptación: la lista puede regenerarse luego.
+    }
+  }
+
+  revalidatePath(`/cotizaciones/${id}/materiales`)
   revalidatePath(`/cotizaciones/${id}`)
   revalidatePath('/cotizaciones')
   return { ok: true }
