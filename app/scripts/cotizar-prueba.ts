@@ -66,6 +66,7 @@ async function main() {
     brocaCosto: P['fijacion_broca'], autoperfCosto: P['fijacion_autoperf'],
     fresadoCostoM2:   P['fresado_costo_m2'] ?? 6,
     anodizadoCostoM2: P['anodizado_costo_m2'] ?? 18,
+    mensulaSpacingM:  P['skin_mensula_spacing_mm'] ? P['skin_mensula_spacing_mm'] / 1000 : 2,
   }
 
   const input: SkinInput = {

@@ -3,9 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@react-pdf/renderer', 'bwip-js'],
-  },
+  serverExternalPackages: ['@react-pdf/renderer', 'bwip-js'],
 };
 
 export default nextConfig;
