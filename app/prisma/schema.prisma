@@ -316,9 +316,10 @@ model Cotizacion {
   ubicacionObra String?
   createdAt     DateTime          @default(now())
 
-  cliente     Cliente                  @relation(fields: [clienteId], references: [id])
-  vanos       CotizacionVano[]
-  condiciones CondicionesComerciales?
+  cliente          Cliente                  @relation(fields: [clienteId], references: [id])
+  vanos            CotizacionVano[]
+  condiciones      CondicionesComerciales?
+  listaMateriales  ListaMateriales?
 }
 
 model CotizacionVano {
@@ -332,6 +333,9 @@ model CotizacionVano {
   costoFab     Float  @default(0)
   costoMaterial Float @default(0)
   precio       Float  @default(0)
+  cara         String?
+  geometria    Json?
+  compras      Json?
 
   cotizacion Cotizacion @relation(fields: [cotizacionId], references: [id])
 }
@@ -444,4 +448,31 @@ model DisenoKp {
   diseno       String   @unique
   kp           Float
   actualizadoEn DateTime @updatedAt
+}
+
+model ListaMateriales {
+  id           String            @id
+  cotizacionId String            @unique
+  cotizacion   Cotizacion        @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  estado       String            @default("EN_REVISION")
+  createdAt    DateTime          @default(now())
+  liberadaAt   DateTime?
+  lineas       LineaMateriales[]
+}
+
+model LineaMateriales {
+  id           String          @id
+  listaId      String
+  lista        ListaMateriales @relation(fields: [listaId], references: [id], onDelete: Cascade)
+  area         String
+  cara         String?
+  insumo       String
+  unidad       String
+  cantidad     Float
+  cantidadCalc Float?
+  origen       String
+  nota         String?
+  orden        Int             @default(0)
+
+  @@index([listaId])
 }
