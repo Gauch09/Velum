@@ -15,7 +15,7 @@ interface Props { cotizacionId: string; listaId: string; estado: string; lineas:
 const fmt = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 const AREAS = ['COMPRAS', 'PRODUCCION'] as const
 
-export default function ListaMaterialesEditor({ listaId, estado, lineas }: Props) {
+export default function ListaMaterialesEditor({ cotizacionId, listaId, estado, lineas }: Props) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -35,16 +35,23 @@ export default function ListaMaterialesEditor({ listaId, estado, lineas }: Props
         <span className={`text-xs px-2 py-0.5 rounded ${editable ? 'text-amber-300 bg-amber-950' : 'text-green-300 bg-green-950'}`}>
           {editable ? 'EN REVISIÓN' : 'LIBERADA'}
         </span>
-        {editable && (
-          <button
-            type="button"
-            disabled={guardando}
-            onClick={() => correr(() => actionLiberar({ listaId }))}
-            className="text-sm bg-white text-gray-900 font-semibold px-3 py-1.5 rounded hover:bg-gray-100 disabled:opacity-40"
-          >
-            Liberar ▸
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <a href={`/api/cotizaciones/${cotizacionId}/materiales/compras/pdf`}
+             className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
+            PDF Compras
+          </a>
+          <a href={`/api/cotizaciones/${cotizacionId}/materiales/produccion/pdf`}
+             className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
+            PDF Producción
+          </a>
+          {editable && (
+            <button type="button" disabled={guardando}
+              onClick={() => correr(() => actionLiberar({ listaId }))}
+              className="text-sm bg-white text-gray-900 font-semibold px-3 py-1.5 rounded hover:bg-gray-100 disabled:opacity-40">
+              Liberar ▸
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
