@@ -34,7 +34,6 @@ export default async function CotizacionPage({ params }: Props) {
   const preliminar = generarBOM(vanosBOM, BOM_CONFIG_DEFAULT)
   const prelimCompras = preliminar.filter(l => l.area === 'COMPRAS' && l.cara === null)
   const prelimProd = preliminar.filter(l => l.area === 'PRODUCCION' && l.cara === null)
-  const fmtN = (n: number) => n.toLocaleString('es-AR', { maximumFractionDigits: 2 })
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
@@ -132,7 +131,7 @@ export default async function CotizacionPage({ params }: Props) {
                 <p className="text-gray-500 text-xs mb-1">A comprar (estimado)</p>
                 {prelimCompras.map((l, i) => (
                   <div key={i} className="flex justify-between text-gray-300">
-                    <span>{l.insumo}</span><span>{fmtN(l.cantidad)} {l.unidad}</span>
+                    <span>{l.insumo}</span><span>{fmt(l.cantidad)} {l.unidad}</span>
                   </div>
                 ))}
               </div>
@@ -140,7 +139,7 @@ export default async function CotizacionPage({ params }: Props) {
                 <p className="text-gray-500 text-xs mb-1">A producir</p>
                 {prelimProd.map((l, i) => (
                   <div key={i} className="flex justify-between text-gray-300">
-                    <span>{l.insumo}</span><span>{fmtN(l.cantidad)} {l.unidad}</span>
+                    <span>{l.insumo}</span><span>{fmt(l.cantidad)} {l.unidad}</span>
                   </div>
                 ))}
               </div>

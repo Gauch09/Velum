@@ -36,14 +36,16 @@ export default function ListaMaterialesEditor({ cotizacionId, listaId, estado, l
           {editable ? 'EN REVISIÓN' : 'LIBERADA'}
         </span>
         <div className="flex items-center gap-2">
-          <a href={`/api/cotizaciones/${cotizacionId}/materiales/compras/pdf`}
-             className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
-            PDF Compras
-          </a>
-          <a href={`/api/cotizaciones/${cotizacionId}/materiales/produccion/pdf`}
-             className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
-            PDF Producción
-          </a>
+          {lineas.length > 0 && (<>
+            <a href={`/api/cotizaciones/${cotizacionId}/materiales/compras/pdf`}
+               className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
+              PDF Compras
+            </a>
+            <a href={`/api/cotizaciones/${cotizacionId}/materiales/produccion/pdf`}
+               className="text-sm border border-gray-600 text-gray-300 px-3 py-1.5 rounded hover:border-gray-400 hover:text-white">
+              PDF Producción
+            </a>
+          </>)}
           {editable && (
             <button type="button" disabled={guardando}
               onClick={() => correr(() => actionLiberar({ listaId }))}
@@ -53,6 +55,12 @@ export default function ListaMaterialesEditor({ cotizacionId, listaId, estado, l
           )}
         </div>
       </div>
+
+      {lineas.length === 0 && (
+        <div className="bg-gray-900 rounded-lg p-4 text-gray-400 text-sm">
+          Esta cotización no generó materiales calculados (la obra no incluye sistemas con despiece automático).
+        </div>
+      )}
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -122,7 +130,7 @@ function AgregarLinea({ area, guardando, onAgregar }: {
   onAgregar: (p: { insumo: string; unidad: 'un'|'kg'|'m2'|'chapa'; cantidad: number; nota?: string }) => void
 }) {
   const [insumo, setInsumo] = useState('')
-  const [unidad, setUnidad] = useState<'un'|'kg'|'m2'|'chapa'>(area === 'COMPRAS' ? 'un' : 'un')
+  const [unidad, setUnidad] = useState<'un'|'kg'|'m2'|'chapa'>('un')
   const [cantidad, setCantidad] = useState('1')
   const inp = 'bg-gray-800 border border-gray-700 rounded px-2 py-1 text-white text-sm'
   return (
