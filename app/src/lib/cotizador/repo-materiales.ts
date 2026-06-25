@@ -25,7 +25,8 @@ export async function generarSnapshot(cotizacionId: string): Promise<{ id: strin
   const lineasBOM = generarBOM(entrada, BOM_CONFIG_DEFAULT)
 
   // Una sola lista por cotización: si existe, borrarla (cascade borra líneas) y regenerar
-  await sb.from('ListaMateriales').delete().eq('cotizacionId', cotizacionId)
+  const { error: eDel } = await sb.from('ListaMateriales').delete().eq('cotizacionId', cotizacionId)
+  if (eDel) throw new Error(`generarSnapshot/delete: ${eDel.message}`)
 
   const listaId = crypto.randomUUID()
   const { error: eL } = await sb.from('ListaMateriales').insert([{
